@@ -1,5 +1,7 @@
 package io.github.Spyfall.android;
 
+import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;

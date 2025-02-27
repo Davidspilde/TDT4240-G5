@@ -2,7 +2,7 @@
 
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
 
-A sample project implementing a 2D platformer. Includes launchers for each platform and a small but playable game.
+This project was generated with a template including simple application launchers and a main class extending `Game` that sets the first screen.
 
 ## Platforms
 
