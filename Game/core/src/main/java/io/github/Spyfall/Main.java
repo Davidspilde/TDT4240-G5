@@ -27,6 +27,8 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create() {
         camera = new OrthographicCamera();
+        camera.setToOrtho(false,WIDTH,HEIGHT);
+        camera.update();
         viewport = new ExtendViewport(WIDTH,HEIGHT,camera);
         gameClient = GameLauncher.initGameClient(camera, viewport);
     }
@@ -40,9 +42,7 @@ public class Main extends ApplicationAdapter {
     public void resize(int width, int height){
         viewport.update(width, height);
         viewport.apply();
-        camera.viewportWidth = width;
-        camera.viewportHeight = height;
+        camera.setToOrtho(false,width,height);
         camera.update();
-        camera.position.set((float) Gdx.graphics.getWidth() / 2, (float) Gdx.graphics.getHeight() / 2, 0);
     }
 }

@@ -1,6 +1,6 @@
 package io.github.Spyfall.ecs.components;
 
-public class ButtonComponent {
+public class ButtonComponent implements Component {
     public ButtonEnum type;
     public Runnable callback;
     public enum ButtonEnum {

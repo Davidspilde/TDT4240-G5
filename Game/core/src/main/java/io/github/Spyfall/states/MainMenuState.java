@@ -13,6 +13,7 @@ import io.github.Spyfall.ecs.components.PositionComponent;
 import io.github.Spyfall.ecs.observers.ButtonListener;
 import io.github.Spyfall.ecs.components.ButtonComponent;
 import io.github.Spyfall.ecs.systems.RenderingSystem;
+import io.github.Spyfall.states.ui.ButtonFactory;
 
 public class MainMenuState extends State implements ButtonListener {
 
@@ -29,11 +30,14 @@ public class MainMenuState extends State implements ButtonListener {
 
         Entity background = new Entity();
         PositionComponent positionComponent = new PositionComponent(0,0);
-        DrawableComponent drawableComponent = new DrawableComponent(DrawableComponent.DrawableType.SPRITE,new TextureRegion(new Texture("libgdx128.png")),null,new Vector2(1,1));
+        DrawableComponent drawableComponent = new DrawableComponent(DrawableComponent.DrawableType.SPRITE,new TextureRegion(new Texture("Background.jpg")),null,new Vector2(1,1),-1);
 
         background.addComponent(positionComponent);
         background.addComponent(drawableComponent);
         ecsManager.addEntity(background);
+
+        Entity button = ButtonFactory.createButton(ButtonComponent.ButtonEnum.CREATE_LOBBY,this,new Vector2(0.35F,0.35F),null);
+        ecsManager.addEntity(button);
     }
 
     @Override

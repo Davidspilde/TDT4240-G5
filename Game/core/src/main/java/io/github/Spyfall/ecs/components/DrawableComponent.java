@@ -1,5 +1,6 @@
 package io.github.Spyfall.ecs.components;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -13,9 +14,29 @@ public class DrawableComponent implements Component{
     private Animation<TextureRegion> animation;
     private float stateTime;
     private Vector2 size;
+    private Sprite sprite;
+    private int z_index;
+
+    public DrawableComponent(DrawableType type, TextureRegion region, Animation<TextureRegion> animation, Vector2 size, int z_index) {
+        this.z_index = z_index;
+        this.type = type;
+        this.region = region;
+        this.sprite = new Sprite(region);
+        if(size == null){
+            size = new Vector2(region.getRegionWidth(),region.getRegionHeight());
+        }
+        this.sprite.setSize(size.x* Gdx.graphics.getWidth(),size.y*Gdx.graphics.getHeight());
+        if(animation != null){
+            this.animation = animation;
+        }
+    }
 
     public DrawableType getType() {
         return type;
+    }
+
+    public int getZ_index(){
+        return z_index;
     }
 
     public Animation<TextureRegion> getAnimation() {
@@ -37,13 +58,15 @@ public class DrawableComponent implements Component{
         this.stateTime++;
     }
 
-    //Bruke Sprite istedenfor textureregion? Forskjellen så langt jeg skjønner er at sprite kan ha posisjon + hvor langt den skal gå og at den scaler basert på det
-    public DrawableComponent(DrawableType type, TextureRegion region, Animation<TextureRegion> animation, Vector2 size) {
-        this.type = type;
-        this.region = region;
-        this.animation = animation;
-        this.stateTime = 0.0f;
-        this.size = size;
+    private TextureRegion getAnimationFrame(){
+        return animation.getKeyFrame(stateTime,true);
     }
 
+    public Sprite getSprite() {
+        return sprite;
+    }
+
+    public void changeFrame(){
+        this.sprite.setRegion(getAnimationFrame());
+    }
 }
