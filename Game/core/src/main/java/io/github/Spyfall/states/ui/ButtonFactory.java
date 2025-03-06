@@ -13,7 +13,7 @@ import io.github.Spyfall.ecs.observers.ButtonListener;
 
 public class ButtonFactory {
 
-    public static Entity createButton(ButtonEnum type, ButtonListener listener, Vector2 position,Vector2 size){
+    public static Entity createButton(ButtonEnum type, ButtonListener listener, Vector2 position,Vector2 size,int scale){
         Entity button = new Entity();
         Runnable callback = () -> {
             listener.onAction(type);
@@ -21,7 +21,9 @@ public class ButtonFactory {
 
         ButtonComponent buttonComponent = new ButtonComponent(type, callback);
         PositionComponent positionComponent = new PositionComponent(position);
-        DrawableComponent drawableComponent = new DrawableComponent(DrawableComponent.DrawableType.SPRITE,getTexture(type),null,new Vector2(0.5F,0.5F),0);
+        TextureRegion region = getTexture(type);
+        assert region != null;
+        DrawableComponent drawableComponent = new DrawableComponent(DrawableComponent.DrawableType.SPRITE,region,null,new Vector2(region.getRegionWidth(),region.getRegionHeight()),0,scale);
         button.addComponent(buttonComponent);
         button.addComponent(positionComponent);
         button.addComponent(drawableComponent);

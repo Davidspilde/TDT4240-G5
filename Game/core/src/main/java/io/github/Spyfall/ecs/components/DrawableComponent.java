@@ -16,16 +16,19 @@ public class DrawableComponent implements Component{
     private Vector2 size;
     private Sprite sprite;
     private int z_index;
+    private int scale;
 
-    public DrawableComponent(DrawableType type, TextureRegion region, Animation<TextureRegion> animation, Vector2 size, int z_index) {
+    public DrawableComponent(DrawableType type, TextureRegion region, Animation<TextureRegion> animation, Vector2 size, int z_index, int scale) {
         this.z_index = z_index;
         this.type = type;
         this.region = region;
+        this.scale = scale;
         this.sprite = new Sprite(region);
         if(size == null){
             size = new Vector2(region.getRegionWidth(),region.getRegionHeight());
         }
-        this.sprite.setSize(size.x* Gdx.graphics.getWidth(),size.y*Gdx.graphics.getHeight());
+        this.sprite.setSize(size.x,size.y);
+        this.sprite.setScale(scale);
         if(animation != null){
             this.animation = animation;
         }
