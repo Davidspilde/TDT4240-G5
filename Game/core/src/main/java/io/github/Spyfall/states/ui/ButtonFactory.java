@@ -35,6 +35,9 @@ public class ButtonFactory {
             case CREATE_LOBBY -> {
                 return new TextureRegion(new Texture("create_game.png"));
             }
+            case JOIN_LOBBY -> {
+                return new TextureRegion(new Texture("join_game_button.png"));
+            }
         }
         return null;
     }

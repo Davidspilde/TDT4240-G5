@@ -49,14 +49,11 @@ public class MainMenuState extends State implements ButtonListener {
 
 
         //Når man scaler så er posisjonen den tegner på skalert. AKA for 100x100*5 blir x 310 ikke 235
-        Entity button = ButtonFactory.createButton(ButtonComponent.ButtonEnum.CREATE_LOBBY,this,new Vector2(310,700),null,5);
-        ecsManager.addEntity(button);
+        Entity create_game_button = ButtonFactory.createButton(ButtonComponent.ButtonEnum.CREATE_LOBBY,this,new Vector2(310,500),null,7);
+        ecsManager.addEntity(create_game_button);
 
-        Entity button1 = ButtonFactory.createButton(ButtonComponent.ButtonEnum.CREATE_LOBBY,this,new Vector2(310,500),null,5);
-        ecsManager.addEntity(button1);
-
-        Entity button2 = ButtonFactory.createButton(ButtonComponent.ButtonEnum.CREATE_LOBBY,this,new Vector2(310,300),null,5);
-        ecsManager.addEntity(button2);
+        Entity join_game_button = ButtonFactory.createButton(ButtonComponent.ButtonEnum.JOIN_LOBBY,this,new Vector2(310,370),null,7);
+        ecsManager.addEntity(join_game_button);
     }
 
     @Override
