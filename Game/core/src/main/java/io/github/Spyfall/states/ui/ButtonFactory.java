@@ -30,13 +30,14 @@ public class ButtonFactory {
         return button;
     }
 
+    //klarte å name filene feil💀
     private static TextureRegion getTexture(ButtonEnum type){
         switch (type){
             case CREATE_LOBBY -> {
-                return new TextureRegion(new Texture("create_game.png"));
+                return new TextureRegion(new Texture("join_game_from_paint.png"));
             }
             case JOIN_LOBBY -> {
-                return new TextureRegion(new Texture("join_game_button.png"));
+                return new TextureRegion(new Texture("create_game_from_paint.png"));
             }
         }
         return null;
