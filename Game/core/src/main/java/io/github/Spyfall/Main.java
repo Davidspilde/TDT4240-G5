@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.client.GameClient;
 import io.github.Spyfall.launcher.GameLauncher;
 import io.github.Spyfall.states.StateManager;
@@ -26,11 +27,14 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void create() {
+        AssetLoader.load();
         camera = new OrthographicCamera();
         camera.setToOrtho(false,WIDTH,HEIGHT);
         camera.update();
         viewport = new ExtendViewport(WIDTH,HEIGHT,camera);
         gameClient = GameLauncher.initGameClient(camera, viewport);
+
+        AssetLoader.load();
     }
 
     @Override
