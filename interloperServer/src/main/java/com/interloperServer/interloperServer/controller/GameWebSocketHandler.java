@@ -1,5 +1,6 @@
 package com.interloperServer.interloperServer.controller;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -27,61 +28,43 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
      * Reads message and delegates to service
      */
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
         ChatMessage receivedMessage = objectMapper.readValue(message.getPayload(), ChatMessage.class);
         String content = receivedMessage.getContent();
 
-        // Creates a new lobby with the creator as host
-        // Example message: {"content": "createLobby:Alice"}
-        // Example response: Lobby Created! Code: a48465 (Host: Alice)
         if (content.startsWith("createLobby:")) {
-            String username = content.split(":")[1];
-            String lobbyCode = lobbyService.createLobby(session, username);
-            session.sendMessage(new TextMessage("Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")"));
+            String username = content.split(":")[1].trim();
+            lobbyService.createLobby(session, username);
             return;
         }
 
-        // Tries to join an existing lobby if it exists
-        // Example message: {"content": "joinLobby:a48465:Bob"}
-        // Example response: Joined Lobby: a48465. Host: Alice
         if (content.startsWith("joinLobby:")) {
             String[] parts = content.split(":");
-            String lobbyCode = parts[1];
-            String username = parts[2];
-
-            boolean success = lobbyService.joinLobby(session, lobbyCode, username);
-            if (success) {
-                session.sendMessage(new TextMessage("Joined Lobby: " + lobbyCode + ". Host: " + lobbyService.getLobbyHost(lobbyCode).getUsername()));
-            } else {
-                session.sendMessage(new TextMessage("Lobby Not Found!"));
-            }
+            String lobbyCode = parts[1].trim();
+            String username = parts[2].trim();
+            lobbyService.joinLobby(session, lobbyCode, username);
             return;
         }
 
-        // Starts the game if sender is host
-        // Example message: {"content": "startGame:a9b7f9", "username": "Alice"}
-        // Example response: Game started!
         if (content.startsWith("startGame:")) {
-            String lobbyCode = content.split(":")[1];
+            String lobbyCode = content.split(":")[1].trim();
             String receivedUsername = receivedMessage.getUsername();
-        
-            System.out.println("Received username for starting game: " + receivedUsername);
-            System.out.println("Expected host: " + lobbyService.getLobbyHost(lobbyCode).getUsername());
-        
-            boolean gameStarted = gameService.startGame(lobbyCode, receivedUsername, lobbyService);
-            if (gameStarted) {
-                session.sendMessage(new TextMessage("Game started!"));
-            } else {
-                session.sendMessage(new TextMessage("Only the host can start the game."));
-            }
+            gameService.startGame(lobbyCode, receivedUsername, lobbyService, session);
             return;
-        }
-        
+        }        
     }
 
-    // Removes player from lobbies when the connection is closed
+    /**
+     * Removes player from lobby and game when they disconnect
+     */
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         lobbyService.removeUser(session);
+
+        // Check if the user was in a game
+        for (String lobbyCode : gameService.getActiveGames().keySet()) {
+            gameService.handlePlayerDisconnect(session, lobbyCode);
+        }
     }
+
 }

@@ -1,8 +1,10 @@
 package com.interloperServer.interloperServer.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
 
@@ -28,6 +30,8 @@ public class LobbyService {
         String lobbyCode = UUID.randomUUID().toString().substring(0, 6);
         Player host = new Player(session, username, LobbyRole.HOST);
         lobbies.put(lobbyCode, new ArrayList<>(List.of(host))); // Store as a list of Players
+        
+        sendMessage(session, "Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")");
         return lobbyCode;
     }
 
@@ -39,11 +43,18 @@ public class LobbyService {
      */
     public boolean joinLobby(WebSocketSession session, String lobbyCode, String username) {
         if (!lobbies.containsKey(lobbyCode)) {
+            sendMessage(session, "Lobby Not Found!");
             return false;
         }
+    
         lobbies.get(lobbyCode).add(new Player(session, username, LobbyRole.PLAYER));
+        sendMessage(session, "Joined Lobby: " + lobbyCode + ". Host: " + getLobbyHost(lobbyCode).getUsername());
+    
+        // Notify all users in the lobby
+        broadcastPlayerList(lobbyCode);
         return true;
     }
+    
 
     /**
      * Gets the host of a given lobby.
@@ -84,5 +95,40 @@ public class LobbyService {
 
     public List<Player> getPlayersInLobby(String lobbyCode) {
         return lobbies.getOrDefault(lobbyCode, new ArrayList<>());
+    }
+
+    /**
+     * Sends the current members of a lobby to every member in that lobby
+     * @param lobbyCode 
+     */
+    public void broadcastPlayerList(String lobbyCode) {
+        if (!lobbies.containsKey(lobbyCode)) {
+            return;
+        }
+
+        List<Player> players = lobbies.get(lobbyCode);
+        List<String> usernames = players.stream().map(Player::getUsername).toList();
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String message = objectMapper.writeValueAsString(usernames);
+
+            for (Player player : players) {
+                player.getSession().sendMessage(new TextMessage("Lobby Update: " + message));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sends a message to a single player.
+     */
+    private void sendMessage(WebSocketSession session, String message) {
+        try {
+            session.sendMessage(new TextMessage(message));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
