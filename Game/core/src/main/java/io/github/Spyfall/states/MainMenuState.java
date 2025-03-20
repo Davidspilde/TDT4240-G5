@@ -59,9 +59,7 @@ public class MainMenuState extends State implements ButtonListener {
     @Override
     public void onAction(ButtonComponent.ButtonEnum type) {
         switch (type){
-            case JOIN_LOBBY -> stateManager.setState(States.JOIN_LOBBY);
-            case CREATE_LOBBY -> stateManager.setState(States.CREATE_LOBBY);
-//            case TUTORIAL -> stateManager.setState(new );
+
         }
     }
 }

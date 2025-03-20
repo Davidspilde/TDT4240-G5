@@ -1,37 +1,45 @@
 package io.github.Spyfall.client;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.Spyfall.client.observers.StateListener;
 import io.github.Spyfall.ecs.ECSManager;
+import io.github.Spyfall.stages.MainMenuStage;
+import io.github.Spyfall.stages.StageController;
+import io.github.Spyfall.stages.StageManager;
+import io.github.Spyfall.stages.Stages;
 import io.github.Spyfall.states.MainMenuState;
 import io.github.Spyfall.states.State;
 import io.github.Spyfall.states.StateManager;
 import io.github.Spyfall.states.States;
 
 public class GameClient {
-    private StateManager stateManager;
+    private StageManager stageManager;
     private ECSManager ecsManager;
-    private State currentState;
+    private MainMenuStage currentStage;
     private OrthographicCamera camera;
-    private Viewport viewport;
+    public ScreenViewport viewport;
 
-    public GameClient(OrthographicCamera camera, Viewport viewport) {
-        this.camera = camera;
+    public GameClient(ScreenViewport viewport) {
         this.viewport = viewport;
-        ecsManager = ECSManager.getInstance();
-        stateManager = StateManager.getInstance(this);
-        stateManager.setState(States.MAIN_MENU);
+        stageManager = StageManager.getInstance(this);
+        stageManager.setStage(new MainMenuStage(viewport));
+        currentStage = stageManager.getStage();
+    }
+
+    public void onStateChanged(MainMenuStage currentStage) {
+        this.currentStage = currentStage;
+    }
+
+    public void resize(int width, int height){
+        currentStage.getStage().getViewport().update(width,height);
     }
 
     public void update(){
-        ecsManager.update();
-    }
-
-    public void onStateChanged(State currentState) {
-        this.currentState = currentState;
-        ecsManager.clearEntities();
-        currentState.initState(ecsManager,camera,viewport);
+        currentStage.getStage().act();
+        currentStage.getStage().draw();
     }
 }

@@ -34,10 +34,10 @@ public class ButtonFactory {
     private static TextureRegion getTexture(ButtonEnum type){
         switch (type){
             case CREATE_LOBBY -> {
-                return new TextureRegion(new Texture("join_game_from_paint.png"));
+                return new TextureRegion(new Texture("create_game_from_paint.png"));
             }
             case JOIN_LOBBY -> {
-                return new TextureRegion(new Texture("create_game_from_paint.png"));
+                return new TextureRegion(new Texture("joingame_from_paint.png"));
             }
         }
         return null;
