@@ -2,6 +2,7 @@ package io.github.Spyfall.ecs.systems;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.ecs.Entity;
 import io.github.Spyfall.ecs.System;
 import io.github.Spyfall.ecs.components.DrawableComponent;
@@ -24,12 +26,14 @@ public class RenderingSystem implements System {
     private Viewport viewport;
     private List<Entity> entities;
     private boolean transformation;
+    private BitmapFont font;
 
     public RenderingSystem(OrthographicCamera camera, Viewport viewport){
         this.sb = new SpriteBatch();
         this.camera = camera;
         this.viewport = viewport;
         this.transformation = false;
+        font = AssetLoader.font;
     }
 
     @Override

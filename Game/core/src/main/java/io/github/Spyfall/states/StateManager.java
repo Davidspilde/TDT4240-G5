@@ -1,6 +1,8 @@
 package io.github.Spyfall.states;
 
+import io.github.Spyfall.Main;
 import io.github.Spyfall.client.GameClient;
+import io.github.Spyfall.stages.MainMenuStage;
 
 
 public class StateManager{
@@ -16,13 +18,9 @@ public class StateManager{
     public static StateManager getInstance(GameClient listener){
         return (instance == null) ? (instance = new StateManager(listener)) : instance;
     }
-    public void setState(States newState){
-        switch (newState) {
-            case CREATE_LOBBY -> this.currentState = new CreateGameState(this);
-            case JOIN_LOBBY -> this.currentState = new JoinGameState(this);
-            case MAIN_MENU -> this.currentState = new MainMenuState(this);
-        }
-        listener.onStateChanged(this.currentState);
+    public void setStage(MainMenuStage newState){
+
+
     }
 
 
