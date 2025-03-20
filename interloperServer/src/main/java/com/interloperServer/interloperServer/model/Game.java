@@ -30,11 +30,18 @@ public class Game {
     }
 
     public String getLobbyCode() { return lobbyCode; }
+
     public boolean isActive() { return isActive; }
+
     public int getCurrentRoundIndex() { return currentRoundIndex; }
     public Round getCurrentRound() { return rounds.get(currentRoundIndex); }
+    
+    public boolean hasMoreRounds() {
+        return currentRoundIndex < rounds.size() - 1;
+    }
+    
+
     public List<Player> getPlayers() { return players; }
-    public Map<String, Integer> getScoreboard() { return scoreboard; }
 
     public void startNextRound() {
         if (currentRoundIndex < rounds.size() - 1) {
@@ -42,6 +49,10 @@ public class Game {
         } else {
             isActive = false; // End the game after all rounds
         }
+    }
+
+    public Map<String, Integer> getScoreboard() {
+        return scoreboard;
     }
 
     public void updateScore(String username, int points) {
