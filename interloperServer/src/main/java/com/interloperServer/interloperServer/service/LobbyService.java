@@ -27,7 +27,13 @@ public class LobbyService {
      * @return The newly created lobby code
      */
     public String createLobby(WebSocketSession session, String username) {
-        String lobbyCode = UUID.randomUUID().toString().substring(0, 6);
+        String lobbyCode;
+
+        // Ensure uniqueness of lobby code
+        do {
+            lobbyCode = UUID.randomUUID().toString().substring(0, 6);
+        } while (lobbies.containsKey(lobbyCode)); 
+
         Player host = new Player(session, username, LobbyRole.HOST);
         lobbies.put(lobbyCode, new ArrayList<>(List.of(host))); // Store as a list of Players
         

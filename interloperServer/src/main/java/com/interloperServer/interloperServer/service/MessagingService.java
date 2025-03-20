@@ -17,18 +17,6 @@ public class MessagingService {
     /**
      * Sends a message to all players in a game.
      */
-    public void broadcastMessage(Map<String, Game> activeGames, String lobbyCode, String message) {
-        Game game = activeGames.get(lobbyCode);
-        if (game == null) return;
-
-        for (Player player : game.getPlayers()) {
-            sendMessage(player.getSession(), message);
-        }
-    }
-
-    /**
-     * Sends a message to all players in a game.
-     */
     public void broadcastMessage(Game game, String message) {
         for (Player player : game.getPlayers()) {
             sendMessage(player.getSession(), message);

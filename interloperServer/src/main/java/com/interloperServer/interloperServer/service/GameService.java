@@ -137,7 +137,10 @@ public class GameService {
      * Ends a game and removes it from active games.
      */
     public void endGame(String lobbyCode) {
+        Game game = activeGames.get(lobbyCode);
+        if (game == null) return;
+
         activeGames.remove(lobbyCode);
-        messagingService.broadcastMessage(activeGames, lobbyCode, "Game has ended.");
+        messagingService.broadcastMessage(game, "Game has ended.");
     }
 }
