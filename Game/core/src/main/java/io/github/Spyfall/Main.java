@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.client.GameClient;
 import io.github.Spyfall.launcher.GameLauncher;
 import io.github.Spyfall.stages.StageManager;
