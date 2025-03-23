@@ -13,13 +13,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class GameService {
+    private final GameManagerService gameManagerService;
     private final VotingService votingService;
     private final RoundService roundService;
     private final RoleService roleService;
     private final MessagingService messagingService;
 
     // All active games
-    private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
+    //private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
 
     /**
      * Initializes the game service with its dependent services
@@ -27,11 +28,12 @@ public class GameService {
      * @param roundService
      * @param roleService
      */
-    public GameService(VotingService votingService, RoundService roundService, RoleService roleService, MessagingService messagingService) {
+    public GameService(VotingService votingService, RoundService roundService, RoleService roleService, MessagingService messagingService, GameManagerService gameManagerService) {
         this.votingService = votingService;
         this.roundService = roundService;
         this.roleService = roleService;
         this.messagingService = messagingService;
+        this.gameManagerService = gameManagerService;
     }
     
     /**
@@ -48,14 +50,17 @@ public class GameService {
         List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
 
         // Create a new game instance for this lobby
-        Game game = new Game(lobbyCode, players, 5); // Example: 5 rounds
-        activeGames.put(lobbyCode, game);
+        Game game = new Game(lobbyCode, players, 5, 10); // Example: 5 rounds, 20 seconds per round
+        gameManagerService.storeGame(lobbyCode, game);
 
         if (!game.getPlayers().isEmpty()) {
             roleService.assignRoles(game);
         }
         
         messagingService.broadcastMessage(game, "Game started! First location: " + game.getCurrentRound().getLocation());
+        
+        // Start voting countdown for the first round
+        startVotingCountdownAfterRoundStart(lobbyCode);
 
         return true;
     }
@@ -65,7 +70,7 @@ public class GameService {
      * Ends the game if the player to disconnect is the only one left
      */
     public void handlePlayerDisconnect(WebSocketSession session, String lobbyCode) {
-        Game game = activeGames.get(lobbyCode);
+        Game game = gameManagerService.getGame(lobbyCode);
         if (game == null) return;
     
         // Find the player who disconnected
@@ -91,9 +96,25 @@ public class GameService {
     
         // If the game is now empty, end it
         if (game.getPlayers().isEmpty()) {
-            endGame(lobbyCode);
+            gameManagerService.removeGame(lobbyCode); // Remove game when empty
+            messagingService.broadcastMessage(game, "Game has ended.");
         }
     }
+
+    public void startVotingCountdownAfterRoundStart(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null) return;
+    
+        int roundDuration = game.getCurrentRound().getRoundDuration();
+    
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                beginVotingPhase(lobbyCode);
+            }
+        }, roundDuration * 1000);
+    }
+    
 
     /**
      * Casts a vote for the spy from a user to another user for the current round
@@ -102,45 +123,50 @@ public class GameService {
      * @param target the username of the player being voted for
      */
     public void castVote(String lobbyCode, String voter, String target) {
-        Game game = activeGames.get(lobbyCode);
+        Game game = gameManagerService.getGame(lobbyCode);
         if (game == null) return;
     
-        votingService.castVote(game, voter, target); 
+        votingService.castVote(lobbyCode, voter, target); 
     }
+
+    public void checkVotingAndAdvance(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null) return;
     
-
-    /**
-     * Retrieves a game by lobby code.
-     */
-    public Game getGame(String lobbyCode) {
-        return activeGames.get(lobbyCode);
-    }
-
-    /**
-     * Retrieves all games
-     */
-    public Map<String, Game> getActiveGames() {
-        return activeGames;
+        Round currentRound = game.getCurrentRound();
+        if (currentRound.isVotingComplete()) {
+            advanceRound(lobbyCode);
+        } else {
+            messagingService.broadcastMessage(game, "Voting is not complete yet!");
+        }
     }
     
     /**
      * Advances the game to the next round (delegated to `RoundService`).
      */
-    public boolean advanceRound(String lobbyCode) {
-        Game game = activeGames.get(lobbyCode);
-        if (game == null) return false;
-        roundService.advanceRound(game);
-        return true;
+    public void advanceRound(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null) return;
+        roundService.advanceRound(lobbyCode);
+        
+        // Start countdown for voting
+        startVotingCountdownAfterRoundStart(lobbyCode);
     }
+
+    public void beginVotingPhase(String lobbyCode) {
+        votingService.startVotingPhase(lobbyCode);
+    }
+    
     
     /**
      * Ends a game and removes it from active games.
      */
     public void endGame(String lobbyCode) {
-        Game game = activeGames.get(lobbyCode);
+        Game game = gameManagerService.getGame(lobbyCode);
         if (game == null) return;
-
-        activeGames.remove(lobbyCode);
+    
+        gameManagerService.removeGame(lobbyCode);
         messagingService.broadcastMessage(game, "Game has ended.");
     }
+    
 }

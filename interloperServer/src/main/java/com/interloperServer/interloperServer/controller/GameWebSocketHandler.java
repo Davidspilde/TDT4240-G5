@@ -6,6 +6,7 @@ import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.ChatMessage;
+import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
 import com.interloperServer.interloperServer.service.LobbyService;
 
@@ -16,12 +17,14 @@ import com.interloperServer.interloperServer.service.LobbyService;
 public class GameWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
     private final LobbyService lobbyService;
+    private final GameManagerService gameManagerService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService) {
+    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService, GameManagerService gameManagerService) {
         this.gameService = gameService;
         this.lobbyService = lobbyService;
+        this.gameManagerService = gameManagerService;
     }
 
     /**
@@ -62,9 +65,10 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         lobbyService.removeUser(session);
 
         // Check if the user was in a game
-        for (String lobbyCode : gameService.getActiveGames().keySet()) {
+        for (String lobbyCode : gameManagerService.getAllGameCodes()) {
             gameService.handlePlayerDisconnect(session, lobbyCode);
         }
+        
     }
 
 }

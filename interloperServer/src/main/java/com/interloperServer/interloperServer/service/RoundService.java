@@ -1,4 +1,7 @@
 package com.interloperServer.interloperServer.service;
+import java.util.TimerTask;
+import java.util.Timer;
+
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
@@ -8,16 +11,21 @@ import com.interloperServer.interloperServer.model.Game;
 public class RoundService {
     private final MessagingService messagingService;
     private final RoleService roleService;
+    private final GameManagerService gameManagerService;
 
-    public RoundService(MessagingService messagingService, RoleService roleService) {
+
+    public RoundService(MessagingService messagingService, RoleService roleService, GameManagerService gameManagerService) {
         this.messagingService = messagingService;
         this.roleService = roleService;
+        this.gameManagerService = gameManagerService;
     }
 
     /**
      * Advances the round for a specific game.
      */
-    public void advanceRound(Game game) {
+    public void advanceRound(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
+
         game.getCurrentRound().endRound();
 
         // Check if there are more rounds
@@ -33,5 +41,15 @@ public class RoundService {
         }
 
         messagingService.broadcastMessage(game, "New round started! Location: " + game.getCurrentRound().getLocation());
+
+        // // Use round duration from current round
+        // int roundDuration = game.getCurrentRound().getRoundDuration();
+
+        // new Timer().schedule(new TimerTask() {
+        //     @Override
+        //     public void run() {
+        //         gameService.beginVotingPhase(lobbyCode); 
+        //     }
+        // }, roundDuration * 1000);
     }
 }

@@ -10,13 +10,16 @@ public class Game {
     private boolean isActive;
     private int currentRoundIndex;
 
-    public Game(String lobbyCode, List<Player> players, int totalRounds) {
+    private int roundDuration;
+
+    public Game(String lobbyCode, List<Player> players, int totalRounds, int roundDuration) {
         this.lobbyCode = lobbyCode;
         this.players = new ArrayList<>(players);
         this.rounds = new ArrayList<>();
         this.scoreboard = new HashMap<>();
         this.isActive = true;
         this.currentRoundIndex = 0;
+        this.roundDuration = roundDuration;
 
         // Initialize the scoreboard (all players start with 0 points)
         for (Player player : players) {
@@ -25,7 +28,7 @@ public class Game {
 
         // Create all rounds
         for (int i = 0; i < totalRounds; i++) {
-            this.rounds.add(new Round(i + 1));
+            this.rounds.add(new Round(i + 1, roundDuration));
         }
     }
 
@@ -40,6 +43,9 @@ public class Game {
         return currentRoundIndex < rounds.size() - 1;
     }
     
+    public int getRoundDuration() {
+        return roundDuration;
+    }
 
     public List<Player> getPlayers() { return players; }
 

@@ -13,11 +13,20 @@ import com.interloperServer.interloperServer.model.Round;
 @Service
 public class VotingService {
     private final MessagingService messagingService;
-    private final RoundService roundService;
+    private final GameManagerService gameManagerService;
 
-    public VotingService(MessagingService messagingService, RoundService roundService){
+
+    public VotingService(MessagingService messagingService, GameManagerService gameManagerService){
         this.messagingService = messagingService;
-        this.roundService = roundService;
+        this.gameManagerService = gameManagerService;
+    }
+
+    public void startVotingPhase(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null) return;
+
+        game.getCurrentRound().clearVotes(); // Reset votes
+        messagingService.broadcastMessage(game, "vote-phase");
     }
     
     /**
@@ -26,7 +35,8 @@ public class VotingService {
      * @param voterUsername the user voting
      * @param targetUsername the user being voted for
      */
-    public void castVote(Game game, String voterUsername, String targetUsername) {
+    public void castVote(String lobbyCode, String voterUsername, String targetUsername) {
+        Game game = gameManagerService.getGame(lobbyCode);
         if (game == null) return;
     
         Round currentRound = game.getCurrentRound();
@@ -43,7 +53,7 @@ public class VotingService {
     
         // Check if all players have voted
         if (currentRound.getVotes().size() == players.size()) {
-            evaluateVotes(game);
+            evaluateVotes(lobbyCode);
         }
     }
 
@@ -51,7 +61,8 @@ public class VotingService {
      * Checks if the players have managed to vote out the spy
      * @param lobbyCode the lobby having the vote
      */
-    public void evaluateVotes(Game game) {
+    public void evaluateVotes(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
         if (game == null) return;
     
         Round currentRound = game.getCurrentRound();
@@ -60,7 +71,7 @@ public class VotingService {
         
         if (votes.isEmpty()) {
             messagingService.broadcastMessage(game, "No votes were cast. Moving to the next round.");
-            roundService.advanceRound(game);
+            currentRound.setVotingComplete();
             return;
         }
     
@@ -103,7 +114,7 @@ public class VotingService {
         messagingService.broadcastMessage(game, "Current Scores: " + game.getScoreboard().toString());
     
         // Move to the next round
-        roundService.advanceRound(game);
+        currentRound.setVotingComplete();
         currentRound.clearVotes(); // Reset votes for the next round
     }
 }
