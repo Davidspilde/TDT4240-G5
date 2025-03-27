@@ -17,6 +17,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.Spyfall.client.GameClient;
 import io.github.Spyfall.launcher.GameLauncher;
+import io.github.Spyfall.stages.GameStage;
 import io.github.Spyfall.stages.StageManager;
 import io.github.Spyfall.states.StateManager;
 import io.github.Spyfall.states.MainMenuState;
@@ -38,6 +39,8 @@ public class Main extends ApplicationAdapter {
     private Skin skin;
     private StageManager stageManager;
 
+    private GameStage gameStage;
+
     @Override
     public void create() {
 //        camera = new OrthographicCamera();
@@ -54,6 +57,9 @@ public class Main extends ApplicationAdapter {
 //        stage.addActor(button);
 //        gameClient = GameLauncher.initGameClient(new ScreenViewport());
         testingStage();
+
+
+
     }
 
     @Override
@@ -62,6 +68,7 @@ public class Main extends ApplicationAdapter {
         ScreenUtils.clear(Color.DARK_GRAY);
 //        gameClient.update();
         runUpdate();
+
     }
 
     @Override
@@ -73,17 +80,19 @@ public class Main extends ApplicationAdapter {
 
 //        gameClient.resize(width,height);
         resssiiizzze();
+
     }
 
 
     public void testingStage(){
-        //lag stage greier her
+        gameStage = new GameStage();
+        gameStage.initStage();
     }
     public void runUpdate(){
-        //rendergreierher
+        gameStage.update();
     }
     private void resssiiizzze() {
-        //resize stage herg
+        gameStage.resize(WIDTH, HEIGHT);
     }
 
 }
