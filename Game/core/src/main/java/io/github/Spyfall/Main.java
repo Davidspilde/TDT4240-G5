@@ -85,7 +85,7 @@ public class Main extends ApplicationAdapter {
 
 
     public void testingStage(){
-        gameStage = new GameStage();
+        gameStage = new GameStage(false,"Bank", "Clerk" );
         gameStage.initStage();
     }
     public void runUpdate(){
