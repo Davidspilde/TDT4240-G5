@@ -1,6 +1,5 @@
 package com.interloperServer.interloperServer.config;
 
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -26,4 +25,3 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(gameWebSocketHandler, "/ws/game").setAllowedOrigins("*");
     }
 }
-
