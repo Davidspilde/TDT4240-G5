@@ -1,6 +1,4 @@
 package com.interloperServer.interloperServer.service;
-import java.util.TimerTask;
-import java.util.Timer;
 
 import org.springframework.stereotype.Service;
 
@@ -41,15 +39,5 @@ public class RoundService {
         }
 
         messagingService.broadcastMessage(game, "New round started! Location: " + game.getCurrentRound().getLocation());
-
-        // // Use round duration from current round
-        // int roundDuration = game.getCurrentRound().getRoundDuration();
-
-        // new Timer().schedule(new TimerTask() {
-        //     @Override
-        //     public void run() {
-        //         gameService.beginVotingPhase(lobbyCode); 
-        //     }
-        // }, roundDuration * 1000);
     }
 }
