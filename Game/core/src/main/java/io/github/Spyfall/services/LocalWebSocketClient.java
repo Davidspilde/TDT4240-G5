@@ -6,7 +6,12 @@ import java.net.URI;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-class LocalWebSocketClient extends WebSocketClient {
+import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.utils.JsonWriter.OutputType;
+
+import io.github.Spyfall.models.ChatMessage;
+
+public class LocalWebSocketClient extends WebSocketClient {
 
     public LocalWebSocketClient(String serverUrl) throws URISyntaxException {
         super(new URI(serverUrl));
@@ -15,7 +20,10 @@ class LocalWebSocketClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshake) {
         System.out.println("Connected to server");
-        send("Hello from LibGDX!");
+        ChatMessage msg = new ChatMessage("createLobby:joe", "joe");
+        Json json = new Json();
+        json.setOutputType(OutputType.json);
+        send(json.toJson(msg));
     }
 
     @Override
