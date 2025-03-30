@@ -10,7 +10,7 @@ public class Round {
     private int roundDuration;
     private boolean votingComplete;
 
-    private final Map<String, Integer> votes = new HashMap<>(); // Tracks votes (username -> count)
+    private final Map<String, String> votes = new HashMap<>(); // voterUsername -> targetUsername
 
     public Round(int roundNumber, int roundDuration) {
         this.roundNumber = roundNumber;
@@ -20,39 +20,49 @@ public class Round {
         this.votingComplete = false;
     }
 
-    public int getRoundNumber() { return roundNumber; }
-    public String getLocation() { return location; }
-    public boolean isActive() { return isActive; }
-
-    public void endRound() { this.isActive = false; }
-
-    // Voting Methods
-    public void castVote(String targetUsername) {
-        votes.put(targetUsername, votes.getOrDefault(targetUsername, 0) + 1);
+    public int getRoundNumber() {
+        return roundNumber;
     }
 
-    public Map<String, Integer> getVotes() {
+    public String getLocation() {
+        return location;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void endRound() {
+        this.isActive = false;
+    }
+
+    // Cast a vote from one player to another
+    public void castVote(String voterUsername, String targetUsername) {
+        votes.put(voterUsername, targetUsername);
+    }
+
+    public Map<String, String> getVotes() {
         return votes;
     }
-    
+
     public void clearVotes() {
         votes.clear();
     }
 
-    public void setVotingComplete(){
+    public void setVotingComplete() {
         votingComplete = true;
     }
 
-    public boolean isVotingComplete(){
+    public boolean isVotingComplete() {
         return votingComplete;
     }
 
+    // Create the location for this round
     private String generateRandomLocation() {
-        String[] locations = {"Restaurant", "Museum", "Beach", "Space Station", "Jungle"};
+        String[] locations = { "Restaurant", "Museum", "Beach", "Space Station", "Jungle" };
         return locations[new java.util.Random().nextInt(locations.length)];
     }
 
-    
     public int getRoundDuration() {
         return roundDuration;
     }

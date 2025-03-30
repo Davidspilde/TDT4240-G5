@@ -1,7 +1,6 @@
 package com.interloperServer.interloperServer.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,14 +15,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class LobbyService {
+    private final MessagingService messagingService;
+
     // Stores lobbies and their participants (LobbyCode -> Players)
     private final Map<String, List<Player>> lobbies = new ConcurrentHashMap<>();
 
+    public LobbyService(MessagingService messagingService) {
+        this.messagingService = messagingService;
+    }
 
     /**
      * Creates a new lobby and assigns the creator as the host.
      * Example message: {"content": "createLobby:Alice"}
      * Example response: Lobby Created! Code: a48465 (Host: Alice)
+     * 
      * @return The newly created lobby code
      */
     public String createLobby(WebSocketSession session, String username) {
@@ -32,12 +37,12 @@ public class LobbyService {
         // Ensure uniqueness of lobby code
         do {
             lobbyCode = UUID.randomUUID().toString().substring(0, 6);
-        } while (lobbies.containsKey(lobbyCode)); 
+        } while (lobbies.containsKey(lobbyCode));
 
         Player host = new Player(session, username, LobbyRole.HOST);
         lobbies.put(lobbyCode, new ArrayList<>(List.of(host))); // Store as a list of Players
-        
-        sendMessage(session, "Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")");
+
+        messagingService.sendMessage(session, "Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")");
         return lobbyCode;
     }
 
@@ -45,31 +50,32 @@ public class LobbyService {
      * Adds a player to a lobby.
      * Example message: {"content": "joinLobby:a48465:Bob"}
      * Example response: Joined Lobby: a48465. Host: Alice
+     * 
      * @return True if the lobby exists, false if not
      */
     public boolean joinLobby(WebSocketSession session, String lobbyCode, String username) {
         if (!lobbies.containsKey(lobbyCode)) {
-            sendMessage(session, "Lobby Not Found!");
+            messagingService.sendMessage(session, "Lobby Not Found!");
             return false;
         }
-    
+
         lobbies.get(lobbyCode).add(new Player(session, username, LobbyRole.PLAYER));
-        sendMessage(session, "Joined Lobby: " + lobbyCode + ". Host: " + getLobbyHost(lobbyCode).getUsername());
-    
+        messagingService.sendMessage(session,
+                "Joined Lobby: " + lobbyCode + ". Host: " + getLobbyHost(lobbyCode).getUsername());
+
         // Notify all users in the lobby
         broadcastPlayerList(lobbyCode);
         return true;
     }
-    
 
     /**
      * Gets the host of a given lobby.
      */
     public Player getLobbyHost(String lobbyCode) {
         return lobbies.get(lobbyCode).stream()
-            .filter(player -> player.getLobbyRole() == LobbyRole.HOST)
-            .findFirst()
-            .orElse(null);
+                .filter(player -> player.getLobbyRole() == LobbyRole.HOST)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -105,7 +111,8 @@ public class LobbyService {
 
     /**
      * Sends the current members of a lobby to every member in that lobby
-     * @param lobbyCode 
+     * 
+     * @param lobbyCode
      */
     public void broadcastPlayerList(String lobbyCode) {
         if (!lobbies.containsKey(lobbyCode)) {
@@ -120,21 +127,11 @@ public class LobbyService {
             String message = objectMapper.writeValueAsString(usernames);
 
             for (Player player : players) {
-                player.getSession().sendMessage(new TextMessage("Lobby Update: " + message));
+                messagingService.sendMessage(player.getSession(), "Lobby Update: " + message);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Sends a message to a single player.
-     */
-    private void sendMessage(WebSocketSession session, String message) {
-        try {
-            session.sendMessage(new TextMessage(message));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
