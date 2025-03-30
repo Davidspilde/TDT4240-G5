@@ -11,7 +11,8 @@ import com.interloperServer.interloperServer.service.GameService;
 import com.interloperServer.interloperServer.service.LobbyService;
 
 /**
- * Receives all messages sent to /ws/game and delegates to the appropriate services
+ * Receives all messages sent to /ws/game and delegates to the appropriate
+ * services
  */
 @Component
 public class GameWebSocketHandler extends TextWebSocketHandler {
@@ -21,10 +22,16 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService, GameManagerService gameManagerService) {
+    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService,
+            GameManagerService gameManagerService) {
         this.gameService = gameService;
         this.lobbyService = lobbyService;
         this.gameManagerService = gameManagerService;
+    }
+
+    @Override
+    public void afterConnectionEstablished(@NonNull WebSocketSession session) {
+        System.out.println("WebSocket connected: " + session.getId());
     }
 
     /**
@@ -54,7 +61,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             String receivedUsername = receivedMessage.getUsername();
             gameService.startGame(lobbyCode, receivedUsername, lobbyService, session);
             return;
-        }        
+        }
     }
 
     /**
@@ -68,7 +75,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         for (String lobbyCode : gameManagerService.getAllGameCodes()) {
             gameService.handlePlayerDisconnect(session, lobbyCode);
         }
-        
+
     }
 
 }
