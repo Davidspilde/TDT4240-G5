@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 
 import org.springframework.stereotype.Service;
 
@@ -25,9 +26,9 @@ public class VotingService {
     /**
      * Casts a vote for the spy from a user to another user for the current round
      * 
-     * @param game           the game having a vote
-     * @param voterUsername  the user voting
-     * @param targetUsername the user being voted for
+     * @param lobbyCode the lobby for the game
+     * @param voter     the username of the player voting
+     * @param target    the username of the player being voted for
      */
     public void castVote(String lobbyCode, String voterUsername, String targetUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -104,6 +105,19 @@ public class VotingService {
         if ((highestVoteCount < majorityThreshold) && !currentRound.isVotingComplete())
             return;
 
+        // Stop timer if round is over or majority is reached
+        if ((highestVoteCount >= majorityThreshold) || currentRound.isVotingComplete()) {
+            // Cancel the countdown timer
+            Timer timer = game.getRoundTimer();
+            if (timer != null) {
+                timer.cancel();
+                game.setRoundTimer(null);
+            }
+
+            // Mark round as done
+            currentRound.setVotingComplete();
+        }
+
         // Find real spy and check if the majority vote is for the spy
         String spyName = players.stream()
                 .filter(p -> p.getGameRole() == GameRole.SPY)
@@ -151,7 +165,59 @@ public class VotingService {
         messagingService.broadcastMessage(game, "spy:" + spyName);
         messagingService.broadcastMessage(game, "scoreboard:" + game.getScoreboard());
 
-        // Mark round as done
+    }
+
+    /**
+     * The spy guesses a location
+     * 
+     * @param lobbyCode   the lobby for the game
+     * @param spyUsername the username of the spy
+     * @param location    the location being guessed
+     */
+    public void castSpyGuess(String lobbyCode, String spyUsername, String location) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null)
+            return;
+
+        Round currentRound = game.getCurrentRound();
+        List<Player> players = game.getPlayers();
+
+        Player spy = players.stream()
+                .filter(p -> p.getUsername().equals(spyUsername))
+                .findFirst()
+                .orElse(null);
+
+        // Stop if a player tries to guess location (not legal)
+        if (spy == null || spy.getGameRole() != GameRole.SPY)
+            return;
+
+        // Not legal to try after the round is over
+        if (currentRound.isVotingComplete())
+            return;
+
+        // Stop timer
+        Timer timer = game.getRoundTimer();
+        if (timer != null) {
+            timer.cancel();
+            game.setRoundTimer(null);
+        }
+
         currentRound.setVotingComplete();
+
+        // Find spy and update points
+        if (currentRound.getLocation().equals(location)) {
+            // Spy is correct
+            messagingService.broadcastMessage(game, "spyGuessCorrect");
+            game.updateScore(spyUsername, 1);
+        } else {
+            // Spy is incorrect
+            messagingService.broadcastMessage(game, "spyGuessIncorrect");
+            for (Player player : players) {
+                if (!player.getUsername().equals(spyUsername) && player.getGameRole() != GameRole.SPY) {
+                    game.updateScore(player.getUsername(), 1);
+                }
+            }
+        }
+
     }
 }

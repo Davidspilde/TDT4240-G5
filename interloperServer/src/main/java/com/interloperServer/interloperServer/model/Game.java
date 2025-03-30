@@ -6,11 +6,13 @@ public class Game {
     private final String lobbyCode;
     private final List<Player> players;
     private final List<Round> rounds;
-    private final Map<String, Integer> scoreboard; 
+    private final Map<String, Integer> scoreboard;
     private boolean isActive;
     private int currentRoundIndex;
 
     private int roundDuration;
+
+    private transient Timer roundTimer;
 
     public Game(String lobbyCode, List<Player> players, int totalRounds, int roundDuration) {
         this.lobbyCode = lobbyCode;
@@ -32,22 +34,33 @@ public class Game {
         }
     }
 
-    public String getLobbyCode() { return lobbyCode; }
+    public String getLobbyCode() {
+        return lobbyCode;
+    }
 
-    public boolean isActive() { return isActive; }
+    public boolean isActive() {
+        return isActive;
+    }
 
-    public int getCurrentRoundIndex() { return currentRoundIndex; }
-    public Round getCurrentRound() { return rounds.get(currentRoundIndex); }
-    
+    public int getCurrentRoundIndex() {
+        return currentRoundIndex;
+    }
+
+    public Round getCurrentRound() {
+        return rounds.get(currentRoundIndex);
+    }
+
     public boolean hasMoreRounds() {
         return currentRoundIndex < rounds.size() - 1;
     }
-    
+
     public int getRoundDuration() {
         return roundDuration;
     }
 
-    public List<Player> getPlayers() { return players; }
+    public List<Player> getPlayers() {
+        return players;
+    }
 
     public void startNextRound() {
         if (currentRoundIndex < rounds.size() - 1) {
@@ -63,5 +76,13 @@ public class Game {
 
     public void updateScore(String username, int points) {
         scoreboard.put(username, scoreboard.getOrDefault(username, 0) + points);
+    }
+
+    public void setRoundTimer(Timer timer) {
+        this.roundTimer = timer;
+    }
+
+    public Timer getRoundTimer() {
+        return this.roundTimer;
     }
 }

@@ -17,14 +17,14 @@ class RoleServiceTest {
     private RoleService roleService;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
         roleService = new RoleService();
     }
 
     @Test
     @DisplayName("Assign roles with 3 players: first shuffled becomes SPY, others become PLAYER")
-    void assignRolesTest() {
+    public void assignRolesTest() {
         Player p1 = new Player(null, "Player1", LobbyRole.PLAYER);
         Player p2 = new Player(null, "Player2", LobbyRole.PLAYER);
         Player p3 = new Player(null, "Player3", LobbyRole.PLAYER);
@@ -51,7 +51,7 @@ class RoleServiceTest {
 
     @Test
     @DisplayName("Should do nothing if no players in the game")
-    void assignRoles_noPlayers() {
+    public void assignRoles_noPlayers() {
         Game emptyGame = new Game("empty", new ArrayList<>(), 3, 30);
 
         roleService.assignRoles(emptyGame);
