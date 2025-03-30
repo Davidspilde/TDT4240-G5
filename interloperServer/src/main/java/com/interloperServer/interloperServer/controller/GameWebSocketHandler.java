@@ -7,10 +7,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.model.messages.AdvanceRoundMessage;
 import com.interloperServer.interloperServer.model.messages.CreateLobbyMessage;
-import com.interloperServer.interloperServer.model.messages.JoinLobbyMessage;
-import com.interloperServer.interloperServer.model.messages.StartGameMessage;
+import com.interloperServer.interloperServer.model.messages.Message;
 import com.interloperServer.interloperServer.model.messages.VoteMessage;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
@@ -69,7 +67,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "joinLobby":
-                JoinLobbyMessage joinMsg = objectMapper.treeToValue(root, JoinLobbyMessage.class);
+                Message joinMsg = objectMapper.treeToValue(root, Message.class);
                 lobbyService.joinLobby(session, joinMsg.getLobbyCode(), joinMsg.getUsername());
                 break;
 
@@ -84,7 +82,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "startGame":
-                StartGameMessage startMsg = objectMapper.treeToValue(root, StartGameMessage.class);
+                Message startMsg = objectMapper.treeToValue(root, Message.class);
                 gameService.startGame(startMsg.getLobbyCode(), startMsg.getUsername(), lobbyService, session);
                 break;
 
@@ -115,7 +113,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "advanceRound":
-                AdvanceRoundMessage advanceMsg = objectMapper.treeToValue(root, AdvanceRoundMessage.class);
+                Message advanceMsg = objectMapper.treeToValue(root, Message.class);
                 gameService.advanceRound(advanceMsg.getLobbyCode());
                 break;
 

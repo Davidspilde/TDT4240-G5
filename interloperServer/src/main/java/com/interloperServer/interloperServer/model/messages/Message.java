@@ -1,11 +1,11 @@
 package com.interloperServer.interloperServer.model.messages;
 
-public class AdvanceRoundMessage {
+public class Message {
     private String type;
     private String lobbyCode;
     private String username;
 
-    public AdvanceRoundMessage() {
+    public Message() {
     }
 
     public String getType() {

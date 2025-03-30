@@ -1,10 +1,8 @@
 package com.interloperServer.interloperServer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.model.messages.AdvanceRoundMessage;
 import com.interloperServer.interloperServer.model.messages.CreateLobbyMessage;
-import com.interloperServer.interloperServer.model.messages.JoinLobbyMessage;
-import com.interloperServer.interloperServer.model.messages.StartGameMessage;
+import com.interloperServer.interloperServer.model.messages.Message;
 import com.interloperServer.interloperServer.model.messages.VoteMessage;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
@@ -65,7 +63,7 @@ class GameWebSocketHandlerTest {
     @DisplayName("Should join lobby when message type is 'joinLobby'")
     void handle_joinLobby() throws Exception {
         // Create message
-        JoinLobbyMessage joinMsg = new JoinLobbyMessage();
+        Message joinMsg = new Message();
         joinMsg.setType("joinLobby");
         joinMsg.setLobbyCode("abc123");
         joinMsg.setUsername("Bob");
@@ -82,7 +80,7 @@ class GameWebSocketHandlerTest {
     @DisplayName("Should start game when message type is 'startGame'")
     void handle_startGame() throws Exception {
         // Create message
-        StartGameMessage startMsg = new StartGameMessage();
+        Message startMsg = new Message();
         startMsg.setType("startGame");
         startMsg.setLobbyCode("abc123");
         startMsg.setUsername("Alice");
@@ -117,7 +115,7 @@ class GameWebSocketHandlerTest {
     @DisplayName("Should advance round when message type is 'advanceRound'")
     void handle_advanceRound() throws Exception {
         // Create message
-        AdvanceRoundMessage advMsg = new AdvanceRoundMessage();
+        Message advMsg = new Message();
         advMsg.setType("advanceRound");
         advMsg.setLobbyCode("abc123");
         advMsg.setUsername("Alice");
