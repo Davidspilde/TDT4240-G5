@@ -31,7 +31,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        System.out.println("✅ WebSocket connected: " + session.getId());
+        System.out.println("WebSocket connected: " + session.getId());
     }
 
     /**
