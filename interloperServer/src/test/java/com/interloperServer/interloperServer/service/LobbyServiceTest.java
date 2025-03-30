@@ -38,7 +38,7 @@ class LobbyServiceTest {
 
     @Test
     @DisplayName("Creating a new lobby should assign the creator as host")
-    void createLobby_assignsHost() throws Exception {
+    public void createLobby_assignsHost() throws Exception {
         String username = "Player1";
         String lobbyCode = lobbyService.createLobby(session1, username);
 
@@ -60,7 +60,7 @@ class LobbyServiceTest {
 
     @Test
     @DisplayName("Joining existing lobby should add new player")
-    void joinLobby_addsPlayer() throws Exception {
+    public void joinLobby_addsPlayer() throws Exception {
         String lobbyCode = lobbyService.createLobby(session1, "Player1");
 
         boolean joined = lobbyService.joinLobby(session2, lobbyCode, "Player2");
@@ -87,7 +87,7 @@ class LobbyServiceTest {
 
     @Test
     @DisplayName("Joining non-existent lobby should send error message")
-    void joinLobby_invalidCode() throws Exception {
+    public void joinLobby_invalidCode() throws Exception {
         boolean joined = lobbyService.joinLobby(session2, "fakeCode", "Player2");
         assertFalse(joined);
 
@@ -98,7 +98,7 @@ class LobbyServiceTest {
 
     @Test
     @DisplayName("Removing user should remove them from lobby. If host leaves, new host is assigned.")
-    void removeUserTest() {
+    public void removeUserTest() {
         String lobbyCode = lobbyService.createLobby(session1, "Player1");
         lobbyService.joinLobby(session2, lobbyCode, "Player2");
 
@@ -123,7 +123,7 @@ class LobbyServiceTest {
 
     @Test
     @DisplayName("broadcastPlayerList should send updated list of usernames to all players")
-    void broadcastPlayerList() throws Exception {
+    public void broadcastPlayerList() throws Exception {
         String lobbyCode = lobbyService.createLobby(session1, "Player1");
         lobbyService.joinLobby(session2, lobbyCode, "Player2");
 
