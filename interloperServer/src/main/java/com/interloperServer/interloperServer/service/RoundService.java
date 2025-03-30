@@ -3,7 +3,8 @@ package com.interloperServer.interloperServer.service;
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
-
+import com.interloperServer.interloperServer.model.GameRole;
+import com.interloperServer.interloperServer.model.Player;
 
 @Service
 public class RoundService {
@@ -11,8 +12,8 @@ public class RoundService {
     private final RoleService roleService;
     private final GameManagerService gameManagerService;
 
-
-    public RoundService(MessagingService messagingService, RoleService roleService, GameManagerService gameManagerService) {
+    public RoundService(MessagingService messagingService, RoleService roleService,
+            GameManagerService gameManagerService) {
         this.messagingService = messagingService;
         this.roleService = roleService;
         this.gameManagerService = gameManagerService;
@@ -28,7 +29,7 @@ public class RoundService {
 
         // Check if there are more rounds
         if (!game.hasMoreRounds()) {
-            messagingService.broadcastMessage(game, "All rounds are completed! Final Scores: " + game.getScoreboard().toString());
+            messagingService.broadcastMessage(game, "gameComplete:scores: " + game.getScoreboard().toString());
             return; // The game ends here
         }
 
@@ -38,6 +39,18 @@ public class RoundService {
             roleService.assignRoles(game);
         }
 
-        messagingService.broadcastMessage(game, "New round started! Location: " + game.getCurrentRound().getLocation());
+        // Send message to players about which round it is
+        for (Player player : game.getPlayers()) {
+            // Show location to players, but not the spy
+            if (player.getGameRole() != GameRole.SPY) {
+                messagingService.sendMessage(player.getSession(),
+                        "round" + game.getCurrentRound().getRoundNumber() + ":location:"
+                                + game.getCurrentRound().getLocation());
+            } else {
+                messagingService.sendMessage(player.getSession(),
+                        "round" + game.getCurrentRound().getRoundNumber());
+            }
+        }
+
     }
 }
