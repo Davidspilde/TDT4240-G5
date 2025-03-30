@@ -36,7 +36,7 @@ class GameServiceTest {
     private Player p1, p2, p3;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
 
         p1 = new Player(mock(WebSocketSession.class), "Player1", LobbyRole.PLAYER);
@@ -51,7 +51,7 @@ class GameServiceTest {
 
     @Test
     @DisplayName("Should start game if the caller is the host")
-    void startGame_hostCanStart() {
+    public void startGame_hostCanStart() {
         when(lobbyService.isHost("lobby123", "Player3")).thenReturn(true);
         when(lobbyService.getPlayersInLobby("lobby123")).thenReturn(game.getPlayers());
 
@@ -74,7 +74,7 @@ class GameServiceTest {
 
     @Test
     @DisplayName("Should not start game if the caller is not the host")
-    void startGame_nonHostShouldFail() {
+    public void startGame_nonHostShouldFail() {
         when(lobbyService.isHost("lobby123", "Player1")).thenReturn(false);
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
@@ -88,7 +88,7 @@ class GameServiceTest {
 
     @Test
     @DisplayName("Should remove player and end game if nobody remains")
-    void handlePlayerDisconnect_lastPlayerLeaves() {
+    public void handlePlayerDisconnect_lastPlayerLeaves() {
         // game has 3 players: p1, p2, p3
         WebSocketSession sessionToRemove = p3.getSession();
 
@@ -106,7 +106,7 @@ class GameServiceTest {
 
     @Test
     @DisplayName("Should transfer host role if host disconnects but players remain")
-    void handlePlayerDisconnect_transferHost() {
+    public void handlePlayerDisconnect_transferHost() {
         // p3 is host, p1 and p2 are players
         WebSocketSession sessionToRemove = p3.getSession();
         gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
@@ -121,7 +121,7 @@ class GameServiceTest {
 
     @Test
     @DisplayName("Should end the round, evaluate votes, and broadcast spy info")
-    void beginEndOfRoundTest() {
+    public void beginEndOfRoundTest() {
         gameService.beginEndOfRound("lobby123");
 
         assertTrue(game.getCurrentRound().isVotingComplete());
@@ -131,7 +131,7 @@ class GameServiceTest {
 
     @Test
     @DisplayName("Should remove game and announce end when endGame is called")
-    void endGameTest() {
+    public void endGameTest() {
         gameService.endGame("lobby123");
         verify(gameManagerService).removeGame("lobby123");
         verify(messagingService).broadcastMessage(eq(game), contains("Game has ended."));

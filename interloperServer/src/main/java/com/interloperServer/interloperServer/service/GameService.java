@@ -129,10 +129,15 @@ public class GameService {
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
 
+
         // Broadcast round duration at the beginning of each round
         messagingService.broadcastMessage(game, "roundDuration:" + roundDuration);
 
-        new Timer().schedule(new TimerTask() {
+        Timer timer = new Timer();
+        game.setRoundTimer(timer);
+
+        timer.schedule(new TimerTask() {
+
             @Override
             public void run() {
                 beginEndOfRound(lobbyCode);
@@ -156,6 +161,34 @@ public class GameService {
     }
 
     /**
+     * The spy guesses a location
+     * 
+     * @param lobbyCode   the lobby for the game
+     * @param spyUsername the username of the spy
+     * @param location    the location being guessed
+     */
+    public void castSpyGuess(String lobbyCode, String spyUsername, String location) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null)
+            return;
+
+        votingService.castSpyGuess(lobbyCode, spyUsername, location);
+
+        // Mark voting as complete
+        game.getCurrentRound().setVotingComplete();
+
+        // ⬇Notify users that the round has ended
+        messagingService.broadcastMessage(game, "End of round. Spy was: " +
+                game.getPlayers().stream()
+                        .filter(p -> p.getGameRole() == GameRole.SPY)
+                        .map(Player::getUsername)
+                        .findFirst()
+                        .orElse("Unknown"));
+    }
+
+   
+
+    /**
      * Advances the game to the next round
      */
     public void advanceRound(String lobbyCode) {
@@ -171,6 +204,13 @@ public class GameService {
 
         roundService.advanceRound(lobbyCode);
 
+        // Stop existing timer if there is one
+        Timer existing = game.getRoundTimer();
+        if (existing != null) {
+            existing.cancel();
+        }
+        startRoundCountdown(lobbyCode);
+
         // Start round countdown
         startRoundCountdown(lobbyCode);
     }
@@ -185,13 +225,18 @@ public class GameService {
         if (game == null)
             return;
 
-        messagingService.broadcastMessage(game, "End of round");
-
         // Mark voting as complete
         game.getCurrentRound().setVotingComplete();
 
         // Evaluate all votes, give and deduct points accordingly
         votingService.evaluateVotes(lobbyCode);
+
+        // Stop timer here as well just to be sure
+        Timer timer = game.getRoundTimer();
+        if (timer != null) {
+            timer.cancel();
+            game.setRoundTimer(null);
+        }
 
         // ⬇Notify users that the round has ended
         messagingService.broadcastMessage(game, "End of round. Spy was: " +
