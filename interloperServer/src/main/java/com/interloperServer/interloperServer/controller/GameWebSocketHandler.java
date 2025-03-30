@@ -4,14 +4,21 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.model.ChatMessage;
+import com.interloperServer.interloperServer.model.messages.AdvanceRoundMessage;
+import com.interloperServer.interloperServer.model.messages.CreateLobbyMessage;
+import com.interloperServer.interloperServer.model.messages.JoinLobbyMessage;
+import com.interloperServer.interloperServer.model.messages.StartGameMessage;
+import com.interloperServer.interloperServer.model.messages.VoteMessage;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
 import com.interloperServer.interloperServer.service.LobbyService;
 
 /**
- * Receives all messages sent to /ws/game and delegates to the appropriate services
+ * Receives all messages sent to /ws/game and delegates to the appropriate
+ * services
  */
 @Component
 public class GameWebSocketHandler extends TextWebSocketHandler {
@@ -21,7 +28,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService, GameManagerService gameManagerService) {
+    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService,
+            GameManagerService gameManagerService) {
         this.gameService = gameService;
         this.lobbyService = lobbyService;
         this.gameManagerService = gameManagerService;
@@ -32,29 +40,90 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
      */
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
-        ChatMessage receivedMessage = objectMapper.readValue(message.getPayload(), ChatMessage.class);
-        String content = receivedMessage.getContent();
+        JsonNode root = objectMapper.readTree(message.getPayload());
+        String type = root.get("type").asText();
 
-        if (content.startsWith("createLobby:")) {
-            String username = content.split(":")[1].trim();
-            lobbyService.createLobby(session, username);
-            return;
+        switch (type) {
+            /*
+             * Message on the format:
+             * 
+             * {
+             * "type": "createLobby",
+             * "username": "Alice"
+             * }
+             * 
+             */
+            case "createLobby":
+                CreateLobbyMessage createMsg = objectMapper.treeToValue(root, CreateLobbyMessage.class);
+                lobbyService.createLobby(session, createMsg.getUsername());
+                break;
+
+            /*
+             * Message on the format:
+             * 
+             * {
+             * "type": "joinLobby",
+             * "lobbyCode": "a9b7f9",
+             * "username": "Bob"
+             * }
+             * 
+             */
+            case "joinLobby":
+                JoinLobbyMessage joinMsg = objectMapper.treeToValue(root, JoinLobbyMessage.class);
+                lobbyService.joinLobby(session, joinMsg.getLobbyCode(), joinMsg.getUsername());
+                break;
+
+            /*
+             * Message on the format:
+             * 
+             * {
+             * "type": "startGame",
+             * "lobbyCode": "a9b7f9",
+             * "username": "Alice"
+             * }
+             * 
+             */
+            case "startGame":
+                StartGameMessage startMsg = objectMapper.treeToValue(root, StartGameMessage.class);
+                gameService.startGame(startMsg.getLobbyCode(), startMsg.getUsername(), lobbyService, session);
+                break;
+
+            /*
+             * Message on the format:
+             * 
+             * {
+             * "type": "vote",
+             * "lobbyCode": "a9b7f9",
+             * "username": "Bob",
+             * "target": "Charlie"
+             * }
+             * 
+             */
+            case "vote":
+                VoteMessage voteMsg = objectMapper.treeToValue(root, VoteMessage.class);
+                gameService.castVote(voteMsg.getLobbyCode(), voteMsg.getUsername(), voteMsg.getTarget());
+                break;
+
+            /*
+             * Message on the format:
+             * 
+             * {
+             * "type": "advanceRound",
+             * "lobbyCode": "a9b7f9",
+             * "username": "Alice"
+             * }
+             * 
+             */
+            case "advanceRound":
+                AdvanceRoundMessage advanceMsg = objectMapper.treeToValue(root, AdvanceRoundMessage.class);
+                gameService.advanceRound(advanceMsg.getLobbyCode());
+                break;
+
+            // When the message doesn't conform to any legal format
+            default:
+                session.sendMessage(new TextMessage("Unknown message type: " + type));
         }
 
-        if (content.startsWith("joinLobby:")) {
-            String[] parts = content.split(":");
-            String lobbyCode = parts[1].trim();
-            String username = parts[2].trim();
-            lobbyService.joinLobby(session, lobbyCode, username);
-            return;
-        }
-
-        if (content.startsWith("startGame:")) {
-            String lobbyCode = content.split(":")[1].trim();
-            String receivedUsername = receivedMessage.getUsername();
-            gameService.startGame(lobbyCode, receivedUsername, lobbyService, session);
-            return;
-        }        
     }
 
     /**
@@ -68,7 +137,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         for (String lobbyCode : gameManagerService.getAllGameCodes()) {
             gameService.handlePlayerDisconnect(session, lobbyCode);
         }
-        
+
     }
 
 }

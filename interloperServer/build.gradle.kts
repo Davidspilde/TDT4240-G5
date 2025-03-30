@@ -19,8 +19,13 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude(group = "org.mockito", module = "mockito-core")
+	}
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("org.mockito:mockito-core:5.10.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.10.0")
+
 }
 
 tasks.withType<Test> {
