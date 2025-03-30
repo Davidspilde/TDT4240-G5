@@ -52,14 +52,14 @@ public class GameService {
         List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
 
         // Create a new game instance for this lobby
-        Game game = new Game(lobbyCode, players, 5, 10); // Example: 5 rounds, 20 seconds per round
+        Game game = new Game(lobbyCode, players, 5, 60);
         gameManagerService.storeGame(lobbyCode, game);
 
         if (!game.getPlayers().isEmpty()) {
             roleService.assignRoles(game);
         }
 
-        // Send message to players about which round it is
+        // Send message to players about which round it is and round duration
         for (Player player : game.getPlayers()) {
             // Show location to players, but not the spy
             if (player.getGameRole() != GameRole.SPY) {
@@ -129,6 +129,9 @@ public class GameService {
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
 
+        // Broadcast round duration at the beginning of each round
+        messagingService.broadcastMessage(game, "roundDuration:" + roundDuration);
+
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -153,30 +156,18 @@ public class GameService {
     }
 
     /**
-     * Advance round if voting is done
-     * 
-     * @param lobbyCode
-     */
-    public void checkVotingAndAdvance(String lobbyCode) {
-        Game game = gameManagerService.getGame(lobbyCode);
-        if (game == null)
-            return;
-
-        Round currentRound = game.getCurrentRound();
-        if (currentRound.isVotingComplete()) {
-            advanceRound(lobbyCode);
-        } else {
-            messagingService.broadcastMessage(game, "Voting is not complete yet!");
-        }
-    }
-
-    /**
      * Advances the game to the next round
      */
     public void advanceRound(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
+
+        // Prevent premature advancing
+        if (!game.getCurrentRound().isVotingComplete()) {
+            messagingService.broadcastMessage(game, "Round is not over yet!");
+            return;
+        }
 
         roundService.advanceRound(lobbyCode);
 
