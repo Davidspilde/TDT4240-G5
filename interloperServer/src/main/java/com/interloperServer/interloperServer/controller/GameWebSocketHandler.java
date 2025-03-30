@@ -35,6 +35,11 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         this.gameManagerService = gameManagerService;
     }
 
+    @Override
+    public void afterConnectionEstablished(@NonNull WebSocketSession session) {
+        System.out.println("WebSocket connected: " + session.getId());
+    }
+
     /**
      * Reads message and delegates to service
      */
@@ -123,7 +128,6 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             default:
                 session.sendMessage(new TextMessage("Unknown message type: " + type));
         }
-
     }
 
     /**
