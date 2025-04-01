@@ -45,7 +45,9 @@ public class GameService {
      */
     public boolean startGame(String lobbyCode, String username, LobbyService lobbyService, WebSocketSession session) {
         if (!lobbyService.isHost(lobbyCode, username)) {
-            messagingService.sendMessage(session, "Only the host can start the game.");
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "Only the host can start the game."));
             return false;
         }
 
@@ -61,15 +63,17 @@ public class GameService {
 
         // Send message to players about which round it is
         for (Player player : game.getPlayers()) {
+            Map<String, Object> roundMessage = new HashMap<>();
+            roundMessage.put("event", "newRound");
+            roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
+            roundMessage.put("role", player.getGameRole().toString());
+
             // Show location to players, but not the spy
             if (player.getGameRole() != GameRole.SPY) {
-                messagingService.sendMessage(player.getSession(),
-                        "round" + game.getCurrentRound().getRoundNumber() + ":location:"
-                                + game.getCurrentRound().getLocation());
-            } else {
-                messagingService.sendMessage(player.getSession(),
-                        "round" + game.getCurrentRound().getRoundNumber());
+                roundMessage.put("location", game.getCurrentRound().getLocation());
             }
+
+            messagingService.sendMessage(player.getSession(), roundMessage);
         }
 
         // Start voting countdown for the first round
@@ -101,19 +105,26 @@ public class GameService {
 
         // Remove player from the game
         game.getPlayers().remove(disconnectedPlayer);
-        messagingService.broadcastMessage(game, "left:" + disconnectedPlayer.getUsername());
+        messagingService.broadcastMessage(game, Map.of(
+                "event", "playerLeft",
+                "username", disconnectedPlayer.getUsername()));
 
         // If the removed player was the host, assign a new host
         if (disconnectedPlayer.getLobbyRole() == LobbyRole.HOST && !game.getPlayers().isEmpty()) {
-            game.getPlayers().get(0).setLobbyRole(LobbyRole.HOST);
-            messagingService.broadcastMessage(game,
-                    "newHost:" + game.getPlayers().get(0).getUsername());
+            Player newHost = game.getPlayers().get(0);
+            newHost.setLobbyRole(LobbyRole.HOST);
+
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "newHost",
+                    "username", newHost.getUsername()));
         }
 
         // If the game is now empty, end it
         if (game.getPlayers().isEmpty()) {
             gameManagerService.removeGame(lobbyCode); // Remove game when empty
-            messagingService.broadcastMessage(game, "Game has ended.");
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "gameEnded",
+                    "message", "Game has ended."));
         }
     }
 
@@ -173,12 +184,13 @@ public class GameService {
         game.getCurrentRound().setVotingComplete();
 
         // ⬇Notify users that the round has ended
-        messagingService.broadcastMessage(game, "End of round. Spy was: " +
-                game.getPlayers().stream()
+        messagingService.broadcastMessage(game, Map.of(
+                "event", "roundEnded",
+                "spy", game.getPlayers().stream()
                         .filter(p -> p.getGameRole() == GameRole.SPY)
                         .map(Player::getUsername)
                         .findFirst()
-                        .orElse("Unknown"));
+                        .orElse("Unknown")));
     }
 
     /**
@@ -195,7 +207,9 @@ public class GameService {
         if (currentRound.isVotingComplete()) {
             advanceRound(lobbyCode);
         } else {
-            messagingService.broadcastMessage(game, "Voting is not complete yet!");
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "votingIncomplete",
+                    "message", "Voting is not complete yet!"));
         }
     }
 
@@ -214,7 +228,6 @@ public class GameService {
         if (existing != null) {
             existing.cancel();
         }
-        startRoundCountdown(lobbyCode);
 
         // Start round countdown
         startRoundCountdown(lobbyCode);
@@ -244,12 +257,13 @@ public class GameService {
         }
 
         // ⬇Notify users that the round has ended
-        messagingService.broadcastMessage(game, "End of round. Spy was: " +
-                game.getPlayers().stream()
+        messagingService.broadcastMessage(game, Map.of(
+                "event", "roundEnded",
+                "spy", game.getPlayers().stream()
                         .filter(p -> p.getGameRole() == GameRole.SPY)
                         .map(Player::getUsername)
                         .findFirst()
-                        .orElse("Unknown"));
+                        .orElse("Unknown")));
     }
 
     /**
@@ -261,7 +275,9 @@ public class GameService {
             return;
 
         gameManagerService.removeGame(lobbyCode);
-        messagingService.broadcastMessage(game, "Game has ended.");
+        messagingService.broadcastMessage(game, Map.of(
+                "event", "gameEnded",
+                "message", "Game has ended."));
     }
 
 }

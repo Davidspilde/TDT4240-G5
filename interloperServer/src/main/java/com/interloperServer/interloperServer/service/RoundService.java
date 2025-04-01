@@ -1,5 +1,8 @@
 package com.interloperServer.interloperServer.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
@@ -29,7 +32,10 @@ public class RoundService {
 
         // Check if there are more rounds
         if (!game.hasMoreRounds()) {
-            messagingService.broadcastMessage(game, "gameComplete:scores: " + game.getScoreboard().toString());
+            // Send game completion message with scores
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "gameComplete",
+                    "scores", game.getScoreboard()));
             return; // The game ends here
         }
 
@@ -41,15 +47,17 @@ public class RoundService {
 
         // Send message to players about which round it is
         for (Player player : game.getPlayers()) {
+            Map<String, Object> roundMessage = new HashMap<>();
+            roundMessage.put("event", "newRound");
+            roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
+            roundMessage.put("role", player.getGameRole().toString());
+
             // Show location to players, but not the spy
             if (player.getGameRole() != GameRole.SPY) {
-                messagingService.sendMessage(player.getSession(),
-                        "round" + game.getCurrentRound().getRoundNumber() + ":location:"
-                                + game.getCurrentRound().getLocation());
-            } else {
-                messagingService.sendMessage(player.getSession(),
-                        "round" + game.getCurrentRound().getRoundNumber());
+                roundMessage.put("location", game.getCurrentRound().getLocation());
             }
+
+            messagingService.sendMessage(player.getSession(), roundMessage);
         }
 
     }

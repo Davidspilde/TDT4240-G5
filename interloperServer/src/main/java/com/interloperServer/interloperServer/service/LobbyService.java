@@ -3,7 +3,6 @@ package com.interloperServer.interloperServer.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
 
@@ -42,7 +41,10 @@ public class LobbyService {
         Player host = new Player(session, username, LobbyRole.HOST);
         lobbies.put(lobbyCode, new ArrayList<>(List.of(host))); // Store as a list of Players
 
-        messagingService.sendMessage(session, "Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")");
+        messagingService.sendMessage(session, Map.of(
+                "event", "lobbyCreated",
+                "lobbyCode", lobbyCode,
+                "host", username));
         return lobbyCode;
     }
 
@@ -55,13 +57,17 @@ public class LobbyService {
      */
     public boolean joinLobby(WebSocketSession session, String lobbyCode, String username) {
         if (!lobbies.containsKey(lobbyCode)) {
-            messagingService.sendMessage(session, "Lobby Not Found!");
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "Lobby not found!"));
             return false;
         }
 
         lobbies.get(lobbyCode).add(new Player(session, username, LobbyRole.PLAYER));
-        messagingService.sendMessage(session,
-                "Joined Lobby: " + lobbyCode + ". Host: " + getLobbyHost(lobbyCode).getUsername());
+        messagingService.sendMessage(session, Map.of(
+                "event", "joinedLobby",
+                "lobbyCode", lobbyCode,
+                "host", getLobbyHost(lobbyCode).getUsername()));
 
         // Notify all users in the lobby
         broadcastPlayerList(lobbyCode);
@@ -95,7 +101,14 @@ public class LobbyService {
 
             // If the host left, assign a new host
             if (players.stream().noneMatch(p -> p.getLobbyRole() == LobbyRole.HOST) && !players.isEmpty()) {
-                players.get(0).setLobbyRole(LobbyRole.HOST);
+                Player newHost = players.get(0);
+                newHost.setLobbyRole(LobbyRole.HOST);
+
+                for (Player player : players) {
+                    messagingService.sendMessage(player.getSession(), Map.of(
+                            "event", "newHost",
+                            "username", newHost.getUsername()));
+                }
             }
 
             // Remove empty lobbies
@@ -122,15 +135,10 @@ public class LobbyService {
         List<Player> players = lobbies.get(lobbyCode);
         List<String> usernames = players.stream().map(Player::getUsername).toList();
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String message = objectMapper.writeValueAsString(usernames);
-
-            for (Player player : players) {
-                messagingService.sendMessage(player.getSession(), "Lobby Update: " + message);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (Player player : players) {
+            messagingService.sendMessage(player.getSession(), Map.of(
+                    "event", "lobbyUpdate",
+                    "players", usernames));
         }
     }
 

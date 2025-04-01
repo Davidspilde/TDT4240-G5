@@ -50,8 +50,9 @@ public class VotingService {
         // Check for invalid target
         if (players.stream().noneMatch(p -> p.getUsername().equals(targetUsername))) {
             if (voter != null) {
-                messagingService.sendMessage(voter.getSession(),
-                        "Invalid vote. " + targetUsername + " is not in the game.");
+                messagingService.sendMessage(voter.getSession(), Map.of(
+                        "event", "invalidVote",
+                        "message", "Invalid vote. " + targetUsername + " is not in the game."));
             }
             return;
         }
@@ -59,13 +60,15 @@ public class VotingService {
         // Don't register vote if the voter doesn't exist
         if (voter == null) {
             return;
-
         }
 
         // Register vote
         currentRound.castVote(voterUsername, targetUsername);
 
-        messagingService.broadcastMessage(game, voterUsername + ":voted");
+        // Notify voter of successful vote
+        messagingService.sendMessage(voter.getSession(), Map.of(
+                "event", "voted",
+                "voter", voterUsername));
 
         // Look for majority after every vote
         evaluateVotes(lobbyCode);
@@ -129,7 +132,12 @@ public class VotingService {
 
         // Broadcast if spy is caught or not
         if (spyCaught && (highestVoteCount >= majorityThreshold)) {
-            messagingService.broadcastMessage(game, "spyCaught:" + mostVoted);
+
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "spyCaught",
+                    "spy", mostVoted,
+                    "votes", highestVoteCount));
+
             for (Map.Entry<String, String> vote : voteMap.entrySet()) {
                 String voter = vote.getKey();
                 String target = vote.getValue();
@@ -140,7 +148,9 @@ public class VotingService {
                 }
             }
         } else {
-            messagingService.broadcastMessage(game, "spyNotCaught");
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "spyNotCaught"));
+
             for (Player p : players) {
                 if (p.getGameRole() == GameRole.SPY) {
                     // Award a point to the spy if not caught
@@ -156,14 +166,20 @@ public class VotingService {
             for (Player p : players) {
                 if (!voteMap.containsKey(p.getUsername()) && p.getGameRole() != GameRole.SPY) {
                     game.updateScore(p.getUsername(), -1);
-                    messagingService.sendMessage(p.getSession(), "You did not vote and lost 1 point");
+                    messagingService.sendMessage(p.getSession(), Map.of(
+                            "event", "notVoted"));
                 }
             }
         }
 
         // Reveal spy and updated scoreboard
-        messagingService.broadcastMessage(game, "spy:" + spyName);
-        messagingService.broadcastMessage(game, "scoreboard:" + game.getScoreboard());
+        messagingService.broadcastMessage(game, Map.of(
+                "event", "spyReveal",
+                "spy", spyName));
+
+        messagingService.broadcastMessage(game, Map.of(
+                "event", "scoreboard",
+                "scores", game.getScoreboard()));
 
     }
 
@@ -207,11 +223,19 @@ public class VotingService {
         // Find spy and update points
         if (currentRound.getLocation().equals(location)) {
             // Spy is correct
-            messagingService.broadcastMessage(game, "spyGuessCorrect");
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "spyGuessCorrect",
+                    "spy", spyUsername,
+                    "location", location));
+
             game.updateScore(spyUsername, 1);
         } else {
             // Spy is incorrect
-            messagingService.broadcastMessage(game, "spyGuessIncorrect");
+            messagingService.broadcastMessage(game, Map.of(
+                    "event", "spyGuessIncorrect",
+                    "spy", spyUsername,
+                    "location", location));
+
             for (Player player : players) {
                 if (!player.getUsername().equals(spyUsername) && player.getGameRole() != GameRole.SPY) {
                     game.updateScore(player.getUsername(), 1);
