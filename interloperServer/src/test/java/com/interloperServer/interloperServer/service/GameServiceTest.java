@@ -9,10 +9,13 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
 
 class GameServiceTest {
 
@@ -55,6 +58,16 @@ class GameServiceTest {
         when(lobbyService.isHost("lobby123", "Player3")).thenReturn(true);
         when(lobbyService.getPlayersInLobby("lobby123")).thenReturn(game.getPlayers());
 
+        // Mock the behavior of RoleService to assign roles
+        doAnswer(invocation -> {
+            Game game = invocation.getArgument(0);
+            List<Player> players = game.getPlayers();
+            players.get(0).setGameRole(GameRole.PLAYER);
+            players.get(1).setGameRole(GameRole.PLAYER);
+            players.get(2).setGameRole(GameRole.SPY);
+            return null;
+        }).when(roleService).assignRoles(any(Game.class));
+
         WebSocketSession mockSession = mock(WebSocketSession.class);
         boolean result = gameService.startGame("lobby123", "Player3", lobbyService, mockSession);
 
@@ -82,7 +95,9 @@ class GameServiceTest {
 
         assertFalse(result, "startGame should return false if non-host tries to start");
 
-        verify(messagingService).sendMessage(eq(mockSession), contains("Only the host can start"));
+        verify(messagingService).sendMessage(eq(mockSession), eq(Map.of(
+                "event", "error",
+                "message", "Only the host can start the game.")));
         verifyNoInteractions(roleService);
     }
 
@@ -101,7 +116,9 @@ class GameServiceTest {
 
         // Should remove game from manager
         verify(gameManagerService).removeGame("lobby123");
-        verify(messagingService).broadcastMessage(eq(game), contains("Game has ended."));
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "gameEnded",
+                "message", "Game has ended.")));
     }
 
     @Test
@@ -126,7 +143,13 @@ class GameServiceTest {
 
         assertTrue(game.getCurrentRound().isVotingComplete());
         verify(votingService).evaluateVotes("lobby123");
-        verify(messagingService).broadcastMessage(eq(game), contains("End of round. Spy was: "));
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "roundEnded",
+                "spy", game.getPlayers().stream()
+                        .filter(p -> p.getGameRole() == GameRole.SPY)
+                        .map(Player::getUsername)
+                        .findFirst()
+                        .orElse("Unknown"))));
     }
 
     @Test
@@ -134,6 +157,8 @@ class GameServiceTest {
     public void endGameTest() {
         gameService.endGame("lobby123");
         verify(gameManagerService).removeGame("lobby123");
-        verify(messagingService).broadcastMessage(eq(game), contains("Game has ended."));
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "gameEnded",
+                "message", "Game has ended.")));
     }
 }

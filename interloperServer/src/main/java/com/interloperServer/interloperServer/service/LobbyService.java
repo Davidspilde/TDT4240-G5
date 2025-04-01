@@ -42,13 +42,16 @@ public class LobbyService {
 
         Player host = new Player(session, username, LobbyRole.HOST);
 
-        // Baseoptions which gets applies when first creating a lobby
+        // Baseoptions which gets applied when first creating a lobby
         LobbyOptions options = new LobbyOptions(10, 30, 1, 8, Duration.ofMinutes(10));
 
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.add(newLobby);
 
-        messagingService.sendMessage(session, "Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")");
+        messagingService.sendMessage(session, Map.of(
+                "event", "lobbyCreated",
+                "lobbyCode", lobbyCode,
+                "host", username));
         return lobbyCode;
     }
 
@@ -64,13 +67,18 @@ public class LobbyService {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
 
         if (lobby.equals(null)) {
-            messagingService.sendMessage(session, "Lobby Not Found!");
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "Lobby not found!"));
             return false;
+
         }
 
         lobby.addPlayer(new Player(session, username, LobbyRole.PLAYER));
-        messagingService.sendMessage(session,
-                "Joined Lobby: " + lobbyCode + ". Host: " + lobby.getHost());
+        messagingService.sendMessage(session, Map.of(
+                "event", "joinedLobby",
+                "lobbyCode", lobbyCode,
+                "host", lobby.getHost().getUsername()));
 
         // Notify all users in the lobby
         broadcastPlayerList(lobbyCode);
@@ -112,7 +120,14 @@ public class LobbyService {
 
             // If the host left, assign a new host
             if (lobby.getHost().equals(player)) {
-                lobby.setHost(lobby.getPlayers().get(0));
+                Player newHost = lobby.getPlayers().get(0);
+                lobby.setHost(newHost);
+
+                for (Player p : lobby.getPlayers()) {
+                    messagingService.sendMessage(p.getSession(), Map.of(
+                            "event", "newHost",
+                            "username", newHost.getUsername()));
+                }
             }
 
             // Remove empty lobbies
@@ -138,15 +153,10 @@ public class LobbyService {
         List<Player> players = lobby.getPlayers();
         List<String> usernames = players.stream().map(Player::getUsername).toList();
 
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String message = objectMapper.writeValueAsString(usernames);
-
-            for (Player player : players) {
-                messagingService.sendMessage(player.getSession(), "Lobby Update: " + message);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (Player player : players) {
+            messagingService.sendMessage(player.getSession(), Map.of(
+                    "event", "lobbyUpdate",
+                    "players", usernames));
         }
     }
 

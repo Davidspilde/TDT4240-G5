@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.web.socket.WebSocketSession;
-
 import com.interloperServer.interloperServer.service.LobbyOptions;
 
 public class Lobby {
