@@ -86,24 +86,30 @@ public class VotingService {
         Map<String, String> voteMap = currentRound.getVotes();
         List<Player> players = game.getPlayers();
 
-        if (voteMap.isEmpty())
-            return;
+        boolean votesWereCast = !voteMap.isEmpty();
 
-        // Count how many votes each target received
-        Map<String, Integer> voteCount = new HashMap<>();
+        String mostVoted = null;
+        int highestVoteCount = 0;
+        int majorityThreshold = (int) Math.ceil(players.size() / 2.0);
 
-        for (String target : voteMap.values()) {
-            voteCount.put(target, voteCount.getOrDefault(target, 0) + 1);
+        if (votesWereCast) {
+            // Count how many votes each target received
+            Map<String, Integer> voteCount = new HashMap<>();
+
+            for (String target : voteMap.values()) {
+                voteCount.put(target, voteCount.getOrDefault(target, 0) + 1);
+            }
+
+            // Find most voted
+            mostVoted = Collections.max(voteCount.entrySet(), Map.Entry.comparingByValue()).getKey();
+            highestVoteCount = voteCount.get(mostVoted);
+
+            // Continue round if majority is not found
+            if ((highestVoteCount < majorityThreshold) || !currentRound.isVotingComplete())
+                return;
         }
 
-        // Find most voted
-        String mostVoted = Collections.max(voteCount.entrySet(), Map.Entry.comparingByValue()).getKey();
-        int highestVoteCount = voteCount.get(mostVoted);
-        int majorityThreshold = (players.size() / 2) + 1;
-
-        // Continue round if majority is not found
-        if ((highestVoteCount < majorityThreshold) && !currentRound.isVotingComplete())
-            return;
+        currentRound.setVotingComplete();
 
         // Stop timer if round is over or majority is reached
         if ((highestVoteCount >= majorityThreshold) || currentRound.isVotingComplete()) {
@@ -125,7 +131,7 @@ public class VotingService {
                 .findFirst()
                 .orElse("Unknown");
 
-        boolean spyCaught = mostVoted.equals(spyName);
+        boolean spyCaught = votesWereCast && mostVoted != null && mostVoted.equals(spyName);
 
         // Broadcast if spy is caught or not
         if (spyCaught && (highestVoteCount >= majorityThreshold)) {

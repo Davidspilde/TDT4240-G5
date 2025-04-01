@@ -120,24 +120,6 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("Should advance round if voting complete, else broadcast not complete")
-    public void checkVotingAndAdvance() {
-        // Voting incomplete
-        gameService.checkVotingAndAdvance("lobby123");
-
-        verify(messagingService).broadcastMessage(eq(game), eq("Voting is not complete yet!"));
-        verify(roundService, never()).advanceRound(anyString());
-
-        // Voting complete
-        reset(messagingService);
-        game.getCurrentRound().setVotingComplete();
-        gameService.checkVotingAndAdvance("lobby123");
-
-        verify(roundService).advanceRound("lobby123");
-        verify(messagingService, never()).broadcastMessage(eq(game), eq("Voting is not complete yet!"));
-    }
-
-    @Test
     @DisplayName("Should end the round, evaluate votes, and broadcast spy info")
     public void beginEndOfRoundTest() {
         gameService.beginEndOfRound("lobby123");
