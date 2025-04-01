@@ -9,7 +9,9 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class RoundServiceTest {
@@ -56,7 +58,10 @@ public class RoundServiceTest {
 
         roundService.advanceRound("abc123");
 
-        verify(messagingService).broadcastMessage(eq(game), contains("gameComplete:scores:"));
+        // Verify the "gameComplete" message
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "gameComplete",
+                "scores", game.getScoreboard())));
     }
 
     @Test
@@ -67,13 +72,23 @@ public class RoundServiceTest {
         // Verify roles are reassigned
         verify(roleService).assignRoles(game);
 
-        // Should notify all players
-        verify(messagingService).sendMessage(eq(p1.getSession()), contains("round2:location:"));
-        verify(messagingService).sendMessage(eq(p2.getSession()), contains("round2:location:"));
+        // Verify messages sent to players
+        verify(messagingService).sendMessage(eq(p1.getSession()), eq(Map.of(
+                "event", "newRound",
+                "roundNumber", 2,
+                "role", GameRole.PLAYER.toString(),
+                "location", game.getCurrentRound().getLocation())));
+        verify(messagingService).sendMessage(eq(p2.getSession()), eq(Map.of(
+                "event", "newRound",
+                "roundNumber", 2,
+                "role", GameRole.PLAYER.toString(),
+                "location", game.getCurrentRound().getLocation())));
 
-        // Spy only gets round number, not location
-        verify(messagingService).sendMessage(eq(spy.getSession()), eq("round2"));
-        verify(messagingService, never()).sendMessage(eq(spy.getSession()), eq("location"));
+        // Spy only gets round number and role, not location
+        verify(messagingService).sendMessage(eq(spy.getSession()), eq(Map.of(
+                "event", "newRound",
+                "roundNumber", 2,
+                "role", GameRole.SPY.toString())));
 
     }
 }

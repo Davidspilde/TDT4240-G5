@@ -10,7 +10,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,8 +63,21 @@ public class VotingServiceTest {
         assertEquals(0, game.getScoreboard().get("Player3")); // Spy caught = no point
         assertTrue(game.getCurrentRound().isVotingComplete());
 
-        verify(messagingService, atLeastOnce()).broadcastMessage(eq(game), contains("spyCaught"));
-        verify(messagingService, atLeastOnce()).broadcastMessage(eq(game), contains("scoreboard"));
+        // Verify spyCaught message
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "spyCaught",
+                "spy", "Player3",
+                "votes", 2)));
+
+        // Verify spyReveal message
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "spyReveal",
+                "spy", "Player3")));
+
+        // Verify scoreboard message
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "scoreboard",
+                "scores", game.getScoreboard())));
     }
 
     @Test
@@ -83,7 +96,18 @@ public class VotingServiceTest {
         assertEquals(0, game.getScoreboard().get("Player2"));
         assertEquals(1, game.getScoreboard().get("Player3")); // Spy should get a point
 
-        verify(messagingService, atLeastOnce()).broadcastMessage(eq(game), contains("spyNotCaught"));
+        // Verify the "spyNotCaught" message
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "spyNotCaught")));
+
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "spyReveal",
+                "spy", "Player3")));
+
+        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+                "event", "scoreboard",
+                "scores", game.getScoreboard())));
+
     }
 
     @Test
@@ -103,7 +127,8 @@ public class VotingServiceTest {
         // against them
         assertEquals(1, game.getScoreboard().get("Player3"));
 
-        verify(messagingService).sendMessage(eq(p2.getSession()), contains("lost 1 point"));
+        verify(messagingService).sendMessage(eq(p2.getSession()), eq(Map.of("event", "notVoted")));
+
     }
 
     @Test
@@ -118,7 +143,10 @@ public class VotingServiceTest {
         assertTrue(game.getCurrentRound().getVotes().isEmpty()); // No votes should be registered
 
         // No vote confimation should be sent
-        verify(messagingService, never()).broadcastMessage(any(), contains(":voted"));
+        verify(messagingService, never()).sendMessage(any(), eq(Map.of(
+                "event", "voted",
+                "voter", "Player1")));
+
     }
 
     @Test
@@ -128,7 +156,11 @@ public class VotingServiceTest {
         votingService.castVote("abc123", "Player1", "Player42");
 
         assertTrue(game.getCurrentRound().getVotes().isEmpty());
-        verify(messagingService).sendMessage(eq(p1.getSession()), contains("Invalid vote"));
+
+        verify(messagingService).sendMessage(eq(p1.getSession()), argThat(msg -> msg instanceof Map &&
+                "invalidVote".equals(((Map<?, ?>) msg).get("event")) &&
+                ((Map<?, ?>) msg).get("message").toString().contains("Invalid vote")));
+
     }
 
     @Test

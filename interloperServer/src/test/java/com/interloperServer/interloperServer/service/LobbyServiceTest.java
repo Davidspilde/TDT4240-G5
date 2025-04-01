@@ -11,6 +11,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -52,10 +53,10 @@ class LobbyServiceTest {
         assertEquals(LobbyRole.HOST, players.get(0).getLobbyRole());
 
         // Check that a success message was sent
-        verify(messagingService).sendMessage(eq(session1), messageCaptor.capture());
-
-        String content = messageCaptor.getValue();
-        assertTrue(content.contains("Lobby Created! Code: " + lobbyCode + " (Host: " + username + ")"));
+        verify(messagingService).sendMessage(eq(session1), eq(Map.of(
+                "event", "lobbyCreated",
+                "lobbyCode", lobbyCode,
+                "host", username)));
     }
 
     @Test
@@ -72,17 +73,17 @@ class LobbyServiceTest {
         assertEquals("Player2", players.get(1).getUsername());
         assertEquals(LobbyRole.PLAYER, players.get(1).getLobbyRole());
 
-        // Capture all messages sent to session2
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(messagingService, times(2)).sendMessage(eq(session2), messageCaptor.capture());
+        // Verify the "joinedLobby" message
+        verify(messagingService).sendMessage(eq(session2), eq(Map.of(
+                "event", "joinedLobby",
+                "lobbyCode", lobbyCode,
+                "host", "Player1")));
 
-        List<String> messages = messageCaptor.getAllValues();
-
-        // Check that one of the messages was the "joined lobby" message
-        assertTrue(messages.stream().anyMatch(msg -> msg.equals("Joined Lobby: " + lobbyCode + ". Host: Player1")));
-
-        // Check that one contains "Lobby Update"
-        assertTrue(messages.stream().anyMatch(msg -> msg.contains("Lobby Update")));
+        // Verify the "lobbyUpdate" message
+        verify(messagingService, times(2)).sendMessage(eq(session2), any());
+        verify(messagingService).sendMessage(eq(players.get(0).getSession()), eq(Map.of(
+                "event", "lobbyUpdate",
+                "players", List.of("Player1", "Player2"))));
     }
 
     @Test
@@ -91,9 +92,9 @@ class LobbyServiceTest {
         boolean joined = lobbyService.joinLobby(session2, "fakeCode", "Player2");
         assertFalse(joined);
 
-        verify(messagingService).sendMessage(eq(session2), messageCaptor.capture());
-        String content = messageCaptor.getValue();
-        assertTrue(content.contains("Lobby Not Found!"));
+        verify(messagingService).sendMessage(eq(session2), eq(Map.of(
+                "event", "error",
+                "message", "Lobby not found!")));
     }
 
     @Test
@@ -127,22 +128,23 @@ class LobbyServiceTest {
         String lobbyCode = lobbyService.createLobby(session1, "Player1");
         lobbyService.joinLobby(session2, lobbyCode, "Player2");
 
-        reset(messagingService); // reset to only capture broadcast calls
+        // reset to only capture broadcast calls
+        reset(messagingService);
 
         lobbyService.broadcastPlayerList(lobbyCode);
 
-        // Capture all messages sent by messagingService
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+        // Capture the messages
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> messageCaptor = ArgumentCaptor.forClass(Map.class);
 
-        // Expect each player to receive one message
-        verify(messagingService).sendMessage(eq(session1), messageCaptor.capture());
-        verify(messagingService).sendMessage(eq(session2), messageCaptor.capture());
+        verify(messagingService, times(2)).sendMessage(any(), messageCaptor.capture());
 
-        List<String> messages = messageCaptor.getAllValues();
+        List<Map<String, Object>> allMessages = messageCaptor.getAllValues();
 
-        // Assert that both messages contain "Lobby Update:"
-        for (String msg : messages) {
-            assertTrue(msg.contains("Lobby Update:"), "Message should contain 'Lobby Update:' but was: " + msg);
-        }
+        Map<String, Object> expectedMessage = Map.of(
+                "event", "lobbyUpdate",
+                "players", List.of("Player1", "Player2"));
+
+        assertTrue(allMessages.contains(expectedMessage), "lobbyUpdate not found in sent messages.");
     }
 }
