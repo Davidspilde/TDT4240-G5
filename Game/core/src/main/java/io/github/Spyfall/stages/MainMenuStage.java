@@ -42,7 +42,7 @@ public class MainMenuStage extends StageController{
         joinGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                changeStage(new GameLobby(viewport,"TEST"));
+                changeStage(new GameLobby(false,"location", "spy",viewport));
             }
         });
 
@@ -74,5 +74,6 @@ public class MainMenuStage extends StageController{
     private void changeStage(StageController newStage) {
         // Logic to switch stages (could be using a ScreenManager)
         System.out.println("Stage changed to: " + newStage.getClass().getSimpleName());
+        StageManager.getInstance().setStage(newStage);
     }
 }

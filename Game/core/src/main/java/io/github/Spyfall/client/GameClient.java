@@ -16,6 +16,7 @@ import io.github.Spyfall.stages.Stages;
 public class GameClient {
 
     private StageController currentStage;
+    private StageManager stageManager;
 
     private LocalWebSocketClient webSocketClient;
 
@@ -25,18 +26,19 @@ public class GameClient {
         } catch (URISyntaxException e) {
         }
         webSocketClient.connect();
+        stageManager = StageManager.getInstance();
+        stageManager.setStage(new MainMenuStage(viewport));
 
-        this.currentStage = new MainMenuStage(viewport);
     }
 
     public void onStateChanged(MainMenuStage currentStage) {
     }
 
     public void resize(int width, int height) {
-        currentStage.resize(width, height);
+        stageManager.getStage().resize(width, height);
     }
 
     public void update() {
-        currentStage.update();
+        stageManager.getStage().update();
     }
 }
