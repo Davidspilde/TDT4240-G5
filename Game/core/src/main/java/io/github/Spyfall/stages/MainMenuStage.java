@@ -9,27 +9,16 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 public class MainMenuStage extends StageController{
 
     private Skin skin;
-    private ScreenViewport viewport;
-    private Stage stage;
-
 
     public MainMenuStage(ScreenViewport viewport){
-        this.stage = new Stage(viewport);
+        super(viewport);
+        initMainMenu();
     }
 
-    public void initStage() {
+    private void initMainMenu() {
         Gdx.input.setInputProcessor(stage);
-
         skin = new Skin(Gdx.files.internal("metal-ui.json"));
         TextButton button = new TextButton("Hello", skin);
         stage.addActor(button);
-    }
-
-    public Stage getStage(){
-        return stage;
-    }
-
-    public void setStage(){
-
     }
 }
