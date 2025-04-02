@@ -188,13 +188,10 @@ public class VotingService {
         Round currentRound = game.getCurrentRound();
         List<Player> players = game.getPlayers();
 
-        Player spy = players.stream()
-                .filter(p -> p.getUsername().equals(spyUsername))
-                .findFirst()
-                .orElse(null);
+        Player spy = game.getCurrentRound().getSpy();
 
         // Stop if a player tries to guess location (not legal)
-        if (spy == null || spy.getGameRole() != GameRole.SPY)
+        if (spy.getUsername() != spyUsername)
             return;
 
         // Not legal to try after the round is over
@@ -227,7 +224,7 @@ public class VotingService {
                     "location", location));
 
             for (Player player : players) {
-                if (!player.getUsername().equals(spyUsername) && player.getGameRole() != GameRole.SPY) {
+                if (!player.getUsername().equals(spyUsername)) {
                     game.updateScore(player.getUsername(), 1);
                 }
             }

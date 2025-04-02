@@ -7,12 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -23,8 +20,6 @@ class GameServiceTest {
     private VotingService votingService;
     @Mock
     private RoundService roundService;
-    @Mock
-    private RoleService roleService;
     @Mock
     private MessagingService messagingService;
     @Mock
@@ -70,7 +65,6 @@ class GameServiceTest {
 
         // Grab the Game instance passed to assignRoles()
         ArgumentCaptor<Game> gameCaptor = ArgumentCaptor.forClass(Game.class);
-        verify(roleService).assignRoles(gameCaptor.capture());
 
         // Check that its the correct game being started
         Game capturedGame = gameCaptor.getValue();
@@ -93,7 +87,6 @@ class GameServiceTest {
         verify(messagingService).sendMessage(eq(mockSession), eq(Map.of(
                 "event", "error",
                 "message", "Only the host can start the game.")));
-        verifyNoInteractions(roleService);
     }
 
     @Test

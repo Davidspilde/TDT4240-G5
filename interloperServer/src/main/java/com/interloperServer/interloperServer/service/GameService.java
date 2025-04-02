@@ -15,7 +15,6 @@ public class GameService {
     private final GameManagerService gameManagerService;
     private final VotingService votingService;
     private final RoundService roundService;
-    private final RoleService roleService;
     private final MessagingService messagingService;
     private final LobbyService lobbyService;
 

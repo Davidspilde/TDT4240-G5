@@ -90,7 +90,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             case "startGame":
                 Message startMsg = objectMapper.treeToValue(root, Message.class);
                 gameService.startGame(startMsg.getUsername(),
-                        lobbyService.getLobbyFromLobbyCode(startMsg.getLobbyCode()), session);
+                        lobbyService.getLobbyFromLobbyCode(startMsg.getLobbyCode()).getLobbyCode(), session);
                 break;
 
             /*

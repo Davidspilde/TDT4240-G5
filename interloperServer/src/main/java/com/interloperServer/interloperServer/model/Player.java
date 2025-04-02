@@ -14,16 +14,26 @@ public class Player {
     public Player(WebSocketSession session, String username) {
         this.session = session;
         this.username = username;
-        this.lobbyRole = lobbyRole;
-        this.gameRole = null; // Game role assigned when game starts
         this.disconnected = false; // Default is connected
     }
 
-    public WebSocketSession getSession() { return session; }
-    public void setSession(WebSocketSession session) { this.session = session; } // Allow reconnections
+    public WebSocketSession getSession() {
+        return session;
+    }
 
-    public String getUsername() { return username; }
+    public void setSession(WebSocketSession session) {
+        this.session = session;
+    } // Allow reconnections
 
-    public boolean isDisconnected() { return disconnected; }
-    public void setDisconnected(boolean disconnected) { this.disconnected = disconnected; }
+    public String getUsername() {
+        return username;
+    }
+
+    public boolean isDisconnected() {
+        return disconnected;
+    }
+
+    public void setDisconnected(boolean disconnected) {
+        this.disconnected = disconnected;
+    }
 }

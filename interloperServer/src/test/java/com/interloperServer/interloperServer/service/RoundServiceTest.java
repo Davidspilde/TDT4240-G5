@@ -17,8 +17,6 @@ public class RoundServiceTest {
     @Mock
     private MessagingService messagingService;
     @Mock
-    private RoleService roleService;
-    @Mock
     private GameManagerService gameManagerService;
 
     @InjectMocks
@@ -66,9 +64,6 @@ public class RoundServiceTest {
     @DisplayName("Should advance to next round, assign roles, and send correct messages")
     public void advanceRound_startNewRoundAndNotify() {
         roundService.advanceRound("abc123");
-
-        // Verify roles are reassigned
-        verify(roleService).assignRoles(game);
 
         // Verify messages sent to players
         verify(messagingService).sendMessage(eq(p1.getSession()), eq(Map.of(
