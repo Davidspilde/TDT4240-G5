@@ -118,7 +118,7 @@ public class GameLobby extends StageController{
         rootTable.add(bottomButtonsTable).colspan(2);
 
         // Optionally set debug to see table outlines
-        rootTable.setDebug(true);
+//        rootTable.setDebug(true);
     }
 
     public void update() {
