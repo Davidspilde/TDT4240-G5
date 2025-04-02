@@ -1,12 +1,12 @@
 package com.interloperServer.interloperServer.model;
 
+import java.time.Duration;
 import java.util.*;
 
 public class Game {
-    private final String lobbyCode;
-    private final List<Player> players;
     private final List<Round> rounds;
     private final Map<String, Integer> scoreboard;
+    private Lobby lobby;
     private boolean isActive;
     private int currentRoundIndex;
 
@@ -14,28 +14,24 @@ public class Game {
 
     private transient Timer roundTimer;
 
-    public Game(String lobbyCode, List<Player> players, int totalRounds, int roundDuration) {
-        this.lobbyCode = lobbyCode;
-        this.players = new ArrayList<>(players);
+    public Game(Lobby lobby) {
+        this.lobby = lobby;
         this.rounds = new ArrayList<>();
         this.scoreboard = new HashMap<>();
         this.isActive = true;
         this.currentRoundIndex = 0;
-        this.roundDuration = roundDuration;
+        this.roundDuration = lobby.getLobbyOptions().getTimePerRound();
 
         // Initialize the scoreboard (all players start with 0 points)
-        for (Player player : players) {
+        for (Player player : getPlayers()) {
             scoreboard.put(player.getUsername(), 0);
         }
 
         // Create all rounds
+        int totalRounds = lobby.getLobbyOptions().getRoundLimit();
         for (int i = 0; i < totalRounds; i++) {
             this.rounds.add(new Round(i + 1, roundDuration));
         }
-    }
-
-    public String getLobbyCode() {
-        return lobbyCode;
     }
 
     public boolean isActive() {
@@ -55,11 +51,11 @@ public class Game {
     }
 
     public int getRoundDuration() {
-        return roundDuration;
+        return lobby.getLobbyOptions().getTimePerRound();
     }
 
     public List<Player> getPlayers() {
-        return players;
+        return lobby.getPlayers();
     }
 
     public void startNextRound() {

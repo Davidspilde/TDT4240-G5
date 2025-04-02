@@ -90,7 +90,7 @@ public class LobbyService {
      */
     public boolean isHost(String lobbyCode, String username) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
-        if (lobby.equals(null) && !lobby.getHost().getUsername().equals(username)) {
+        if (lobby.equals(null) || !lobby.getHost().getUsername().equals(username)) {
             return false;
         }
         return true;
@@ -158,6 +158,10 @@ public class LobbyService {
                     "event", "lobbyUpdate",
                     "players", usernames));
         }
+    }
+
+    public List<Player> getPlayersInLobby(String lobbycode) {
+        return getLobbyFromLobbyCode(lobbycode).getPlayers();
     }
 
     private Lobby getLobbyFromLobbyCode(String lobbyCode) {

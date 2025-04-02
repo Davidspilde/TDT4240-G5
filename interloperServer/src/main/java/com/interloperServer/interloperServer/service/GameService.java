@@ -51,7 +51,7 @@ public class GameService {
             return false;
         }
 
-        List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
+        List<Player> players = ;
 
         // Create a new game instance for this lobby
         Game game = new Game(lobbyCode, players, 5, 60);
@@ -139,7 +139,6 @@ public class GameService {
             return;
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
-
 
         // Broadcast round duration at the beginning of each round
         messagingService.broadcastMessage(game, "roundDuration:" + roundDuration);
