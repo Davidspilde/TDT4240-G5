@@ -3,32 +3,31 @@ package com.interloperServer.interloperServer.model;
 import java.util.*;
 
 public class Game {
-    private final List<Round> rounds;
     private final Map<String, Integer> scoreboard;
     private Lobby lobby;
     private boolean isActive;
     private int currentRoundIndex;
+    private int roundLimit;
+    private Round currentRound;
 
     private transient Timer roundTimer;
 
     public Game(Lobby lobby) {
         this.lobby = lobby;
-        this.rounds = new ArrayList<>();
         this.scoreboard = new HashMap<>();
         this.isActive = true;
         this.currentRoundIndex = 0;
+        this.roundLimit = lobby.getLobbyOptions().getRoundLimit();
 
         // Initialize the scoreboard (all players start with 0 points)
         for (Player player : getPlayers()) {
             scoreboard.put(player.getUsername(), 0);
         }
 
-        // Create all rounds
-        int roundDuration = lobby.getLobbyOptions().getTimePerRound();
-        int totalRounds = lobby.getLobbyOptions().getRoundLimit();
-        for (int i = 0; i < totalRounds; i++) {
-            this.rounds.add(new Round(i + 1, roundDuration));
-        }
+        Round newRound = new Round(currentRoundIndex, lobby.getLobbyOptions().getTimePerRound(),
+                chooseRandomSpy(getPlayers()));
+        currentRound = newRound;
+
     }
 
     public boolean isActive() {
@@ -44,11 +43,11 @@ public class Game {
     }
 
     public Round getCurrentRound() {
-        return rounds.get(currentRoundIndex);
+        return currentRound;
     }
 
     public boolean hasMoreRounds() {
-        return currentRoundIndex < rounds.size() - 1;
+        return currentRoundIndex < roundLimit;
     }
 
     public int getRoundDuration() {
@@ -60,8 +59,11 @@ public class Game {
     }
 
     public void startNextRound() {
-        if (currentRoundIndex < rounds.size() - 1) {
+        if (currentRoundIndex < roundLimit) {
             currentRoundIndex++;
+            Round newRound = new Round(currentRoundIndex, lobby.getLobbyOptions().getTimePerRound(),
+                    chooseRandomSpy(getPlayers()));
+            currentRound = newRound;
         } else {
             isActive = false; // End the game after all rounds
         }
@@ -81,5 +83,12 @@ public class Game {
 
     public Timer getRoundTimer() {
         return this.roundTimer;
+    }
+
+    private Player chooseRandomSpy(List<Player> players) {
+        Random random = new Random();
+        int index = random.nextInt(0, players.size() - 1);
+
+        return players.get(index);
     }
 }

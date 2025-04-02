@@ -59,11 +59,4 @@ public class RoundService {
 
     }
 
-    private Player chooseRandomSpy(List<Player> players) {
-        Random random = new Random();
-        int index = random.nextInt(0, players.size() - 1);
-
-        return players.get(index);
-
-    }
 }
