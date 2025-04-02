@@ -17,6 +17,7 @@ public class GameService {
     private final RoundService roundService;
     private final RoleService roleService;
     private final MessagingService messagingService;
+    private final LobbyService lobbyService;
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
@@ -28,7 +29,8 @@ public class GameService {
      * @param roleService
      */
     public GameService(VotingService votingService, RoundService roundService, RoleService roleService,
-            MessagingService messagingService, GameManagerService gameManagerService) {
+            MessagingService messagingService, GameManagerService gameManagerService, LobbyService lobbyService) {
+        this.lobbyService = lobbyService;
         this.votingService = votingService;
         this.roundService = roundService;
         this.roleService = roleService;
@@ -62,16 +64,18 @@ public class GameService {
             Map<String, Object> roundMessage = new HashMap<>();
             roundMessage.put("event", "newRound");
             roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
-            roundMessage.put("role", player.getGameRole().toString());
 
             // Show location to players, but not the spy
-            if (player.getGameRole() != GameRole.SPY) {
+            if (!game.getCurrentRound().getSpies().contains(player)) {
+                roundMessage.put("role", "Player");
                 roundMessage.put("location", game.getCurrentRound().getLocation());
+            } else {
+
+                roundMessage.put("role", "Spy");
             }
 
             messagingService.sendMessage(player.getSession(), roundMessage);
         }
-
         // Start voting countdown for the first round
         startRoundCountdown(lobby.getLobbyCode());
 
@@ -83,37 +87,14 @@ public class GameService {
      * Ends the game if the player to disconnect is the only one left
      */
     public void handlePlayerDisconnect(WebSocketSession session, String lobbyCode) {
+
         Game game = gameManagerService.getGame(lobbyCode);
-        if (game == null)
+
+        if (game == null) {
             return;
-        // Find the player who disconnected
-        Player disconnectedPlayer = null;
-        for (Player player : game.getPlayers()) {
-            if (player.getSession().equals(session)) {
-                disconnectedPlayer = player;
-                break;
-            }
         }
 
-        if (disconnectedPlayer == null)
-            return; // Player not found in the game
-
-        // Remove player from the game
-        game.getPlayers().remove(disconnectedPlayer);
-        messagingService.broadcastMessage(game, Map.of(
-                "event", "playerLeft",
-                "username", disconnectedPlayer.getUsername()));
-
-        // If the removed player was the host, assign a new host
-        if (disconnectedPlayer.getLobbyRole() == LobbyRole.HOST && !game.getPlayers().isEmpty()) {
-            Player newHost = game.getPlayers().get(0);
-            newHost.setLobbyRole(LobbyRole.HOST);
-
-            messagingService.broadcastMessage(game, Map.of(
-                    "event", "newHost",
-                    "username", newHost.getUsername()));
-        }
-
+        lobbyService.removeUser(session);
         // If the game is now empty, end it
         if (game.getPlayers().isEmpty()) {
             gameManagerService.removeGame(lobbyCode); // Remove game when empty
@@ -182,14 +163,10 @@ public class GameService {
         // Mark voting as complete
         game.getCurrentRound().setVotingComplete();
 
-        // ⬇Notify users that the round has ended
+        // Notify users that the round has ended
         messagingService.broadcastMessage(game, Map.of(
                 "event", "roundEnded",
-                "spy", game.getPlayers().stream()
-                        .filter(p -> p.getGameRole() == GameRole.SPY)
-                        .map(Player::getUsername)
-                        .findFirst()
-                        .orElse("Unknown")));
+                "spy", game.getCurrentRound().getSpies()));
     }
 
     /**

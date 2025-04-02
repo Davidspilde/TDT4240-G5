@@ -36,7 +36,7 @@ public class LobbyService {
             lobbyCode = UUID.randomUUID().toString().substring(0, 6);
         } while (lobbies.containsKey(lobbyCode));
 
-        Player host = new Player(session, username, LobbyRole.HOST);
+        Player host = new Player(session, username);
 
         LobbyOptions options = new LobbyOptions(
                 10, // roundNumber
@@ -70,7 +70,7 @@ public class LobbyService {
         }
 
         synchronized (lobby) {
-            lobby.addPlayer(new Player(session, username, LobbyRole.PLAYER));
+            lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, Map.of(
                     "event", "joinedLobby",
                     "lobbyCode", lobbyCode,

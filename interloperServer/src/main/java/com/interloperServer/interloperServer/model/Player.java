@@ -9,11 +9,9 @@ import org.springframework.web.socket.WebSocketSession;
 public class Player {
     private WebSocketSession session;
     private final String username;
-    private LobbyRole lobbyRole;
-    private GameRole gameRole;
     private boolean disconnected;
 
-    public Player(WebSocketSession session, String username, LobbyRole lobbyRole) {
+    public Player(WebSocketSession session, String username) {
         this.session = session;
         this.username = username;
         this.lobbyRole = lobbyRole;
@@ -25,11 +23,6 @@ public class Player {
     public void setSession(WebSocketSession session) { this.session = session; } // Allow reconnections
 
     public String getUsername() { return username; }
-    public LobbyRole getLobbyRole() { return lobbyRole; }
-    public void setLobbyRole(LobbyRole lobbyRole) { this.lobbyRole = lobbyRole; }
-
-    public GameRole getGameRole() { return gameRole; }
-    public void setGameRole(GameRole gameRole) { this.gameRole = gameRole; }
 
     public boolean isDisconnected() { return disconnected; }
     public void setDisconnected(boolean disconnected) { this.disconnected = disconnected; }
