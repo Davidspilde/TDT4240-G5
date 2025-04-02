@@ -12,6 +12,7 @@ import io.github.Spyfall.stages.MainMenuStage;
 import io.github.Spyfall.stages.StageController;
 import io.github.Spyfall.stages.StageManager;
 import io.github.Spyfall.stages.Stages;
+import io.github.Spyfall.stages.TestStage;
 
 public class GameClient {
 

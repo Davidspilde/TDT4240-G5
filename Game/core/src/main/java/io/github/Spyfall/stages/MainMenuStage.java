@@ -1,8 +1,10 @@
 package io.github.Spyfall.stages;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -42,7 +44,20 @@ public class MainMenuStage extends StageController{
         joinGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                changeStage(new GameLobby(false,"location", "spy",viewport));
+                Dialog dialog = new Dialog("Warning", skin, "dialog") {
+                    @Override
+                    public void result(Object obj) {
+                        if (obj.equals(true)) {  // Only change stage if "Yes" is pressed
+                            changeStage(new GameLobby(true,"meow", "mjes",viewport));
+                        }
+                    }
+                };
+
+                dialog.text("Are you sure you want to join the game?");
+                dialog.button("Yes", true); // Sends "true" when clicked
+                dialog.button("No", false);  // Sends "false" when clicked
+                dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
+                dialog.show(stage); // Show the popup dialog
             }
         });
 
