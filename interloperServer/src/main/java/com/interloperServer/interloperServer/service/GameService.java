@@ -20,7 +20,6 @@ public class GameService {
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
-
     /**
      * Initializes the game service with its dependent services
      * 
@@ -58,7 +57,6 @@ public class GameService {
         if (!game.getPlayers().isEmpty()) {
             roleService.assignRoles(game);
         }
-
         // Send message to players about which round it is and round duration
         for (Player player : game.getPlayers()) {
             Map<String, Object> roundMessage = new HashMap<>();
@@ -88,7 +86,6 @@ public class GameService {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
-
         // Find the player who disconnected
         Player disconnectedPlayer = null;
         for (Player player : game.getPlayers()) {
@@ -244,7 +241,7 @@ public class GameService {
             game.setRoundTimer(null);
         }
 
-        // ⬇Notify users that the round has ended
+        // Notify users that the round has ended
         messagingService.broadcastMessage(game, Map.of(
                 "event", "roundEnded",
                 "spy", game.getPlayers().stream()

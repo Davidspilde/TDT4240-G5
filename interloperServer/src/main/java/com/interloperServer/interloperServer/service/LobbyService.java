@@ -6,6 +6,7 @@ import org.springframework.web.socket.WebSocketSession;
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
+import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -163,6 +164,16 @@ public class LobbyService {
     public List<Player> getPlayersInLobby(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
         return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
+    }
+
+    public void updateLobbyOptions(String lobbycode, LobbyOptionsMessage newOptions) {
+        LobbyOptions lobbyOptions = getLobbyFromLobbyCode(lobbycode).getLobbyOptions();
+
+        lobbyOptions.setRoundLimit(newOptions.getRoundLimit());
+        lobbyOptions.setSpyCount(newOptions.getSpyCount());
+        lobbyOptions.setLocationNumber(newOptions.getRoundLimit());
+        lobbyOptions.setTimePerRound(newOptions.getTimePerRound());
+        lobbyOptions.setMaxPlayerCount(newOptions.getMaxPlayerCount());
     }
 
     public Lobby getLobbyFromLobbyCode(String lobbyCode) {
