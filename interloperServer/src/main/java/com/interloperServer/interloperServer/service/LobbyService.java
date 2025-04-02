@@ -165,7 +165,7 @@ public class LobbyService {
         return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
     }
 
-    private Lobby getLobbyFromLobbyCode(String lobbyCode) {
+    public Lobby getLobbyFromLobbyCode(String lobbyCode) {
         return lobbies.get(lobbyCode);
     }
 }
