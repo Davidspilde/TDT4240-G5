@@ -43,7 +43,7 @@ public class GameService {
      * @return True if the host called the method, false if someone else did
      */
     public boolean startGame(String username, Lobby lobby, WebSocketSession session) {
-        if (lobby.getHost().getUsername().equals(username)) {
+        if (lobby.getHost().getUsername() == username) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Only the host can start the game."));
