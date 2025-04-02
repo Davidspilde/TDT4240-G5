@@ -28,12 +28,11 @@ public class GameService {
      * @param roundService
      * @param roleService
      */
-    public GameService(VotingService votingService, RoundService roundService, RoleService roleService,
+    public GameService(VotingService votingService, RoundService roundService,
             MessagingService messagingService, GameManagerService gameManagerService, LobbyService lobbyService) {
         this.lobbyService = lobbyService;
         this.votingService = votingService;
         this.roundService = roundService;
-        this.roleService = roleService;
         this.messagingService = messagingService;
         this.gameManagerService = gameManagerService;
     }
@@ -58,26 +57,8 @@ public class GameService {
         Game game = new Game(lobby);
         gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
-        if (!game.getPlayers().isEmpty()) {
-            roleService.assignRoles(game);
-        }
-        // Send message to players about which round it is and round duration
-        for (Player player : game.getPlayers()) {
-            Map<String, Object> roundMessage = new HashMap<>();
-            roundMessage.put("event", "newRound");
-            roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
+        roundService.advanceRound(lobbyCode);
 
-            // Show location to players, but not the spy
-            if (!game.getCurrentRound().getSpy().equals(player)) {
-                roundMessage.put("role", "Player");
-                roundMessage.put("location", game.getCurrentRound().getLocation());
-            } else {
-
-                roundMessage.put("role", "Spy");
-            }
-
-            messagingService.sendMessage(player.getSession(), roundMessage);
-        }
         // Start voting countdown for the first round
         startRoundCountdown(lobby.getLobbyCode());
 
