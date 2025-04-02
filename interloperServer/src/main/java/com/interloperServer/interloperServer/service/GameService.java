@@ -45,7 +45,7 @@ public class GameService {
     public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
         Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
 
-        if (lobby.getHost().getUsername() == username) {
+        if (!lobby.getHost().getUsername().equals(username)) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Only the host can start the game."));
@@ -77,8 +77,8 @@ public class GameService {
         }
 
         lobbyService.removeUser(session);
-        // If the game is now empty, end it
-        if (game.getPlayers().isEmpty()) {
+        // If there is less than 2 left, end it
+        if (game.getPlayers().size() < 2) {
             endGame(lobbyCode);
         }
     }

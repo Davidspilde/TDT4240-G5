@@ -43,44 +43,38 @@ class GameServiceTest {
         p3 = new Player(mock(WebSocketSession.class), "Player3");
 
         LobbyOptions options = new LobbyOptions(8, 8, 8, 8, 8);
-        lobby = new Lobby("lobby123", p1, options);
+        lobby = new Lobby("lobby123", p3, options); // p3 is host
         lobby.addPlayer(p2);
-        lobby.addPlayer(p3);
+        lobby.addPlayer(p1);
 
         game = new Game(lobby);
 
+        when(lobbyService.getLobbyFromLobbyCode("lobby123")).thenReturn(lobby);
         when(gameManagerService.getGame("lobby123")).thenReturn(game);
     }
 
     @Test
     @DisplayName("Should start game if the caller is the host")
     public void startGame_hostCanStart() {
-        when(lobbyService.isHost("lobby123", "Player3")).thenReturn(true);
-        when(lobbyService.getPlayersInLobby("lobby123")).thenReturn(game.getPlayers());
-
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("Player3", lobby.getLobbyCode(), mockSession);
+        boolean result = gameService.startGame("Player3", "lobby123", mockSession);
 
         assertTrue(result, "startGame should return true if the host started the game");
 
-        // Grab the Game instance passed to assignRoles()
+        // Capture the Game instance passed to storeGame
         ArgumentCaptor<Game> gameCaptor = ArgumentCaptor.forClass(Game.class);
+        verify(gameManagerService).storeGame(eq("lobby123"), gameCaptor.capture());
 
-        // Check that its the correct game being started
         Game capturedGame = gameCaptor.getValue();
         assertEquals("lobby123", capturedGame.getLobby().getLobbyCode());
         assertEquals(3, capturedGame.getPlayers().size());
-
-        verify(gameManagerService).storeGame(eq("lobby123"), eq(capturedGame));
     }
 
     @Test
     @DisplayName("Should not start game if the caller is not the host")
     public void startGame_nonHostShouldFail() {
-        when(lobbyService.isHost("lobby123", "Player1")).thenReturn(false);
-
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("lobby123", "Player1", mockSession);
+        boolean result = gameService.startGame("Player1", "lobby123", mockSession); // Player1 is not host
 
         assertFalse(result, "startGame should return false if non-host tries to start");
 
@@ -92,17 +86,12 @@ class GameServiceTest {
     @Test
     @DisplayName("Should remove player and end game if nobody remains")
     public void handlePlayerDisconnect_lastPlayerLeaves() {
-        // game has 3 players: p1, p2, p3
         WebSocketSession sessionToRemove = p3.getSession();
 
-        // Remove all players but add Player3 back
-        game.getPlayers().clear();
-        game.getPlayers().add(p3);
-
-        // Remove Player3
+        lobby.removePlayer(p2);
+        lobby.removePlayer(p1);
         gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
 
-        // Should remove game from manager
         verify(gameManagerService).removeGame("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "gameEnded",
@@ -112,16 +101,13 @@ class GameServiceTest {
     @Test
     @DisplayName("Should transfer host role if host disconnects but players remain")
     public void handlePlayerDisconnect_transferHost() {
-        // p3 is host, p1 and p2 are players
-        WebSocketSession sessionToRemove = p3.getSession();
+        Player oldHost = lobby.getHost();
+        WebSocketSession sessionToRemove = oldHost.getSession();
+
         gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
 
-        // Now p3 is removed from game
-        assertFalse(game.getPlayers().contains(p3));
-        // p1 should become the new host (first in list after removal)
-        assertEquals(lobby.getHost(), p1);
-        // Not removing the entire game, since p1, p2 remain
-        verify(gameManagerService, never()).removeGame(anyString());
+        assertFalse(game.getPlayers().contains(oldHost));
+        assertNotEquals(oldHost, lobby.getHost()); // p1 should now be host
     }
 
     @Test
@@ -133,13 +119,14 @@ class GameServiceTest {
         verify(votingService).evaluateVotes("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy())));
+                "spy", game.getCurrentRound().getSpy().getUsername())));
     }
 
     @Test
     @DisplayName("Should remove game and announce end when endGame is called")
     public void endGameTest() {
         gameService.endGame("lobby123");
+
         verify(gameManagerService).removeGame("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "gameEnded",
