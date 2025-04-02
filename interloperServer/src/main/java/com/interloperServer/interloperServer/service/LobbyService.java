@@ -3,23 +3,22 @@ package com.interloperServer.interloperServer.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
 
-import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Class for handling lobby related logic
+ * Class for handling lobby-related logic.
  */
 @Service
 public class LobbyService {
     private final MessagingService messagingService;
 
-    // Stores lobbies and their participants
-    private final List<Lobby> lobbies = new ArrayList<Lobby>();
+    // Stores lobbies by their unique code
+    private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
     public LobbyService(MessagingService messagingService) {
         this.messagingService = messagingService;
@@ -27,10 +26,6 @@ public class LobbyService {
 
     /**
      * Creates a new lobby and assigns the creator as the host.
-     * Example message: {"content": "createLobby:Alice"}
-     * Example response: Lobby Created! Code: a48465 (Host: Alice)
-     * 
-     * @return The newly created lobby code
      */
     public String createLobby(WebSocketSession session, String username) {
         String lobbyCode;
@@ -38,15 +33,20 @@ public class LobbyService {
         // Ensure uniqueness of lobby code
         do {
             lobbyCode = UUID.randomUUID().toString().substring(0, 6);
-        } while (getLobbyFromLobbyCode(lobbyCode).equals(null));
+        } while (lobbies.containsKey(lobbyCode));
 
         Player host = new Player(session, username, LobbyRole.HOST);
 
-        // Baseoptions which gets applied when first creating a lobby
-        LobbyOptions options = new LobbyOptions(10, 30, 1, 8, Duration.ofMinutes(10));
+        LobbyOptions options = new LobbyOptions(
+                10, // roundNumber
+                30, // locationNumber
+                1, // spyCount
+                8, // maxPlayers
+                10 // roundDuration (seconds)
+        );
 
         Lobby newLobby = new Lobby(lobbyCode, host, options);
-        lobbies.add(newLobby);
+        lobbies.put(lobbyCode, newLobby);
 
         messagingService.sendMessage(session, Map.of(
                 "event", "lobbyCreated",
@@ -56,103 +56,100 @@ public class LobbyService {
     }
 
     /**
-     * Adds a player to a lobby.
-     * Example message: {"content": "joinLobby:a48465:Bob"}
-     * Example response: Joined Lobby: a48465. Host: Alice
-     * 
-     * @return True if the lobby exists, false if not
+     * Adds a player to an existing lobby.
      */
     public boolean joinLobby(WebSocketSession session, String lobbyCode, String username) {
-
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
 
-        if (lobby.equals(null)) {
+        if (lobby == null) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Lobby not found!"));
             return false;
-
         }
 
-        lobby.addPlayer(new Player(session, username, LobbyRole.PLAYER));
-        messagingService.sendMessage(session, Map.of(
-                "event", "joinedLobby",
-                "lobbyCode", lobbyCode,
-                "host", lobby.getHost().getUsername()));
+        synchronized (lobby) {
+            lobby.addPlayer(new Player(session, username, LobbyRole.PLAYER));
+            messagingService.sendMessage(session, Map.of(
+                    "event", "joinedLobby",
+                    "lobbyCode", lobbyCode,
+                    "host", lobby.getHost().getUsername()));
+        }
 
-        // Notify all users in the lobby
         broadcastPlayerList(lobbyCode);
         return true;
     }
 
     /**
-     * Ensures only the host can start the game.
+     * Checks if the user is the host of the lobby.
      */
     public boolean isHost(String lobbyCode, String username) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
-        if (lobby.equals(null) || !lobby.getHost().getUsername().equals(username)) {
-            return false;
-        }
-        return true;
+        return lobby != null && username.equals(lobby.getHost().getUsername());
     }
 
     /**
-     * Removes a player when they disconnect.
-     * If the host leaves, a new host is assigned.
+     * Removes a user by their session and updates the lobby accordingly.
      */
     public void removeUser(WebSocketSession session) {
-        for (int i = 0; i < lobbies.size(); i++) {
-            Lobby lobby = lobbies.get(i);
-            Player player = null;
+        Lobby targetLobby = null;
+        Player targetPlayer = null;
 
-            for (int p = 0; p < lobby.getPlayers().size(); p++) {
-                Player tempPlayer = lobby.getPlayers().get(p);
-                if (tempPlayer.getSession().equals(session)) {
-                    player = tempPlayer;
+        // Find the lobby and player
+        for (Lobby lobby : lobbies.values()) {
+            synchronized (lobby) {
+                for (Player player : lobby.getPlayers()) {
+                    if (player.getSession().equals(session)) {
+                        targetLobby = lobby;
+                        targetPlayer = player;
+                        break;
+                    }
                 }
             }
+            if (targetLobby != null)
+                break;
+        }
 
-            if (player.equals(null)) {
-                return;
-            }
+        if (targetLobby == null || targetPlayer == null)
+            return;
 
-            lobby.removePlayer(player);
+        synchronized (targetLobby) {
+            targetLobby.removePlayer(targetPlayer);
 
-            // If the host left, assign a new host
-            if (lobby.getHost().equals(player)) {
-                Player newHost = lobby.getPlayers().get(0);
-                lobby.setHost(newHost);
+            // Reassign host if needed
+            if (targetLobby.getHost().equals(targetPlayer) && !targetLobby.getPlayers().isEmpty()) {
+                Player newHost = targetLobby.getPlayers().get(0);
+                newHost.setLobbyRole(LobbyRole.HOST);
+                targetLobby.setHost(newHost);
 
-                for (Player p : lobby.getPlayers()) {
+                for (Player p : targetLobby.getPlayers()) {
                     messagingService.sendMessage(p.getSession(), Map.of(
                             "event", "newHost",
                             "username", newHost.getUsername()));
                 }
             }
 
-            // Remove empty lobbies
-            if (lobby.getPlayers().isEmpty()) {
-                lobbies.remove(lobby);
+            // Remove empty lobby
+            if (targetLobby.getPlayers().isEmpty()) {
+                lobbies.remove(targetLobby.getLobbyCode());
             }
         }
-        ;
     }
 
     /**
-     * Sends the current members of a lobby to every member in that lobby
-     * 
-     * @param lobbyCode
+     * Sends the current member list to all players in the lobby.
      */
     public void broadcastPlayerList(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
-
-        if (lobby.equals(null)) {
+        if (lobby == null)
             return;
+
+        List<Player> players;
+        synchronized (lobby) {
+            players = new ArrayList<>(lobby.getPlayers()); // copy to safely iterate
         }
 
-        List<Player> players = lobby.getPlayers();
         List<String> usernames = players.stream().map(Player::getUsername).toList();
-
         for (Player player : players) {
             messagingService.sendMessage(player.getSession(), Map.of(
                     "event", "lobbyUpdate",
@@ -160,18 +157,15 @@ public class LobbyService {
         }
     }
 
-    public List<Player> getPlayersInLobby(String lobbycode) {
-        return getLobbyFromLobbyCode(lobbycode).getPlayers();
+    /**
+     * Gets the players in a lobby.
+     */
+    public List<Player> getPlayersInLobby(String lobbyCode) {
+        Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
+        return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
     }
 
     private Lobby getLobbyFromLobbyCode(String lobbyCode) {
-
-        for (int i = 0; i < lobbies.size(); i++) {
-            if (lobbies.get(i).getLobbyCode().equals(lobbyCode)) {
-                return lobbies.get(i);
-            }
-        }
-        return null;
+        return lobbies.get(lobbyCode);
     }
-
 }

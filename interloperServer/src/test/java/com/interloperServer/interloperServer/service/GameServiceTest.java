@@ -47,7 +47,9 @@ class GameServiceTest {
         p3 = new Player(mock(WebSocketSession.class), "Player3", LobbyRole.HOST);
 
         List<Player> players = new ArrayList<>(List.of(p1, p2, p3));
-        game = new Game("lobby123", players, 2, 10);
+        LobbyOptions options = new LobbyOptions(8, 8, 8, 8, 8);
+        Lobby lobby = new Lobby("lobby123", players.get(0), options);
+        game = new Game(lobby);
 
         when(gameManagerService.getGame("lobby123")).thenReturn(game);
     }

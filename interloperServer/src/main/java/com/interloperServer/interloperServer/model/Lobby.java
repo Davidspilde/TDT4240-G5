@@ -2,6 +2,7 @@ package com.interloperServer.interloperServer.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.interloperServer.interloperServer.service.LobbyOptions;
@@ -17,7 +18,7 @@ public class Lobby {
         this.lobbyCode = lobbyCode;
         this.host = host;
         this.lobbyOptions = lobbyOptions;
-        this.players = new ArrayList<Player>(Arrays.asList(host));
+        this.players = Collections.synchronizedList(new ArrayList<Player>(Arrays.asList(host)));
     }
 
     public String getLobbyCode() {
@@ -32,7 +33,7 @@ public class Lobby {
         return host;
     }
 
-    public void setHost(Player host) {
+    public synchronized void setHost(Player host) {
         this.host = host;
     }
 
@@ -40,7 +41,7 @@ public class Lobby {
         return lobbyOptions;
     }
 
-    public void setLobbyOptions(LobbyOptions options) {
+    public synchronized void setLobbyOptions(LobbyOptions options) {
         this.lobbyOptions = options;
     }
 

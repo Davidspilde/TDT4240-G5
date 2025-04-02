@@ -1,6 +1,5 @@
 package com.interloperServer.interloperServer.model;
 
-import java.time.Duration;
 import java.util.*;
 
 public class Game {
@@ -10,8 +9,6 @@ public class Game {
     private boolean isActive;
     private int currentRoundIndex;
 
-    private int roundDuration;
-
     private transient Timer roundTimer;
 
     public Game(Lobby lobby) {
@@ -20,7 +17,6 @@ public class Game {
         this.scoreboard = new HashMap<>();
         this.isActive = true;
         this.currentRoundIndex = 0;
-        this.roundDuration = lobby.getLobbyOptions().getTimePerRound();
 
         // Initialize the scoreboard (all players start with 0 points)
         for (Player player : getPlayers()) {
@@ -28,6 +24,7 @@ public class Game {
         }
 
         // Create all rounds
+        int roundDuration = lobby.getLobbyOptions().getTimePerRound();
         int totalRounds = lobby.getLobbyOptions().getRoundLimit();
         for (int i = 0; i < totalRounds; i++) {
             this.rounds.add(new Round(i + 1, roundDuration));
@@ -40,6 +37,10 @@ public class Game {
 
     public int getCurrentRoundIndex() {
         return currentRoundIndex;
+    }
+
+    public Lobby getLobby() {
+        return lobby;
     }
 
     public Round getCurrentRound() {

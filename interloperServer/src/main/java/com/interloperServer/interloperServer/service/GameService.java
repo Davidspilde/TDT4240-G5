@@ -43,19 +43,17 @@ public class GameService {
      * 
      * @return True if the host called the method, false if someone else did
      */
-    public boolean startGame(String lobbyCode, String username, LobbyService lobbyService, WebSocketSession session) {
-        if (!lobbyService.isHost(lobbyCode, username)) {
+    public boolean startGame(String username, Lobby lobby, WebSocketSession session) {
+        if (lobby.getHost().getUsername().equals(username)) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Only the host can start the game."));
             return false;
         }
 
-        List<Player> players = ;
-
         // Create a new game instance for this lobby
-        Game game = new Game(lobbyCode, players, 5, 60);
-        gameManagerService.storeGame(lobbyCode, game);
+        Game game = new Game(lobby);
+        gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
         if (!game.getPlayers().isEmpty()) {
             roleService.assignRoles(game);
@@ -77,7 +75,7 @@ public class GameService {
         }
 
         // Start voting countdown for the first round
-        startRoundCountdown(lobbyCode);
+        startRoundCountdown(lobby.getLobbyCode());
 
         return true;
     }
