@@ -43,13 +43,15 @@ class GameServiceTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1", LobbyRole.PLAYER);
-        p2 = new Player(mock(WebSocketSession.class), "Player2", LobbyRole.PLAYER);
-        p3 = new Player(mock(WebSocketSession.class), "Player3", LobbyRole.HOST);
+        p1 = new Player(mock(WebSocketSession.class), "Player1");
+        p2 = new Player(mock(WebSocketSession.class), "Player2");
+        p3 = new Player(mock(WebSocketSession.class), "Player3");
 
-        List<Player> players = new ArrayList<>(List.of(p1, p2, p3));
         LobbyOptions options = new LobbyOptions(8, 8, 8, 8, 8);
-        lobby = new Lobby("lobby123", players.get(0), options);
+        lobby = new Lobby("lobby123", p1, options);
+        lobby.addPlayer(p2);
+        lobby.addPlayer(p3);
+
         game = new Game(lobby);
 
         when(gameManagerService.getGame("lobby123")).thenReturn(game);
@@ -61,18 +63,8 @@ class GameServiceTest {
         when(lobbyService.isHost("lobby123", "Player3")).thenReturn(true);
         when(lobbyService.getPlayersInLobby("lobby123")).thenReturn(game.getPlayers());
 
-        // Mock the behavior of RoleService to assign roles
-        doAnswer(invocation -> {
-            Game game = invocation.getArgument(0);
-            List<Player> players = game.getPlayers();
-            players.get(0).setGameRole(GameRole.PLAYER);
-            players.get(1).setGameRole(GameRole.PLAYER);
-            players.get(2).setGameRole(GameRole.SPY);
-            return null;
-        }).when(roleService).assignRoles(any(Game.class));
-
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("Player3", lobby, mockSession);
+        boolean result = gameService.startGame("Player3", lobby.getLobbyCode(), mockSession);
 
         assertTrue(result, "startGame should return true if the host started the game");
 
@@ -94,7 +86,7 @@ class GameServiceTest {
         when(lobbyService.isHost("lobby123", "Player1")).thenReturn(false);
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("lobby123", "Player1", lobbyService, mockSession);
+        boolean result = gameService.startGame("lobby123", "Player1", mockSession);
 
         assertFalse(result, "startGame should return false if non-host tries to start");
 
@@ -134,7 +126,7 @@ class GameServiceTest {
         // Now p3 is removed from game
         assertFalse(game.getPlayers().contains(p3));
         // p1 should become the new host (first in list after removal)
-        assertEquals(LobbyRole.HOST, p1.getLobbyRole());
+        assertEquals(lobby.getHost(), p1);
         // Not removing the entire game, since p1, p2 remain
         verify(gameManagerService, never()).removeGame(anyString());
     }
@@ -148,11 +140,7 @@ class GameServiceTest {
         verify(votingService).evaluateVotes("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "roundEnded",
-                "spy", game.getPlayers().stream()
-                        .filter(p -> p.getGameRole() == GameRole.SPY)
-                        .map(Player::getUsername)
-                        .findFirst()
-                        .orElse("Unknown"))));
+                "spy", game.getCurrentRound().getSpy())));
     }
 
     @Test

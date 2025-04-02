@@ -6,7 +6,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
-import com.interloperServer.interloperServer.model.GameRole;
 import com.interloperServer.interloperServer.model.Player;
 
 @Service

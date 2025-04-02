@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.Lobby;
-import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
 
@@ -120,7 +119,6 @@ public class LobbyService {
             // Reassign host if needed
             if (targetLobby.getHost().equals(targetPlayer) && !targetLobby.getPlayers().isEmpty()) {
                 Player newHost = targetLobby.getPlayers().get(0);
-                newHost.setLobbyRole(LobbyRole.HOST);
                 targetLobby.setHost(newHost);
 
                 for (Player p : targetLobby.getPlayers()) {

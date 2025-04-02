@@ -9,7 +9,6 @@ import java.util.Timer;
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
-import com.interloperServer.interloperServer.model.GameRole;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.Round;
 
@@ -128,12 +127,7 @@ public class VotingService {
         }
 
         // Find real spy and check if the majority vote is for the spy
-        String spyName = players.stream()
-                .filter(p -> p.getGameRole() == GameRole.SPY)
-                .map(Player::getUsername)
-                .findFirst()
-                .orElse("Unknown");
-
+        String spyName = currentRound.getSpy().getUsername();
         boolean spyCaught = votesWereCast && mostVoted != null && mostVoted.equals(spyName);
 
         // Broadcast if spy is caught or not
@@ -154,23 +148,17 @@ public class VotingService {
                 }
             }
         } else {
+            // Award a point to the spy if not caught
+            game.updateScore(currentRound.getSpy().getUsername(), 1);
             messagingService.broadcastMessage(game, Map.of(
                     "event", "spyNotCaught"));
-
-            for (Player p : players) {
-                if (p.getGameRole() == GameRole.SPY) {
-                    // Award a point to the spy if not caught
-                    game.updateScore(p.getUsername(), 1);
-                    break;
-                }
-            }
         }
 
         // Only deduct points if the round is over
         if (currentRound.isVotingComplete()) {
             // Deduct points from players who did not vote
             for (Player p : players) {
-                if (!voteMap.containsKey(p.getUsername()) && p.getGameRole() != GameRole.SPY) {
+                if (!voteMap.containsKey(p.getUsername()) && p.equals(currentRound.getSpy())) {
                     game.updateScore(p.getUsername(), -1);
                     messagingService.sendMessage(p.getSession(), Map.of(
                             "event", "notVoted"));
@@ -179,13 +167,9 @@ public class VotingService {
         }
 
         // Reveal spy and updated scoreboard
-        messagingService.broadcastMessage(game, Map.of(
-                "event", "spyReveal",
-                "spy", spyName));
+        messagingService.broadcastMessage(game, Map.of("event", "spyReveal", "spy", spyName));
 
-        messagingService.broadcastMessage(game, Map.of(
-                "event", "scoreboard",
-                "scores", game.getScoreboard()));
+        messagingService.broadcastMessage(game, Map.of("event", "scoreboard", "scores", game.getScoreboard()));
 
     }
 

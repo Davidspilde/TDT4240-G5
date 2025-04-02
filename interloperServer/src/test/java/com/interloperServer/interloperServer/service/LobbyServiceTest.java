@@ -1,6 +1,5 @@
 package com.interloperServer.interloperServer.service;
 
-import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +49,7 @@ class LobbyServiceTest {
 
         assertEquals(1, players.size());
         assertEquals(username, players.get(0).getUsername());
-        assertEquals(LobbyRole.HOST, players.get(0).getLobbyRole());
+        assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(0));
 
         // Check that a success message was sent
         verify(messagingService).sendMessage(eq(session1), eq(Map.of(
@@ -71,7 +70,7 @@ class LobbyServiceTest {
 
         assertEquals(2, players.size());
         assertEquals("Player2", players.get(1).getUsername());
-        assertEquals(LobbyRole.PLAYER, players.get(1).getLobbyRole());
+        assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(1));
 
         // Verify the "joinedLobby" message
         verify(messagingService).sendMessage(eq(session2), eq(Map.of(
@@ -114,7 +113,7 @@ class LobbyServiceTest {
         players = lobbyService.getPlayersInLobby(lobbyCode);
         assertEquals(1, players.size());
         assertEquals("Player2", players.get(0).getUsername());
-        assertEquals(LobbyRole.HOST, players.get(0).getLobbyRole());
+        assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(0));
 
         // remove Player2 => lobby empty => remove entire lobby
         lobbyService.removeUser(session2);

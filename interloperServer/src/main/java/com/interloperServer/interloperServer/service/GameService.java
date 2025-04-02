@@ -44,7 +44,9 @@ public class GameService {
      * 
      * @return True if the host called the method, false if someone else did
      */
-    public boolean startGame(String username, Lobby lobby, WebSocketSession session) {
+    public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
+        Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
+
         if (lobby.getHost().getUsername() == username) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
@@ -66,7 +68,7 @@ public class GameService {
             roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
 
             // Show location to players, but not the spy
-            if (!game.getCurrentRound().getSpies().contains(player)) {
+            if (!game.getCurrentRound().getSpy().equals(player)) {
                 roundMessage.put("role", "Player");
                 roundMessage.put("location", game.getCurrentRound().getLocation());
             } else {
@@ -97,10 +99,7 @@ public class GameService {
         lobbyService.removeUser(session);
         // If the game is now empty, end it
         if (game.getPlayers().isEmpty()) {
-            gameManagerService.removeGame(lobbyCode); // Remove game when empty
-            messagingService.broadcastMessage(game, Map.of(
-                    "event", "gameEnded",
-                    "message", "Game has ended."));
+            endGame(lobbyCode);
         }
     }
 
@@ -166,7 +165,7 @@ public class GameService {
         // Notify users that the round has ended
         messagingService.broadcastMessage(game, Map.of(
                 "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpies()));
+                "spy", game.getCurrentRound().getSpy().getUsername()));
     }
 
     /**
@@ -221,11 +220,7 @@ public class GameService {
         // Notify users that the round has ended
         messagingService.broadcastMessage(game, Map.of(
                 "event", "roundEnded",
-                "spy", game.getPlayers().stream()
-                        .filter(p -> p.getGameRole() == GameRole.SPY)
-                        .map(Player::getUsername)
-                        .findFirst()
-                        .orElse("Unknown")));
+                "spy", game.getCurrentRound().getSpy().getUsername()));
     }
 
     /**
