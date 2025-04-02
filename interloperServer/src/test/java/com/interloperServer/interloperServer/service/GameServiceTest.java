@@ -36,6 +36,7 @@ class GameServiceTest {
     private GameService gameService;
 
     private Game game;
+    private Lobby lobby;
     private Player p1, p2, p3;
 
     @BeforeEach
@@ -47,7 +48,9 @@ class GameServiceTest {
         p3 = new Player(mock(WebSocketSession.class), "Player3", LobbyRole.HOST);
 
         List<Player> players = new ArrayList<>(List.of(p1, p2, p3));
-        game = new Game("lobby123", players, 2, 10);
+        LobbyOptions options = new LobbyOptions(8, 8, 8, 8, 8);
+        lobby = new Lobby("lobby123", players.get(0), options);
+        game = new Game(lobby);
 
         when(gameManagerService.getGame("lobby123")).thenReturn(game);
     }
@@ -69,7 +72,7 @@ class GameServiceTest {
         }).when(roleService).assignRoles(any(Game.class));
 
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("lobby123", "Player3", lobbyService, mockSession);
+        boolean result = gameService.startGame("Player3", lobby, mockSession);
 
         assertTrue(result, "startGame should return true if the host started the game");
 
@@ -79,7 +82,7 @@ class GameServiceTest {
 
         // Check that its the correct game being started
         Game capturedGame = gameCaptor.getValue();
-        assertEquals("lobby123", capturedGame.getLobbyCode());
+        assertEquals("lobby123", capturedGame.getLobby().getLobbyCode());
         assertEquals(3, capturedGame.getPlayers().size());
 
         verify(gameManagerService).storeGame(eq("lobby123"), eq(capturedGame));

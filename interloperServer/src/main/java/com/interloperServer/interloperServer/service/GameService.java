@@ -20,7 +20,6 @@ public class GameService {
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
-
     /**
      * Initializes the game service with its dependent services
      * 
@@ -43,24 +42,21 @@ public class GameService {
      * 
      * @return True if the host called the method, false if someone else did
      */
-    public boolean startGame(String lobbyCode, String username, LobbyService lobbyService, WebSocketSession session) {
-        if (!lobbyService.isHost(lobbyCode, username)) {
+    public boolean startGame(String username, Lobby lobby, WebSocketSession session) {
+        if (lobby.getHost().getUsername() == username) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Only the host can start the game."));
             return false;
         }
 
-        List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
-
         // Create a new game instance for this lobby
-        Game game = new Game(lobbyCode, players, 5, 60);
-        gameManagerService.storeGame(lobbyCode, game);
+        Game game = new Game(lobby);
+        gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
         if (!game.getPlayers().isEmpty()) {
             roleService.assignRoles(game);
         }
-
         // Send message to players about which round it is and round duration
         for (Player player : game.getPlayers()) {
             Map<String, Object> roundMessage = new HashMap<>();
@@ -77,7 +73,7 @@ public class GameService {
         }
 
         // Start voting countdown for the first round
-        startRoundCountdown(lobbyCode);
+        startRoundCountdown(lobby.getLobbyCode());
 
         return true;
     }
@@ -90,7 +86,6 @@ public class GameService {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
-
         // Find the player who disconnected
         Player disconnectedPlayer = null;
         for (Player player : game.getPlayers()) {
@@ -139,7 +134,6 @@ public class GameService {
             return;
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
-
 
         // Broadcast round duration at the beginning of each round
         messagingService.broadcastMessage(game, "roundDuration:" + roundDuration);
@@ -247,7 +241,7 @@ public class GameService {
             game.setRoundTimer(null);
         }
 
-        // ⬇Notify users that the round has ended
+        // Notify users that the round has ended
         messagingService.broadcastMessage(game, Map.of(
                 "event", "roundEnded",
                 "spy", game.getPlayers().stream()
