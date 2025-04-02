@@ -5,10 +5,12 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public abstract class StageController {
     protected Stage stage;
+    protected ScreenViewport viewport;
 
     //constructor
     public StageController(ScreenViewport viewport){
         stage = new Stage(viewport);
+        this.viewport = viewport;
     }
 
 
