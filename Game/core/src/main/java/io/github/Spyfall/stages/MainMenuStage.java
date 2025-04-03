@@ -26,7 +26,7 @@ public class MainMenuStage extends StageController{
         Skin skin = new Skin(Gdx.files.internal("metal-ui.json"));
 
         // Create UI Elements
-        TextButton createGameButton = new TextButton("Create game", skin);
+        TextButton createLobbyButton = new TextButton("Create lobby", skin);
         TextButton joinGameButton = new TextButton("Join game", skin);
         TextButton howToPlayButton = new TextButton("How to play", skin);
         TextureRegionDrawable texture = new TextureRegionDrawable(new TextureRegion(new Texture("Background_city.png")));
@@ -34,10 +34,10 @@ public class MainMenuStage extends StageController{
         Image image = new Image(new TextureRegion(new Texture("logo-Photoroom.png")));
 
         // Add callbacks to buttons
-        createGameButton.addListener(new ClickListener(){
+        createLobbyButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event,float x, float y){
-                changeStage(new CreateGameStage(viewport));
+                changeStage(new LobbyStage(viewport));
             }
         });
 
@@ -75,7 +75,7 @@ public class MainMenuStage extends StageController{
         // Add padding and spacing
         table.add(image).padBottom((float) viewport.getScreenHeight()/10).padLeft((float) viewport.getScreenWidth() /10).padRight((float) viewport.getScreenWidth() /10).padTop((float) viewport.getScreenHeight()/15);
         table.row();
-        table.add(createGameButton).padBottom((float) viewport.getScreenHeight()/10);
+        table.add(createLobbyButton).padBottom((float) viewport.getScreenHeight()/10);
         table.row();
         table.add(joinGameButton).padBottom((float) viewport.getScreenHeight()/10);
         table.row();
@@ -84,7 +84,6 @@ public class MainMenuStage extends StageController{
         // Add UI to Stage
         stage.addActor(table);
     }
-
 
     private void changeStage(StageController newStage) {
         // Logic to switch stages (could be using a ScreenManager)
