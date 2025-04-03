@@ -2,9 +2,9 @@ package io.github.Spyfall.models.messages;
 
 public class Message {
 
-    private String type;
-    private String lobbyCode;
-    private String username;
+    protected String type;
+    protected String lobbyCode;
+    protected String username;
 
     public Message() {
     }
