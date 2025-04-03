@@ -1,9 +1,9 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.view;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-public class TestStage extends StageController {
+public class TestStage extends StageView {
     public TestStage(ScreenViewport viewport) {
         super(viewport);
         initTestStage();

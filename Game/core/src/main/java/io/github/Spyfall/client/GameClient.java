@@ -2,21 +2,16 @@ package io.github.Spyfall.client;
 
 import java.net.URISyntaxException;
 
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.Spyfall.services.LocalWebSocketClient;
-import io.github.Spyfall.stages.MainMenuStage;
-import io.github.Spyfall.stages.StageController;
-import io.github.Spyfall.stages.StageManager;
-import io.github.Spyfall.stages.Stages;
-import io.github.Spyfall.stages.TestStage;
+import io.github.Spyfall.view.MainMenuStage;
+import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.controller.StageManager;
 
 public class GameClient {
 
-    private StageController currentStage;
+    private StageView currentStage;
     private StageManager stageManager;
 
     private LocalWebSocketClient webSocketClient;

@@ -1,4 +1,4 @@
-package io.github.Spyfall.models;
+package io.github.Spyfall.model;
 
 public class ChatMessage {
 
