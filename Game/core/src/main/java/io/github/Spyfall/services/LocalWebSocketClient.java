@@ -9,7 +9,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter.OutputType;
 
-import io.github.Spyfall.models.ChatMessage;
+import io.github.Spyfall.model.ChatMessage;
 
 public class LocalWebSocketClient extends WebSocketClient {
 

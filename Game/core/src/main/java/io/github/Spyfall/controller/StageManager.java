@@ -1,11 +1,11 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.controller;
 
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.Spyfall.client.GameClient;
+
+import io.github.Spyfall.view.StageView;
 
 public class StageManager {
-    private StageController currentStage;
+    private StageView currentStage;
     private static StageManager instance;
     private ScreenViewport viewport;
 
@@ -15,11 +15,11 @@ public class StageManager {
     public static StageManager getInstance(){
         return (instance == null) ? (instance = new StageManager()) : instance;
     }
-    public void setStage(StageController newState){
+    public void setStage(StageView newState){
         currentStage = newState;
     }
 
-    public StageController getStage(){
+    public StageView getStage(){
         return currentStage;
     }
 

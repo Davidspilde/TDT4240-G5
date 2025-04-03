@@ -1,9 +1,10 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.view;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -12,9 +13,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 
-public class MainMenuStage extends StageController{
+import io.github.Spyfall.controller.StageManager;
+
+public class MainMenuStage extends StageView {
 
     public MainMenuStage(ScreenViewport viewport){
         super(viewport);
@@ -37,7 +39,7 @@ public class MainMenuStage extends StageController{
         createGameButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event,float x, float y){
-                changeStage(new CreateGameStage(viewport));
+                StageManager.getInstance().setStage(new CreateGameStage(viewport));
             }
         });
 
@@ -48,7 +50,7 @@ public class MainMenuStage extends StageController{
                     @Override
                     public void result(Object obj) {
                         if (obj.equals(true)) {  // Only change stage if "Yes" is pressed
-                            changeStage(new GameLobby(true,"meow", "mjes",viewport));
+                            StageManager.getInstance().setStage(new GameLobby(true,"meow", "mjes",viewport));
                         }
                     }
                 };
@@ -83,12 +85,5 @@ public class MainMenuStage extends StageController{
 
         // Add UI to Stage
         stage.addActor(table);
-    }
-
-
-    private void changeStage(StageController newStage) {
-        // Logic to switch stages (could be using a ScreenManager)
-        System.out.println("Stage changed to: " + newStage.getClass().getSimpleName());
-        StageManager.getInstance().setStage(newStage);
     }
 }
