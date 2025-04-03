@@ -13,8 +13,8 @@ import io.github.Spyfall.stages.StageManager;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {
-    public final int WIDTH = 720;
-    public final int HEIGHT = 1280;
+    public final int WIDTH = 720/2;
+    public final int HEIGHT = 1280/2;
     public static final String TITLE = "Spyfall";
     private GameClient gameClient;
 
