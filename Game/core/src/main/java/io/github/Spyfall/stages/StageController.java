@@ -31,4 +31,9 @@ public abstract class StageController {
     public void resize(int width, int height){
         stage.getViewport().update(width, height);
     }
+
+    //dispose
+    public void dispose() {
+        stage.dispose();
+    }
 }

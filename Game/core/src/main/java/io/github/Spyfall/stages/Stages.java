@@ -5,5 +5,5 @@ public enum Stages {
     GAME_LOBBY,
     JOIN_LOBBY,
     MAIN_MENU,
-
+    LOBBY_CONFIG
 }
