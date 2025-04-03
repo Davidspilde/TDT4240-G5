@@ -12,8 +12,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.StageManager;
@@ -48,26 +50,46 @@ public class MainMenuStage extends StageView {
         joinGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                Dialog dialog = new Dialog("Warning", skin, "dialog") {
+                final TextField username = new TextField("", skin);
+                final TextField textField = new TextField("", skin);
+                textField.setMessageText("Enter Lobby Code");
+                username.setMessageText("Enter Username");
+                Dialog dialog = new Dialog("Join", skin, "dialog") {
                     @Override
                     public void result(Object obj) {
-                        if (obj.equals(true)) {  // Only change stage if "Yes" is pressed
+                        if (obj.equals(true)) {  // Only change stage if "Join" is pressed
+                            String lobbyCode = textField.getText();
+                            String username_string = username.getText();
+                            System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + username_string);
                             StageManager.getInstance().setStage(new GameLobby(true,"meow", "mjes",viewport));
                         }
                     }
                 };
 
-                Label label = new Label("Are you sure you want to join the game?", skin);
+                dialog.getTitleTable().padTop(20f);
+                dialog.getTitleTable().padBottom(5f);
+
+                Label label = new Label("Join Lobby", skin);
+                label.setAlignment(Align.center);
                 label.setWrap(true);
+
                 ScrollPane scrollPane = new ScrollPane(label, skin);
                 scrollPane.setFadeScrollBars(false);
-                dialog.getContentTable().add(scrollPane).width((float) ((float)viewport.getScreenWidth()*0.83333333333)).height((float) ((float)viewport.getScreenWidth()*0.2));
+                dialog.getContentTable().add(scrollPane).width((viewport.getScreenWidth()*0.8f)).height((viewport.getScreenWidth()*0.2f)).row();
+                dialog.getContentTable().add(textField).width(250).center().pad(15).row();
+                dialog.getContentTable().add(username).width(250).center().pad(15);
+
+
                 System.out.println(dialog.getWidth()+"\t"+dialog.getHeight());
-                dialog.button("Yes", true); // Sends "true" when clicked
-                dialog.button("No", false);  // Sends "false" when clicked
+                dialog.button("Join", true); // Sends "true" when clicked
+                dialog.button("Cancel", false);  // Sends "false" when clicked
                 dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
-                dialog.setDebug(true);
+                // dialog.setDebug(true);
+                
                 dialog.show(stage);
+                dialog.pack(); // for calculating layout libgdx stuff
+
+                dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
             }
         });
 
