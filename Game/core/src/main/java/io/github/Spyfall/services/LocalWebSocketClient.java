@@ -18,7 +18,6 @@ public class LocalWebSocketClient extends WebSocketClient {
         if (instance == null) {
             try {
                 instance = new LocalWebSocketClient(serverUrl);
-                instance.connect(); // optionally connect immediately
             } catch (URISyntaxException e) {
                 throw new RuntimeException("Invalid WebSocket URI: " + serverUrl, e);
             }
