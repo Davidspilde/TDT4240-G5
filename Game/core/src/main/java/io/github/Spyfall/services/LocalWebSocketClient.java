@@ -6,24 +6,35 @@ import java.net.URI;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import com.badlogic.gdx.utils.Json;
-import com.badlogic.gdx.utils.JsonWriter.OutputType;
-
-import io.github.Spyfall.model.ChatMessage;
-
 public class LocalWebSocketClient extends WebSocketClient {
 
-    public LocalWebSocketClient(String serverUrl) throws URISyntaxException {
+    private static LocalWebSocketClient instance;
+
+    private LocalWebSocketClient(String serverUrl) throws URISyntaxException {
         super(new URI(serverUrl));
+    }
+
+    public static LocalWebSocketClient getInstance(String serverUrl) {
+        if (instance == null) {
+            try {
+                instance = new LocalWebSocketClient(serverUrl);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Invalid WebSocket URI: " + serverUrl, e);
+            }
+        }
+        return instance;
+    }
+
+    public static LocalWebSocketClient getInstance() {
+        if (instance == null) {
+            throw new RuntimeException("Need to set serverURI first");
+        }
+        return instance;
     }
 
     @Override
     public void onOpen(ServerHandshake handshake) {
         System.out.println("Connected to server");
-        ChatMessage msg = new ChatMessage("createLobby:joe", "joe");
-        Json json = new Json();
-        json.setOutputType(OutputType.json);
-        send(json.toJson(msg));
     }
 
     @Override
@@ -40,4 +51,5 @@ public class LocalWebSocketClient extends WebSocketClient {
     public void onError(Exception ex) {
         ex.printStackTrace();
     }
+
 }

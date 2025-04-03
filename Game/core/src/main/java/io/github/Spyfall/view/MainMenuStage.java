@@ -19,30 +19,36 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.StageManager;
+import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuStage extends StageView {
+    private SendMessageService sendMsgService;
 
-    public MainMenuStage(ScreenViewport viewport){
+    public MainMenuStage(ScreenViewport viewport) {
         super(viewport);
         initMainMenu();
+
+        sendMsgService = SendMessageService.getInstace();
     }
 
     private void initMainMenu() {
         Gdx.input.setInputProcessor(stage);
-        Skin skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
+        Skin skin = new Skin(
+                Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
         // Create UI Elements
         TextButton createGameButton = new TextButton("Create game", skin);
         TextButton joinGameButton = new TextButton("Join game", skin);
         TextButton howToPlayButton = new TextButton("How to play", skin);
-        TextureRegionDrawable texture = new TextureRegionDrawable(new TextureRegion(new Texture("Background_city.png")));
+        TextureRegionDrawable texture = new TextureRegionDrawable(
+                new TextureRegion(new Texture("Background_city.png")));
         Table table = new Table();
         Image image = new Image(new TextureRegion(new Texture("logo-Photoroom.png")));
 
         // Add callbacks to buttons
-        createGameButton.addListener(new ClickListener(){
+        createGameButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event,float x, float y){
+            public void clicked(InputEvent event, float x, float y) {
                 StageManager.getInstance().setStage(new CreateGameStage(viewport));
             }
         });
@@ -93,9 +99,9 @@ public class MainMenuStage extends StageView {
             }
         });
 
-        howToPlayButton.addListener(new ClickListener(){
+        howToPlayButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y){
+            public void clicked(InputEvent event, float x, float y) {
                 System.out.println("Skal egt vise en pop up her");
             }
         });
@@ -105,13 +111,15 @@ public class MainMenuStage extends StageView {
         table.setBackground(texture);
 
         // Add padding and spacing
-        table.add(image).padBottom((float) viewport.getScreenHeight()/10).padLeft((float) viewport.getScreenWidth() /10).padRight((float) viewport.getScreenWidth() /10).padTop((float) viewport.getScreenHeight()/15);
+        table.add(image).padBottom((float) viewport.getScreenHeight() / 10)
+                .padLeft((float) viewport.getScreenWidth() / 10).padRight((float) viewport.getScreenWidth() / 10)
+                .padTop((float) viewport.getScreenHeight() / 15);
         table.row();
-        table.add(createGameButton).padBottom((float) viewport.getScreenHeight()/10);
+        table.add(createGameButton).padBottom((float) viewport.getScreenHeight() / 10);
         table.row();
-        table.add(joinGameButton).padBottom((float) viewport.getScreenHeight()/10);
+        table.add(joinGameButton).padBottom((float) viewport.getScreenHeight() / 10);
         table.row();
-        table.add(howToPlayButton).padBottom((float) viewport.getScreenHeight()/10);
+        table.add(howToPlayButton).padBottom((float) viewport.getScreenHeight() / 10);
 
         // Add UI to Stage
         stage.addActor(table);
