@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.client.GameClient;
 import io.github.Spyfall.launcher.GameLauncher;
-import io.github.Spyfall.stages.StageManager;
+import io.github.Spyfall.controller.StageManager;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {

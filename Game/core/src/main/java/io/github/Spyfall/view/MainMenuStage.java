@@ -1,20 +1,24 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.view;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 
-public class MainMenuStage extends StageController{
+import io.github.Spyfall.controller.StageManager;
+
+public class MainMenuStage extends StageView {
 
     public MainMenuStage(ScreenViewport viewport){
         super(viewport);
@@ -23,7 +27,7 @@ public class MainMenuStage extends StageController{
 
     private void initMainMenu() {
         Gdx.input.setInputProcessor(stage);
-        Skin skin = new Skin(Gdx.files.internal("metal-ui.json"));
+        Skin skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
         // Create UI Elements
         TextButton createGameButton = new TextButton("Create game", skin);
@@ -37,7 +41,7 @@ public class MainMenuStage extends StageController{
         createGameButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event,float x, float y){
-                changeStage(new CreateGameStage(viewport));
+                StageManager.getInstance().setStage(new CreateGameStage(viewport));
             }
         });
 
@@ -48,16 +52,22 @@ public class MainMenuStage extends StageController{
                     @Override
                     public void result(Object obj) {
                         if (obj.equals(true)) {  // Only change stage if "Yes" is pressed
-                            changeStage(new GameLobby(true,"meow", "mjes",viewport));
+                            StageManager.getInstance().setStage(new GameLobby(true,"meow", "mjes",viewport));
                         }
                     }
                 };
 
-                dialog.text("Are you sure you want to join the game?");
+                Label label = new Label("Are you sure you want to join the game?", skin);
+                label.setWrap(true);
+                ScrollPane scrollPane = new ScrollPane(label, skin);
+                scrollPane.setFadeScrollBars(false);
+                dialog.getContentTable().add(scrollPane).width((float) ((float)viewport.getScreenWidth()*0.83333333333)).height((float) ((float)viewport.getScreenWidth()*0.2));
+                System.out.println(dialog.getWidth()+"\t"+dialog.getHeight());
                 dialog.button("Yes", true); // Sends "true" when clicked
                 dialog.button("No", false);  // Sends "false" when clicked
                 dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
-                dialog.show(stage); // Show the popup dialog
+                dialog.setDebug(true);
+                dialog.show(stage);
             }
         });
 
@@ -83,12 +93,5 @@ public class MainMenuStage extends StageController{
 
         // Add UI to Stage
         stage.addActor(table);
-    }
-
-
-    private void changeStage(StageController newStage) {
-        // Logic to switch stages (could be using a ScreenManager)
-        System.out.println("Stage changed to: " + newStage.getClass().getSimpleName());
-        StageManager.getInstance().setStage(newStage);
     }
 }
