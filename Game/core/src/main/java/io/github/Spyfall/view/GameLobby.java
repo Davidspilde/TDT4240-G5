@@ -3,6 +3,7 @@ package io.github.Spyfall.view;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -10,13 +11,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameLobby extends StageView {
 
     private Skin skin;
-    private ScreenViewport viewport;
     private Stage stage;
 
     // UI elements
@@ -44,13 +45,13 @@ public class GameLobby extends StageView {
 
     public void initStage() {
         // 1) Load the background texture
-        bgTexture = new Texture(Gdx.files.internal("bg.jpeg"));
+        bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
 
         // Let the stage receive input events
         Gdx.input.setInputProcessor(stage);
 
         // Load skin
-        skin = new Skin(Gdx.files.internal("metal-ui.json"));
+        skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
         // 2) Create the root table that fills the screen
         Table rootTable = new Table();
@@ -98,6 +99,13 @@ public class GameLobby extends StageView {
         // Create end/leave game buttons
         endGameButton = new TextButton("End Game", skin);
         leaveGameButton = new TextButton("Leave Game", skin);
+
+        endGameButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y){
+                StageManager.getInstance().setStage(new MainMenuStage(viewport));
+            }
+        });
 
         // Layout with rootTable
         rootTable.top().pad(20f);

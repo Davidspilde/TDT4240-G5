@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -25,7 +27,7 @@ public class MainMenuStage extends StageView {
 
     private void initMainMenu() {
         Gdx.input.setInputProcessor(stage);
-        Skin skin = new Skin(Gdx.files.internal("metal-ui.json"));
+        Skin skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
         // Create UI Elements
         TextButton createGameButton = new TextButton("Create game", skin);
@@ -55,11 +57,17 @@ public class MainMenuStage extends StageView {
                     }
                 };
 
-                dialog.text("Are you sure you want to join the game?");
+                Label label = new Label("Are you sure you want to join the game?", skin);
+                label.setWrap(true);
+                ScrollPane scrollPane = new ScrollPane(label, skin);
+                scrollPane.setFadeScrollBars(false);
+                dialog.getContentTable().add(scrollPane).width((float) ((float)viewport.getScreenWidth()*0.83333333333)).height((float) ((float)viewport.getScreenWidth()*0.2));
+                System.out.println(dialog.getWidth()+"\t"+dialog.getHeight());
                 dialog.button("Yes", true); // Sends "true" when clicked
                 dialog.button("No", false);  // Sends "false" when clicked
                 dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
-                dialog.show(stage); // Show the popup dialog
+                dialog.setDebug(true);
+                dialog.show(stage);
             }
         });
 
