@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.Lobby;
-import com.interloperServer.interloperServer.model.LobbyRole;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
 
@@ -36,14 +35,14 @@ public class LobbyService {
             lobbyCode = UUID.randomUUID().toString().substring(0, 6);
         } while (lobbies.containsKey(lobbyCode));
 
-        Player host = new Player(session, username, LobbyRole.HOST);
+        Player host = new Player(session, username);
 
         LobbyOptions options = new LobbyOptions(
                 10, // roundNumber
                 30, // locationNumber
                 1, // spyCount
                 8, // maxPlayers
-                10 // roundDuration (seconds)
+                120 // roundDuration (seconds)
         );
 
         Lobby newLobby = new Lobby(lobbyCode, host, options);
@@ -70,7 +69,7 @@ public class LobbyService {
         }
 
         synchronized (lobby) {
-            lobby.addPlayer(new Player(session, username, LobbyRole.PLAYER));
+            lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, Map.of(
                     "event", "joinedLobby",
                     "lobbyCode", lobbyCode,
@@ -120,7 +119,6 @@ public class LobbyService {
             // Reassign host if needed
             if (targetLobby.getHost().equals(targetPlayer) && !targetLobby.getPlayers().isEmpty()) {
                 Player newHost = targetLobby.getPlayers().get(0);
-                newHost.setLobbyRole(LobbyRole.HOST);
                 targetLobby.setHost(newHost);
 
                 for (Player p : targetLobby.getPlayers()) {

@@ -1,18 +1,21 @@
 package com.interloperServer.interloperServer.model;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Round {
     private final int roundNumber;
     private final String location;
     private boolean isActive;
+    private Player spy;
     private int roundDuration;
     private boolean votingComplete;
 
     private final Map<String, String> votes = new HashMap<>(); // voterUsername -> targetUsername
 
-    public Round(int roundNumber, int roundDuration) {
+    public Round(int roundNumber, int roundDuration, Player spy) {
+        this.spy = spy;
         this.roundNumber = roundNumber;
         this.location = generateRandomLocation();
         this.isActive = true;
@@ -22,6 +25,10 @@ public class Round {
 
     public int getRoundNumber() {
         return roundNumber;
+    }
+
+    public Player getSpy() {
+        return spy;
     }
 
     public String getLocation() {

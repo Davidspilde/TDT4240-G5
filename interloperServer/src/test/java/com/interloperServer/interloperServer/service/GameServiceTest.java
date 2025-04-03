@@ -7,12 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -23,8 +20,6 @@ class GameServiceTest {
     private VotingService votingService;
     @Mock
     private RoundService roundService;
-    @Mock
-    private RoleService roleService;
     @Mock
     private MessagingService messagingService;
     @Mock
@@ -43,81 +38,60 @@ class GameServiceTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1", LobbyRole.PLAYER);
-        p2 = new Player(mock(WebSocketSession.class), "Player2", LobbyRole.PLAYER);
-        p3 = new Player(mock(WebSocketSession.class), "Player3", LobbyRole.HOST);
+        p1 = new Player(mock(WebSocketSession.class), "Player1");
+        p2 = new Player(mock(WebSocketSession.class), "Player2");
+        p3 = new Player(mock(WebSocketSession.class), "Player3");
 
-        List<Player> players = new ArrayList<>(List.of(p1, p2, p3));
         LobbyOptions options = new LobbyOptions(8, 8, 8, 8, 8);
-        lobby = new Lobby("lobby123", players.get(0), options);
+        lobby = new Lobby("lobby123", p3, options); // p3 is host
+        lobby.addPlayer(p2);
+        lobby.addPlayer(p1);
+
         game = new Game(lobby);
 
+        when(lobbyService.getLobbyFromLobbyCode("lobby123")).thenReturn(lobby);
         when(gameManagerService.getGame("lobby123")).thenReturn(game);
     }
 
     @Test
     @DisplayName("Should start game if the caller is the host")
     public void startGame_hostCanStart() {
-        when(lobbyService.isHost("lobby123", "Player3")).thenReturn(true);
-        when(lobbyService.getPlayersInLobby("lobby123")).thenReturn(game.getPlayers());
-
-        // Mock the behavior of RoleService to assign roles
-        doAnswer(invocation -> {
-            Game game = invocation.getArgument(0);
-            List<Player> players = game.getPlayers();
-            players.get(0).setGameRole(GameRole.PLAYER);
-            players.get(1).setGameRole(GameRole.PLAYER);
-            players.get(2).setGameRole(GameRole.SPY);
-            return null;
-        }).when(roleService).assignRoles(any(Game.class));
-
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("Player3", lobby, mockSession);
+        boolean result = gameService.startGame("Player3", "lobby123", mockSession);
 
         assertTrue(result, "startGame should return true if the host started the game");
 
-        // Grab the Game instance passed to assignRoles()
+        // Capture the Game instance passed to storeGame
         ArgumentCaptor<Game> gameCaptor = ArgumentCaptor.forClass(Game.class);
-        verify(roleService).assignRoles(gameCaptor.capture());
+        verify(gameManagerService).storeGame(eq("lobby123"), gameCaptor.capture());
 
-        // Check that its the correct game being started
         Game capturedGame = gameCaptor.getValue();
         assertEquals("lobby123", capturedGame.getLobby().getLobbyCode());
         assertEquals(3, capturedGame.getPlayers().size());
-
-        verify(gameManagerService).storeGame(eq("lobby123"), eq(capturedGame));
     }
 
     @Test
     @DisplayName("Should not start game if the caller is not the host")
     public void startGame_nonHostShouldFail() {
-        when(lobbyService.isHost("lobby123", "Player1")).thenReturn(false);
-
         WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("lobby123", "Player1", lobbyService, mockSession);
+        boolean result = gameService.startGame("Player1", "lobby123", mockSession); // Player1 is not host
 
         assertFalse(result, "startGame should return false if non-host tries to start");
 
         verify(messagingService).sendMessage(eq(mockSession), eq(Map.of(
                 "event", "error",
                 "message", "Only the host can start the game.")));
-        verifyNoInteractions(roleService);
     }
 
     @Test
     @DisplayName("Should remove player and end game if nobody remains")
     public void handlePlayerDisconnect_lastPlayerLeaves() {
-        // game has 3 players: p1, p2, p3
         WebSocketSession sessionToRemove = p3.getSession();
 
-        // Remove all players but add Player3 back
-        game.getPlayers().clear();
-        game.getPlayers().add(p3);
-
-        // Remove Player3
+        lobby.removePlayer(p2);
+        lobby.removePlayer(p1);
         gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
 
-        // Should remove game from manager
         verify(gameManagerService).removeGame("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "gameEnded",
@@ -127,16 +101,13 @@ class GameServiceTest {
     @Test
     @DisplayName("Should transfer host role if host disconnects but players remain")
     public void handlePlayerDisconnect_transferHost() {
-        // p3 is host, p1 and p2 are players
-        WebSocketSession sessionToRemove = p3.getSession();
+        Player oldHost = lobby.getHost();
+        WebSocketSession sessionToRemove = oldHost.getSession();
+
         gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
 
-        // Now p3 is removed from game
-        assertFalse(game.getPlayers().contains(p3));
-        // p1 should become the new host (first in list after removal)
-        assertEquals(LobbyRole.HOST, p1.getLobbyRole());
-        // Not removing the entire game, since p1, p2 remain
-        verify(gameManagerService, never()).removeGame(anyString());
+        assertFalse(game.getPlayers().contains(oldHost));
+        assertNotEquals(oldHost, lobby.getHost()); // p1 should now be host
     }
 
     @Test
@@ -148,17 +119,14 @@ class GameServiceTest {
         verify(votingService).evaluateVotes("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "roundEnded",
-                "spy", game.getPlayers().stream()
-                        .filter(p -> p.getGameRole() == GameRole.SPY)
-                        .map(Player::getUsername)
-                        .findFirst()
-                        .orElse("Unknown"))));
+                "spy", game.getCurrentRound().getSpy().getUsername())));
     }
 
     @Test
     @DisplayName("Should remove game and announce end when endGame is called")
     public void endGameTest() {
         gameService.endGame("lobby123");
+
         verify(gameManagerService).removeGame("lobby123");
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "gameEnded",

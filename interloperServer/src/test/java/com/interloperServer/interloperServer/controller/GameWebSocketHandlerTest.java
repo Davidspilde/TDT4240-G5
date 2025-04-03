@@ -90,7 +90,7 @@ class GameWebSocketHandlerTest {
         // Send message
         handler.handleTextMessage(session, new TextMessage(json));
 
-        verify(gameService).startGame(eq("abc123"), eq("Alice"), eq(lobbyService), eq(session));
+        verify(gameService).startGame(eq("abc123"), eq("Alice"), eq(session));
     }
 
     @Test

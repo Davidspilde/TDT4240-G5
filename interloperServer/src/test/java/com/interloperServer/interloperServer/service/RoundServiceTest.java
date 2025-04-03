@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -19,14 +17,13 @@ public class RoundServiceTest {
     @Mock
     private MessagingService messagingService;
     @Mock
-    private RoleService roleService;
-    @Mock
     private GameManagerService gameManagerService;
 
     @InjectMocks
     private RoundService roundService;
 
     private Game game;
+    private Lobby lobby;
     private Player p1;
     private Player p2;
     private Player spy;
@@ -35,17 +32,16 @@ public class RoundServiceTest {
     public void setup() {
         MockitoAnnotations.openMocks(this);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1", LobbyRole.PLAYER);
-        p2 = new Player(mock(WebSocketSession.class), "Player2", LobbyRole.PLAYER);
-        spy = new Player(mock(WebSocketSession.class), "Player3", LobbyRole.PLAYER);
+        p1 = new Player(mock(WebSocketSession.class), "Player1");
+        p2 = new Player(mock(WebSocketSession.class), "Player2");
+        spy = new Player(mock(WebSocketSession.class), "Player3");
 
-        p1.setGameRole(GameRole.PLAYER);
-        p2.setGameRole(GameRole.PLAYER);
-        spy.setGameRole(GameRole.SPY);
+        LobbyOptions lobbyOptions = new LobbyOptions(3, 25, 1, 10, 120);
+        lobby = new Lobby("abc123", p1, lobbyOptions);
+        lobby.addPlayer(p2);
+        lobby.addPlayer(spy);
 
-        List<Player> players = List.of(p1, p2, spy);
-        game = new Game("abc123", new ArrayList<>(players), 3, 30); // 3 rounds
-
+        game = new Game(lobby); // 3 rounds
         when(gameManagerService.getGame("abc123")).thenReturn(game);
     }
 
@@ -69,26 +65,23 @@ public class RoundServiceTest {
     public void advanceRound_startNewRoundAndNotify() {
         roundService.advanceRound("abc123");
 
-        // Verify roles are reassigned
-        verify(roleService).assignRoles(game);
-
         // Verify messages sent to players
         verify(messagingService).sendMessage(eq(p1.getSession()), eq(Map.of(
                 "event", "newRound",
                 "roundNumber", 2,
-                "role", GameRole.PLAYER.toString(),
+                "role", "Player",
                 "location", game.getCurrentRound().getLocation())));
         verify(messagingService).sendMessage(eq(p2.getSession()), eq(Map.of(
                 "event", "newRound",
                 "roundNumber", 2,
-                "role", GameRole.PLAYER.toString(),
+                "role", "Player",
                 "location", game.getCurrentRound().getLocation())));
 
         // Spy only gets round number and role, not location
         verify(messagingService).sendMessage(eq(spy.getSession()), eq(Map.of(
                 "event", "newRound",
                 "roundNumber", 2,
-                "role", GameRole.SPY.toString())));
+                "role", "Spy")));
 
     }
 }

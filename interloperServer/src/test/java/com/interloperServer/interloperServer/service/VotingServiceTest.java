@@ -29,6 +29,7 @@ public class VotingServiceTest {
     private VotingService votingService;
 
     private Game game;
+    private Lobby lobby;
     private Player p1;
     private Player p2;
     private Player p3;
@@ -37,16 +38,16 @@ public class VotingServiceTest {
     public void setup() {
         MockitoAnnotations.openMocks(this);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1", LobbyRole.PLAYER);
-        p2 = new Player(mock(WebSocketSession.class), "Player2", LobbyRole.PLAYER);
-        p3 = new Player(mock(WebSocketSession.class), "Player3", LobbyRole.PLAYER);
+        p1 = new Player(mock(WebSocketSession.class), "Player1");
+        p2 = new Player(mock(WebSocketSession.class), "Player2");
+        p3 = new Player(mock(WebSocketSession.class), "Player3");
 
-        p1.setGameRole(GameRole.PLAYER);
-        p2.setGameRole(GameRole.PLAYER);
-        p3.setGameRole(GameRole.SPY);
+        LobbyOptions lobbyOptions = new LobbyOptions(3, 25, 1, 10, 120);
+        lobby = new Lobby("abc123", p1, lobbyOptions);
+        lobby.addPlayer(p2);
+        lobby.addPlayer(p3);
 
-        List<Player> players = List.of(p1, p2, p3);
-        game = new Game("abc123", new ArrayList<>(players), 5, 10);
+        game = new Game(lobby);
         when(gameManagerService.getGame("abc123")).thenReturn(game);
     }
 

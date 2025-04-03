@@ -1,24 +1,23 @@
 package com.interloperServer.interloperServer.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
-import com.interloperServer.interloperServer.model.GameRole;
 import com.interloperServer.interloperServer.model.Player;
 
 @Service
 public class RoundService {
     private final MessagingService messagingService;
-    private final RoleService roleService;
     private final GameManagerService gameManagerService;
 
-    public RoundService(MessagingService messagingService, RoleService roleService,
+    public RoundService(MessagingService messagingService,
             GameManagerService gameManagerService) {
         this.messagingService = messagingService;
-        this.roleService = roleService;
         this.gameManagerService = gameManagerService;
     }
 
@@ -40,25 +39,24 @@ public class RoundService {
         }
 
         game.startNextRound();
-
-        if (!game.getPlayers().isEmpty()) {
-            roleService.assignRoles(game);
-        }
-
-        // Send message to players about which round it is
+        // Send message to players about which round it is and round duration
         for (Player player : game.getPlayers()) {
             Map<String, Object> roundMessage = new HashMap<>();
             roundMessage.put("event", "newRound");
             roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
-            roundMessage.put("role", player.getGameRole().toString());
 
             // Show location to players, but not the spy
-            if (player.getGameRole() != GameRole.SPY) {
+            if (!game.getCurrentRound().getSpy().equals(player)) {
+                roundMessage.put("role", "Player");
                 roundMessage.put("location", game.getCurrentRound().getLocation());
+            } else {
+
+                roundMessage.put("role", "Spy");
             }
 
             messagingService.sendMessage(player.getSession(), roundMessage);
         }
 
     }
+
 }
