@@ -10,10 +10,18 @@ import io.github.Spyfall.models.messages.VoteMessage;
 
 public class SendMessageService {
     private LocalWebSocketClient wsClient;
+    private static SendMessageService instance;
 
-    public SendMessageService(LocalWebSocketClient wsClient) {
-        this.wsClient = wsClient;
+    private SendMessageService() {
+        // the server url must be set before sendMessageService is
+        this.wsClient = LocalWebSocketClient.getInstance();
+    }
 
+    public static SendMessageService getInstace() {
+        if (instance == null) {
+            instance = new SendMessageService();
+        }
+        return instance;
     }
 
     public boolean createLobby(String username) {
