@@ -17,10 +17,7 @@ public class GameClient {
     private LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
-        try {
-            webSocketClient = new LocalWebSocketClient("ws://localhost:8080/ws/game");
-        } catch (URISyntaxException e) {
-        }
+        webSocketClient = LocalWebSocketClient.getInstance("ws://localhost:8080/ws/game");
         webSocketClient.connect();
         stageManager = StageManager.getInstance();
         stageManager.setStage(new MainMenuStage(viewport));

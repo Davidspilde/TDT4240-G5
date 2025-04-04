@@ -8,7 +8,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.model.Game;
+import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.Player;
 
 @Service
@@ -18,8 +18,8 @@ public class MessagingService {
     /**
      * Sends a JSON message to all players in a game.
      */
-    public void broadcastMessage(Game game, Object message) {
-        for (Player player : game.getPlayers()) {
+    public void broadcastMessage(Lobby lobby, Object message) {
+        for (Player player : lobby.getPlayers()) {
             sendMessage(player.getSession(), message);
         }
     }

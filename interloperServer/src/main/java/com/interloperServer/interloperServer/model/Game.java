@@ -24,9 +24,7 @@ public class Game {
             scoreboard.put(player.getUsername(), 0);
         }
 
-        Round newRound = new Round(currentRoundIndex, lobby.getLobbyOptions().getTimePerRound(),
-                chooseRandomSpy(getPlayers()));
-        currentRound = newRound;
+        startNextRound();
 
     }
 
@@ -59,14 +57,16 @@ public class Game {
     }
 
     public void startNextRound() {
-        if (currentRoundIndex < roundLimit) {
+        if (hasMoreRounds()) {
             currentRoundIndex++;
             Round newRound = new Round(currentRoundIndex, lobby.getLobbyOptions().getTimePerRound(),
                     chooseRandomSpy(getPlayers()));
             currentRound = newRound;
-        } else {
-            isActive = false; // End the game after all rounds
+            return;
         }
+
+        isActive = false; // End the game after all rounds
+
     }
 
     public Map<String, Integer> getScoreboard() {

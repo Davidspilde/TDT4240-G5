@@ -56,6 +56,9 @@ public class GameService {
         Game game = new Game(lobby);
         gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
+        messagingService.sendMessage(session, Map.of(
+                "event", "gameStarted"));
+
         roundService.advanceRound(lobbyCode);
 
         // Start voting countdown for the first round
@@ -94,9 +97,6 @@ public class GameService {
             return;
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
-
-        // Broadcast round duration at the beginning of each round
-        messagingService.broadcastMessage(game, "roundDuration:" + roundDuration);
 
         Timer timer = new Timer();
         game.setRoundTimer(timer);
@@ -143,7 +143,7 @@ public class GameService {
         game.getCurrentRound().setVotingComplete();
 
         // Notify users that the round has ended
-        messagingService.broadcastMessage(game, Map.of(
+        messagingService.broadcastMessage(game.getLobby(), Map.of(
                 "event", "roundEnded",
                 "spy", game.getCurrentRound().getSpy().getUsername()));
     }
@@ -158,7 +158,6 @@ public class GameService {
 
         // Prevent premature advancing
         if (!game.getCurrentRound().isVotingComplete()) {
-            messagingService.broadcastMessage(game, "Round is not over yet!");
             return;
         }
 
@@ -198,9 +197,10 @@ public class GameService {
         }
 
         // Notify users that the round has ended
-        messagingService.broadcastMessage(game, Map.of(
+        messagingService.broadcastMessage(game.getLobby(), Map.of(
                 "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername()));
+                "spy", game.getCurrentRound().getSpy().getUsername(),
+                "scoreboard", game.getScoreboard()));
     }
 
     /**
@@ -212,7 +212,7 @@ public class GameService {
             return;
 
         gameManagerService.removeGame(lobbyCode);
-        messagingService.broadcastMessage(game, Map.of(
+        messagingService.broadcastMessage(game.getLobby(), Map.of(
                 "event", "gameEnded",
                 "message", "Game has ended."));
     }

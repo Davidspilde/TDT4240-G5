@@ -55,7 +55,7 @@ public class RoundServiceTest {
         roundService.advanceRound("abc123");
 
         // Verify the "gameComplete" message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "gameComplete",
                 "scores", game.getScoreboard())));
     }
