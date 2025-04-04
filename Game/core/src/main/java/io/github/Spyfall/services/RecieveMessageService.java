@@ -116,7 +116,7 @@ public class RecieveMessageService {
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage msg) {
-        System.out.println("Handling lobby created: " + msg);
+        System.out.println("Handling lobby created: " + msg.getLobbyCode());
     }
 
     private void handleLobbyJoined(LobbyJoinedMessage msg) {
