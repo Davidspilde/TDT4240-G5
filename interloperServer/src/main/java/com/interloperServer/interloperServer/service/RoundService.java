@@ -32,7 +32,7 @@ public class RoundService {
             // Send game completion message with scores
             messagingService.broadcastMessage(game.getLobby(), Map.of(
                     "event", "gameComplete",
-                    "scores", game.getScoreboard()));
+                    "scoreboard", game.getScoreboard()));
             return; // The game ends here
         }
 

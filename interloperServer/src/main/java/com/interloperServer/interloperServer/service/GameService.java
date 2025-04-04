@@ -199,7 +199,8 @@ public class GameService {
         // Notify users that the round has ended
         messagingService.broadcastMessage(game.getLobby(), Map.of(
                 "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername()));
+                "spy", game.getCurrentRound().getSpy().getUsername(),
+                "scoreboard", game.getScoreboard()));
     }
 
     /**

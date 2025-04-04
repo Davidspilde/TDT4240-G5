@@ -133,9 +133,9 @@ public class VotingService {
         // Broadcast if spy is caught or not
         if (spyCaught && (highestVoteCount >= majorityThreshold)) {
 
-            messagingService.broadcastMessage(game, Map.of(
+            messagingService.broadcastMessage(game.getLobby(), Map.of(
                     "event", "spyCaught",
-                    "spy", mostVoted,
+                    "spy", spyName,
                     "votes", highestVoteCount));
 
             for (Map.Entry<String, String> vote : voteMap.entrySet()) {
@@ -150,7 +150,7 @@ public class VotingService {
         } else {
             // Award a point to the spy if not caught
             game.updateScore(currentRound.getSpy().getUsername(), 1);
-            messagingService.broadcastMessage(game, Map.of(
+            messagingService.broadcastMessage(game.getLobby(), Map.of(
                     "event", "spyNotCaught"));
         }
 
@@ -165,11 +165,6 @@ public class VotingService {
                 }
             }
         }
-
-        // Reveal spy and updated scoreboard
-        messagingService.broadcastMessage(game, Map.of("event", "spyReveal", "spy", spyName));
-
-        messagingService.broadcastMessage(game, Map.of("event", "scoreboard", "scores", game.getScoreboard()));
 
     }
 
@@ -210,7 +205,7 @@ public class VotingService {
         // Find spy and update points
         if (currentRound.getLocation().equals(location)) {
             // Spy is correct
-            messagingService.broadcastMessage(game, Map.of(
+            messagingService.broadcastMessage(game.getLobby(), Map.of(
                     "event", "spyGuessCorrect",
                     "spy", spyUsername,
                     "location", location));
@@ -218,7 +213,7 @@ public class VotingService {
             game.updateScore(spyUsername, 1);
         } else {
             // Spy is incorrect
-            messagingService.broadcastMessage(game, Map.of(
+            messagingService.broadcastMessage(game.getLobby(), Map.of(
                     "event", "spyGuessIncorrect",
                     "spy", spyUsername,
                     "location", location));
