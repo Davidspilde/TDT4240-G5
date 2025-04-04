@@ -4,7 +4,6 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
-// Import all your message classes
 import io.github.Spyfall.message.response.*;
 
 public class RecieveMessageService {
@@ -28,7 +27,9 @@ public class RecieveMessageService {
         JsonValue root = jsonReader.parse(message);
         String type = root.getString("event", "");
 
+        // ADd new case to get new messagetype, connect with a handler to assign logic
         switch (type) {
+
             case "gameComplete":
                 GameCompleteMessage gameComplete = json.fromJson(GameCompleteMessage.class, message);
                 handleGameComplete(gameComplete);
@@ -77,11 +78,6 @@ public class RecieveMessageService {
             case "lobbyPlayers":
                 LobbyPlayersMessage players = json.fromJson(LobbyPlayersMessage.class, message);
                 handleLobbyPlayers(players);
-                break;
-
-            case "response":
-                ResponseMessage response = json.fromJson(ResponseMessage.class, message);
-                handleResponse(response);
                 break;
 
             default:
