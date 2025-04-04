@@ -93,7 +93,7 @@ class GameServiceTest {
         gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
 
         verify(gameManagerService).removeGame("lobby123");
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "gameEnded",
                 "message", "Game has ended.")));
     }
@@ -117,7 +117,7 @@ class GameServiceTest {
 
         assertTrue(game.getCurrentRound().isVotingComplete());
         verify(votingService).evaluateVotes("lobby123");
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "roundEnded",
                 "spy", game.getCurrentRound().getSpy().getUsername())));
     }
@@ -128,7 +128,7 @@ class GameServiceTest {
         gameService.endGame("lobby123");
 
         verify(gameManagerService).removeGame("lobby123");
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "gameEnded",
                 "message", "Game has ended.")));
     }
