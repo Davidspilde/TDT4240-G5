@@ -1,15 +1,15 @@
-package io.github.Spyfall.models.messages;
+package io.github.Spyfall.message.request;
 
-public class Message {
+public class RequestMessage {
 
     protected String type;
     protected String lobbyCode;
     protected String username;
 
-    public Message() {
+    public RequestMessage() {
     }
 
-    public Message(String type, String username, String lobbyCode) {
+    public RequestMessage(String type, String username, String lobbyCode) {
         this.lobbyCode = lobbyCode;
         this.type = type;
         this.username = username;

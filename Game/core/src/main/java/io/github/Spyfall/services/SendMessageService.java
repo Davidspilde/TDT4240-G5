@@ -3,10 +3,7 @@ package io.github.Spyfall.services;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter.OutputType;
 
-import io.github.Spyfall.models.messages.CreateLobbyMessage;
-import io.github.Spyfall.models.messages.LobbyOptionsMessage;
-import io.github.Spyfall.models.messages.Message;
-import io.github.Spyfall.models.messages.VoteMessage;
+import io.github.Spyfall.message.request.*;
 
 public class SendMessageService {
     private LocalWebSocketClient wsClient;
@@ -31,7 +28,7 @@ public class SendMessageService {
 
     public boolean joinLobby(String username, String lobbyCode) {
         String type = "joinLobby";
-        Message msg = new Message(type, username, lobbyCode);
+        RequestMessage msg = new RequestMessage(type, username, lobbyCode);
         return sendMessage(msg);
     }
 
@@ -50,7 +47,7 @@ public class SendMessageService {
 
     public boolean startNextRound(String username, String lobbyCode) {
         String type = "advanceRound";
-        Message msg = new Message(type, username, lobbyCode);
+        RequestMessage msg = new RequestMessage(type, username, lobbyCode);
 
         return sendMessage(msg);
     }
