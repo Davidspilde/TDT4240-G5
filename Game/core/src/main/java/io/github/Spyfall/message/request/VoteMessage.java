@@ -1,6 +1,6 @@
-package io.github.Spyfall.models.messages;
+package io.github.Spyfall.message.request;
 
-public class VoteMessage extends Message {
+public class VoteMessage extends RequestMessage {
     private String target;
 
     public VoteMessage(String type, String username, String target, String lobbyCode) {

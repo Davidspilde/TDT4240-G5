@@ -1,4 +1,4 @@
-package io.github.Spyfall.models.messages;
+package io.github.Spyfall.message.request;
 
 public class CreateLobbyMessage {
     private String username;
