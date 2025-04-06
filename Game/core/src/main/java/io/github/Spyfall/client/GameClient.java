@@ -3,12 +3,8 @@ package io.github.Spyfall.client;
 import java.net.URISyntaxException;
 
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-
 import io.github.Spyfall.services.LocalWebSocketClient;
-import io.github.Spyfall.view.MainMenuStage;
-import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.controller.GameController;
-import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.model.GameModel;
 
 public class GameClient {

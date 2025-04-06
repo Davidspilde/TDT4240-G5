@@ -6,6 +6,7 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 import io.github.Spyfall.view.CreateGameStage;
 import io.github.Spyfall.view.GameLobbyStage;
+import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.MainMenuStage;
 import io.github.Spyfall.view.StageView;
 
@@ -31,7 +32,7 @@ public class GameController implements GameStateObserver{
         // Initialize sub-controllers
         this.mainMenuController = new MainMenuController(this);
         this.lobbyController = new LobbyController(this);
-        this.gameplayController = new GameplayController();
+        this.gameplayController = new GameplayController(this);
         
         // Initial state is main menu
         setMainMenuStage();
@@ -43,8 +44,14 @@ public class GameController implements GameStateObserver{
     }
     
     public void setCreateGameStage() {
-        CreateGameStage createGameStage = new CreateGameStage(viewport);
+        CreateGameStage createGameStage = new CreateGameStage(viewport, lobbyController);
         stageManager.setStage(createGameStage);
+    }
+
+    public void setLobbyStage() {
+        // This is the waiting room where players join before game starts
+        LobbyStage lobbyStage = new LobbyStage(viewport, lobbyController);
+        stageManager.setStage(lobbyStage);
     }
     
     public void setGameLobbyStage() {
@@ -68,6 +75,9 @@ public class GameController implements GameStateObserver{
                 break;
             case CREATE_GAME:
                 setCreateGameStage();
+                break;
+            case LOBBY:
+                setLobbyStage();
                 break;
             case IN_GAME:
                 setGameLobbyStage();

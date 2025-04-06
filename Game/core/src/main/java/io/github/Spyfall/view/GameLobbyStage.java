@@ -19,8 +19,9 @@ import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.model.GameStateObserver;
 
-public class GameLobbyStage extends StageView {
+public class GameLobbyStage extends StageView implements GameStateObserver{
 
     private Skin skin;
     private GameplayController controller;
@@ -42,6 +43,8 @@ public class GameLobbyStage extends StageView {
         super(viewport);
         this.controller = controller;
         this.gameModel = GameModel.getInstance();
+        // add observer
+        gameModel.addObserver(this);
         initStage(isSpy, locationName, roleName);
     }
 
@@ -199,24 +202,29 @@ public class GameLobbyStage extends StageView {
         }
     }
     
-    // Called when the model changes
+    // called when the model changes
     public void updateFromModel() {
         GameData gameData = gameModel.getGameData();
         
-        // Update timer
+        // update timer
         int timeRemaining = gameData.getTimeRemaining();
         int minutes = timeRemaining / 60;
         int seconds = timeRemaining % 60;
         timerLabel.setText(String.format("%d:%02d", minutes, seconds));
         
-        // Update location and role
+        // update location and role
         String displayedLocation = gameData.isSpy() ? "???" : gameData.getLocation();
         locationLabel.setText(displayedLocation);
         roleLabel.setText(gameData.getRole());
         
-        // Update players and locations lists
+        // update players and locations lists
         updatePlayersList();
         updateLocationsList();
+    }
+
+    @Override
+    public void onGameStateChanged(GameModel model) {
+        updateFromModel();
     }
 
     @Override
@@ -238,6 +246,11 @@ public class GameLobbyStage extends StageView {
         if (bgTexture != null) {
             bgTexture.dispose();
         }
+        // remove observer
+        gameModel.removeObserver(this);
+
         stage.dispose();
     }
+
+    
 }
