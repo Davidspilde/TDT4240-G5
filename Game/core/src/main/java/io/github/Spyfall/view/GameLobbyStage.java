@@ -17,7 +17,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.StageManager;
 
-public class GameLobby extends StageView {
+public class GameLobbyStage extends StageView {
 
     private Skin skin;
     private Stage stage;
@@ -36,7 +36,7 @@ public class GameLobby extends StageView {
     private String locationName;
     private String roleName;
 
-    public GameLobby(boolean isSpy, String locationName, String roleName,ScreenViewport viewport) {
+    public GameLobbyStage(boolean isSpy, String locationName, String roleName,ScreenViewport viewport) {
         super(viewport);
         this.isSpy = isSpy;
         this.locationName = locationName;

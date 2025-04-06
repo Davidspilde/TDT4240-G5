@@ -67,7 +67,7 @@ public class MainMenuStage extends StageView {
                             String lobbyCode = textField.getText();
                             String username_string = username.getText();
                             System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + username_string);
-                            StageManager.getInstance().setStage(new GameLobby(true,"meow", "mjes",viewport));
+                            StageManager.getInstance().setStage(new GameLobbyStage(true,"meow", "mjes",viewport));
                         }
                     }
                 };
