@@ -15,12 +15,16 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.controller.StageManager;
+import io.github.Spyfall.model.GameData;
+import io.github.Spyfall.model.GameModel;
 
 public class GameLobbyStage extends StageView {
 
     private Skin skin;
-    private Stage stage;
+    private GameplayController controller;
+    private GameModel gameModel;
 
     // UI elements
     private Label timerLabel;
@@ -28,24 +32,20 @@ public class GameLobbyStage extends StageView {
     private Label roleLabel;
     private TextButton endGameButton;
     private TextButton leaveGameButton;
+    private Table playersTable;
+    private Table possibleLocationsTable;
 
     // The background texture
     private Texture bgTexture;
 
-    private boolean isSpy;
-    private String locationName;
-    private String roleName;
-
-    public GameLobbyStage(boolean isSpy, String locationName, String roleName,ScreenViewport viewport) {
+    public GameLobbyStage(boolean isSpy, String locationName, String roleName, ScreenViewport viewport, GameplayController controller) {
         super(viewport);
-        this.isSpy = isSpy;
-        this.locationName = locationName;
-        this.roleName = roleName;
-        stage = new Stage(viewport);
-        initStage();
+        this.controller = controller;
+        this.gameModel = GameModel.getInstance();
+        initStage(isSpy, locationName, roleName);
     }
 
-    public void initStage() {
+    public void initStage(boolean isSpy, String locationName, String roleName) {
         // 1) Load the background texture
         bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
 
@@ -76,27 +76,19 @@ public class GameLobbyStage extends StageView {
         locationLabel = new Label(displayedLocation, skin);
         roleLabel = new Label(roleName, skin);
 
-        // A container (vertical group) for the top “info” area
+        // A container (vertical group) for the top "info" area
         VerticalGroup infoGroup = new VerticalGroup();
         infoGroup.addActor(timerLabel);
         infoGroup.addActor(locationLabel);
         infoGroup.addActor(roleLabel);
 
         // Create the list of players
-        Table playersTable = new Table(skin);
-        Label player1 = new Label("Player 1", skin);
-        Label player2 = new Label("Player 2", skin);
-        playersTable.add(player1).row();
-        playersTable.add(player2).row();
+        playersTable = new Table(skin);
+        updatePlayersList();
 
         // Create the list of possible locations
-        Table possibleLocationsTable = new Table(skin);
-        Label loc1 = new Label("Airplane", skin);
-        Label loc2 = new Label("Bank", skin);
-        Label loc3 = new Label("Beach", skin);
-        possibleLocationsTable.add(loc1).row();
-        possibleLocationsTable.add(loc2).row();
-        possibleLocationsTable.add(loc3).row();
+        possibleLocationsTable = new Table(skin);
+        updateLocationsList();
 
         // Create end/leave game buttons
         endGameButton = new TextButton("End Game", skin);
@@ -105,7 +97,14 @@ public class GameLobbyStage extends StageView {
         endGameButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y){
-                StageManager.getInstance().setStage(new MainMenuStage(viewport));
+                controller.endGame();
+            }
+        });
+
+        leaveGameButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y){
+                controller.leaveGame();
             }
         });
 
@@ -127,22 +126,112 @@ public class GameLobbyStage extends StageView {
 
         rootTable.row().padTop(30);
         rootTable.add(bottomButtonsTable).colspan(2);
-
-        // Optionally set debug to see table outlines
-//        rootTable.setDebug(true);
     }
 
+    private void updatePlayersList() {
+        playersTable.clear();
+        
+        // Add a "Players" header
+        Label playersHeader = new Label("Players", skin);
+        playersHeader.setAlignment(Align.center);
+        playersTable.add(playersHeader).colspan(2).padBottom(10).row();
+        
+        // Add all players from the model
+        for (String playerName : gameModel.getLobbyData().getPlayers()) {
+            Label playerLabel = new Label(playerName, skin);
+            
+            // If we're in game and not spy, add vote buttons
+            if (gameModel.getCurrentState() == io.github.Spyfall.model.GameState.IN_GAME &&
+                    !gameModel.getGameData().isSpy()) {
+                TextButton voteButton = new TextButton("Vote", skin);
+                voteButton.addListener(new ClickListener() {
+                    @Override
+                    public void clicked(InputEvent event, float x, float y) {
+                        controller.votePlayer(playerName);
+                    }
+                });
+                
+                playersTable.add(playerLabel).padRight(10);
+                playersTable.add(voteButton).row();
+            } else {
+                playersTable.add(playerLabel).colspan(2).row();
+            }
+        }
+    }
+    
+    private void updateLocationsList() {
+        possibleLocationsTable.clear();
+        
+        // Add a "Possible Locations" header
+        Label locationsHeader = new Label("Possible Locations", skin);
+        locationsHeader.setAlignment(Align.center);
+        possibleLocationsTable.add(locationsHeader).colspan(2).padBottom(10).row();
+        
+        // Add all locations from the model
+        GameData gameData = gameModel.getGameData();
+        if (gameData.getPossibleLocations() != null) {
+            for (String location : gameData.getPossibleLocations()) {
+                Label locationLabel = new Label(location, skin);
+                
+                // If we're the spy, add guess buttons
+                if (gameData.isSpy()) {
+                    TextButton guessButton = new TextButton("Guess", skin);
+                    guessButton.addListener(new ClickListener() {
+                        @Override
+                        public void clicked(InputEvent event, float x, float y) {
+                            controller.spyGuessLocation(location);
+                        }
+                    });
+                    
+                    possibleLocationsTable.add(locationLabel).padRight(10);
+                    possibleLocationsTable.add(guessButton).row();
+                } else {
+                    possibleLocationsTable.add(locationLabel).colspan(2).row();
+                }
+            }
+        } else {
+            // Add sample locations as placeholders
+            String[] sampleLocations = {"Airplane", "Bank", "Beach", "Casino", "Hospital", "Hotel", "School"};
+            for (String location : sampleLocations) {
+                Label locationLabel = new Label(location, skin);
+                possibleLocationsTable.add(locationLabel).colspan(2).row();
+            }
+        }
+    }
+    
+    // Called when the model changes
+    public void updateFromModel() {
+        GameData gameData = gameModel.getGameData();
+        
+        // Update timer
+        int timeRemaining = gameData.getTimeRemaining();
+        int minutes = timeRemaining / 60;
+        int seconds = timeRemaining % 60;
+        timerLabel.setText(String.format("%d:%02d", minutes, seconds));
+        
+        // Update location and role
+        String displayedLocation = gameData.isSpy() ? "???" : gameData.getLocation();
+        locationLabel.setText(displayedLocation);
+        roleLabel.setText(gameData.getRole());
+        
+        // Update players and locations lists
+        updatePlayersList();
+        updateLocationsList();
+    }
+
+    @Override
     public void update() {
+        // Update the stage normally
         stage.act();
         stage.draw();
+        
+        // Check for model updates that need to be reflected in the UI
+        updateFromModel();
     }
 
+    @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
-    }
-
-    public Stage getStage(){
-        return stage;
     }
 
     public void dispose() {

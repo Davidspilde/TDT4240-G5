@@ -18,22 +18,23 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuStage extends StageView {
-    private SendMessageService sendMsgService;
+    private MainMenuController controller;
+    private Skin skin;
 
-    public MainMenuStage(ScreenViewport viewport) {
+    public MainMenuStage(ScreenViewport viewport, MainMenuController controller) {
         super(viewport);
+        this.controller = controller;
         initMainMenu();
-
-        sendMsgService = SendMessageService.getInstace();
     }
 
     private void initMainMenu() {
         Gdx.input.setInputProcessor(stage);
-        Skin skin = new Skin(
+        skin = new Skin(
                 Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
         // Create UI Elements
@@ -49,60 +50,21 @@ public class MainMenuStage extends StageView {
         createGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                StageManager.getInstance().setStage(new CreateGameStage(viewport));
+                controller.onCreateGame();
             }
         });
 
         joinGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                final TextField username = new TextField("", skin);
-                final TextField textField = new TextField("", skin);
-                textField.setMessageText("Enter Lobby Code");
-                username.setMessageText("Enter Username");
-                Dialog dialog = new Dialog("Join", skin, "dialog") {
-                    @Override
-                    public void result(Object obj) {
-                        if (obj.equals(true)) {  // Only change stage if "Join" is pressed
-                            String lobbyCode = textField.getText();
-                            String username_string = username.getText();
-                            System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + username_string);
-                            StageManager.getInstance().setStage(new GameLobbyStage(true,"meow", "mjes",viewport));
-                        }
-                    }
-                };
-
-                dialog.getTitleTable().padTop(20f);
-                dialog.getTitleTable().padBottom(5f);
-
-                Label label = new Label("Join Lobby", skin);
-                label.setAlignment(Align.center);
-                label.setWrap(true);
-
-                ScrollPane scrollPane = new ScrollPane(label, skin);
-                scrollPane.setFadeScrollBars(false);
-                dialog.getContentTable().add(scrollPane).width((viewport.getScreenWidth()*0.8f)).height((viewport.getScreenWidth()*0.2f)).row();
-                dialog.getContentTable().add(textField).width(250).center().pad(15).row();
-                dialog.getContentTable().add(username).width(250).center().pad(15);
-
-
-                System.out.println(dialog.getWidth()+"\t"+dialog.getHeight());
-                dialog.button("Join", true); // Sends "true" when clicked
-                dialog.button("Cancel", false);  // Sends "false" when clicked
-                dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
-                // dialog.setDebug(true);
-                
-                dialog.show(stage);
-                dialog.pack(); // for calculating layout libgdx stuff
-
-                dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+                showJoinGameDialog();
             }
         });
 
         howToPlayButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Skal egt vise en pop up her");
+                controller.onHowToPlay();
             }
         });
 
@@ -123,5 +85,46 @@ public class MainMenuStage extends StageView {
 
         // Add UI to Stage
         stage.addActor(table);
+    }
+    
+    private void showJoinGameDialog() {
+        final TextField username = new TextField("", skin);
+        final TextField textField = new TextField("", skin);
+        textField.setMessageText("Enter Lobby Code");
+        username.setMessageText("Enter Username");
+        
+        Dialog dialog = new Dialog("Join", skin, "dialog") {
+            @Override
+            public void result(Object obj) {
+                if (obj.equals(true)) {  // Only change stage if "Join" is pressed
+                    String lobbyCode = textField.getText();
+                    String usernameString = username.getText();
+                    System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
+                    controller.onJoinLobby(usernameString, lobbyCode);
+                }
+            }
+        };
+
+        dialog.getTitleTable().padTop(20f);
+        dialog.getTitleTable().padBottom(5f);
+
+        Label label = new Label("Join Lobby", skin);
+        label.setAlignment(Align.center);
+        label.setWrap(true);
+
+        ScrollPane scrollPane = new ScrollPane(label, skin);
+        scrollPane.setFadeScrollBars(false);
+        dialog.getContentTable().add(scrollPane).width((viewport.getScreenWidth()*0.8f)).height((viewport.getScreenWidth()*0.2f)).row();
+        dialog.getContentTable().add(textField).width(250).center().pad(15).row();
+        dialog.getContentTable().add(username).width(250).center().pad(15);
+
+        dialog.button("Join", true); // Sends "true" when clicked
+        dialog.button("Cancel", false);  // Sends "false" when clicked
+        dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
+        
+        dialog.show(stage);
+        dialog.pack(); // for calculating layout libgdx stuff
+
+        dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
     }
 }

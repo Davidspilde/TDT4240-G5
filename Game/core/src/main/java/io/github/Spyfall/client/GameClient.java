@@ -7,31 +7,39 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.services.LocalWebSocketClient;
 import io.github.Spyfall.view.MainMenuStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.controller.GameController;
 import io.github.Spyfall.controller.StageManager;
+import io.github.Spyfall.model.GameModel;
 
 public class GameClient {
-
-    private StageView currentStage;
-    private StageManager stageManager;
-
+    private GameController gameController;
+    private GameModel gameModel;
     private LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
+        // Initialize WebSocket client first
         webSocketClient = LocalWebSocketClient.getInstance("ws://localhost:8080/ws/game");
         webSocketClient.connect();
-        stageManager = StageManager.getInstance();
-        stageManager.setStage(new MainMenuStage(viewport));
-
-    }
-
-    public void onStateChanged(MainMenuStage currentStage) {
+        
+        // Initialize game model
+        gameModel = GameModel.getInstance();
+        
+        // Initialize game controller
+        gameController = new GameController(viewport);
     }
 
     public void resize(int width, int height) {
-        stageManager.getStage().resize(width, height);
+        gameController.resize(width, height);
     }
 
     public void update() {
-        stageManager.getStage().update();
+        gameController.update();
+    }
+    
+    public void dispose() {
+        // Close the WebSocket connection
+        if (webSocketClient != null && webSocketClient.isOpen()) {
+            webSocketClient.close();
+        }
     }
 }
