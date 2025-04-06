@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -16,7 +15,6 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.GameplayController;
-import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
@@ -49,7 +47,7 @@ public class GameLobbyStage extends StageView implements GameStateObserver{
     }
 
     public void initStage(boolean isSpy, String locationName, String roleName) {
-        // 1) Load the background texture
+        // Load the background texture
         bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
 
         // Let the stage receive input events
@@ -58,10 +56,10 @@ public class GameLobbyStage extends StageView implements GameStateObserver{
         // Load skin
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
-        // 2) Create the root table that fills the screen
+        // Create the root table that fills the screen
         Table rootTable = new Table();
 
-        // 3) Create a drawable from the background texture and set as table background
+        // Create a drawable from the background texture and set as table background
         TextureRegion bgRegion = new TextureRegion(bgTexture);
         TextureRegionDrawable bgDrawable = new TextureRegionDrawable(bgRegion);
         rootTable.setBackground(bgDrawable);
@@ -229,11 +227,11 @@ public class GameLobbyStage extends StageView implements GameStateObserver{
 
     @Override
     public void update() {
-        // Update the stage normally
+        // update the stage normally
         stage.act();
         stage.draw();
         
-        // Check for model updates that need to be reflected in the UI
+        // check for model updates that need to be shown in the UI
         updateFromModel();
     }
 

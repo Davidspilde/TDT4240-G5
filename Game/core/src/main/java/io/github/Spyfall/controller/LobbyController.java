@@ -45,8 +45,11 @@ public class LobbyController {
     }
     
     public void startGame() {
-        // Send start game request to server
-        // Wait for server response in ReceiveMessageService
+        boolean success = sendMessageService.startGame(
+        gameModel.getUsername(),
+        gameModel.getLobbyCode()
+        );
+        // transition happens when server responds with ok
     }
     
     public void leaveLobby() {

@@ -16,7 +16,7 @@ public class GameController implements GameStateObserver{
     private GameModel gameModel;
     private ScreenViewport viewport;
     
-    // Sub-controllers
+    // sub-controllers
     private MainMenuController mainMenuController;
     private LobbyController lobbyController;
     private GameplayController gameplayController;
@@ -26,10 +26,10 @@ public class GameController implements GameStateObserver{
         this.stageManager = StageManager.getInstance();
         this.gameModel = GameModel.getInstance();
         
-        // Register as observer
+        // register as observer
         gameModel.addObserver(this);
         
-        // Initialize sub-controllers
+        // Init sub-controllers
         this.mainMenuController = new MainMenuController(this);
         this.lobbyController = new LobbyController(this);
         this.gameplayController = new GameplayController(this);
@@ -65,10 +65,10 @@ public class GameController implements GameStateObserver{
         stageManager.setStage(gameLobbyStage);
     }
     
-    // Implementation of GameStateObserver
+    // implementation of GameStateObserver
     @Override
     public void onGameStateChanged(GameModel model) {
-        // Update view based on model state
+        // update view based on model state
         switch (model.getCurrentState()) {
             case MAIN_MENU:
                 setMainMenuStage();

@@ -9,7 +9,7 @@ import io.github.Spyfall.model.GameModel;
 
 public class GameClient {
     private GameController gameController;
-    private GameModel gameModel;
+    //private GameModel gameModel;
     private LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
@@ -18,7 +18,7 @@ public class GameClient {
         webSocketClient.connect();
         
         // Initialize game model
-        gameModel = GameModel.getInstance();
+        //this.gameModel = GameModel.getInstance();
         
         // Initialize game controller
         gameController = new GameController(viewport);
