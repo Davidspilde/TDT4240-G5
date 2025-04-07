@@ -5,12 +5,12 @@ import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.SendMessageService;
 
 public class GameplayController {
-    private GameController gameController;
+    private MainController mainController;
     private SendMessageService sendMessageService;
     private GameModel gameModel;
     
-    public GameplayController(GameController gameController) {
-        this.gameController = gameController;
+    public GameplayController(MainController mainController) {
+        this.mainController = mainController;
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstace();
     }

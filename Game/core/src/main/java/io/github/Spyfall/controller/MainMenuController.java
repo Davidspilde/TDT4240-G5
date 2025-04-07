@@ -5,12 +5,12 @@ import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuController {
-    private GameController gameController;
+    private MainController mainController;
     private SendMessageService sendMessageService;
     private GameModel gameModel;
     
-    public MainMenuController(GameController gameController) {
-        this.gameController = gameController;
+    public MainMenuController(MainController mainController) {
+        this.mainController = mainController;
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstace();
     }
@@ -26,8 +26,9 @@ public class MainMenuController {
         // Send join request to server
         boolean success = sendMessageService.joinLobby(username, lobbyCode);
         if (success) {
-            // Wait for server response in ReceiveMessageService
-            // It will update the model when we get a lobbyJoined response
+            // TODO:
+            // wait for server response in ReceiveMessageService
+            // update the model when we get a lobbyJoined response
         }
     }
     

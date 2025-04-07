@@ -4,36 +4,36 @@ import java.net.URISyntaxException;
 
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.services.LocalWebSocketClient;
-import io.github.Spyfall.controller.GameController;
+import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.model.GameModel;
 
 public class GameClient {
-    private GameController gameController;
+    private MainController mainController;
     //private GameModel gameModel;
     private LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
-        // Initialize WebSocket client first
+        // init WebSocket client first
         webSocketClient = LocalWebSocketClient.getInstance("ws://localhost:8080/ws/game");
         webSocketClient.connect();
         
-        // Initialize game model
+        // init game model
         //this.gameModel = GameModel.getInstance();
         
-        // Initialize game controller
-        gameController = new GameController(viewport);
+        // init game controller
+        mainController = new MainController(viewport);
     }
 
     public void resize(int width, int height) {
-        gameController.resize(width, height);
+        mainController.resize(width, height);
     }
 
     public void update() {
-        gameController.update();
+        mainController.update();
     }
     
     public void dispose() {
-        // Close the WebSocket connection
+        // close con
         if (webSocketClient != null && webSocketClient.isOpen()) {
             webSocketClient.close();
         }

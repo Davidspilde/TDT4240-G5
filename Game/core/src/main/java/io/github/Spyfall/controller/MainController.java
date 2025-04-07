@@ -10,7 +10,7 @@ import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.MainMenuStage;
 import io.github.Spyfall.view.StageView;
 
-public class GameController implements GameStateObserver{
+public class MainController implements GameStateObserver{
 
     private StageManager stageManager;
     private GameModel gameModel;
@@ -21,7 +21,7 @@ public class GameController implements GameStateObserver{
     private LobbyController lobbyController;
     private GameplayController gameplayController;
     
-    public GameController(ScreenViewport viewport) {
+    public MainController(ScreenViewport viewport) {
         this.viewport = viewport;
         this.stageManager = StageManager.getInstance();
         this.gameModel = GameModel.getInstance();
@@ -49,7 +49,7 @@ public class GameController implements GameStateObserver{
     }
 
     public void setLobbyStage() {
-        // This is the waiting room where players join before game starts
+        // lobby is where players join before game starts
         LobbyStage lobbyStage = new LobbyStage(viewport, lobbyController);
         stageManager.setStage(lobbyStage);
     }
@@ -83,6 +83,7 @@ public class GameController implements GameStateObserver{
                 setGameLobbyStage();
                 break;
             default:
+                System.out.println("Something went wrong with state");
                 break;
         }
     }
