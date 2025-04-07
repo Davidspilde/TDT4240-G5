@@ -1,6 +1,4 @@
-package com.interloperServer.interloperServer.service;
-
-import java.time.Duration;
+package com.interloperServer.interloperServer.model;
 
 public class LobbyOptions {
 

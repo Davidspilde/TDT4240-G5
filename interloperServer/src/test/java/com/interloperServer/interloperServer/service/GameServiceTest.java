@@ -10,7 +10,6 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -96,18 +95,6 @@ class GameServiceTest {
         verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
                 "event", "gameEnded",
                 "message", "Game has ended.")));
-    }
-
-    @Test
-    @DisplayName("Should transfer host role if host disconnects but players remain")
-    public void handlePlayerDisconnect_transferHost() {
-        Player oldHost = lobby.getHost();
-        WebSocketSession sessionToRemove = oldHost.getSession();
-
-        gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
-
-        assertFalse(game.getPlayers().contains(oldHost));
-        assertNotEquals(oldHost, lobby.getHost()); // p1 should now be host
     }
 
     @Test

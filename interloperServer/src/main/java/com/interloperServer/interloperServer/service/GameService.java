@@ -139,13 +139,6 @@ public class GameService {
 
         votingService.castSpyGuess(lobbyCode, spyUsername, location);
 
-        // Mark voting as complete
-        game.getCurrentRound().setVotingComplete();
-
-        // Notify users that the round has ended
-        messagingService.broadcastMessage(game, Map.of(
-                "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername()));
     }
 
     /**

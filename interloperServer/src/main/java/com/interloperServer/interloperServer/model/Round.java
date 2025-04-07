@@ -1,7 +1,6 @@
 package com.interloperServer.interloperServer.model;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Round {
@@ -29,6 +28,10 @@ public class Round {
 
     public Player getSpy() {
         return spy;
+    }
+
+    public void setSpy(Player spy) {
+        this.spy = spy;
     }
 
     public String getLocation() {

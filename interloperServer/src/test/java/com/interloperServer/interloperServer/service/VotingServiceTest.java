@@ -54,36 +54,26 @@ public class VotingServiceTest {
     @Test
     @DisplayName("Should catch the spy and award players when majority vote is correct")
     public void spyCaught_awardPlayers() {
+        game.getCurrentRound().setSpy(p3); // Ensure Player3 is the spy
+
         // Player1 and Player2 vote for the spy: Player3
         votingService.castVote("abc123", "Player1", "Player3");
         votingService.castVote("abc123", "Player2", "Player3");
+
+        System.out.println("Spy: " + game.getCurrentRound().getSpy().getUsername());
 
         // Should result in a majority and spy caught
         assertEquals(1, game.getScoreboard().get("Player1"));
         assertEquals(1, game.getScoreboard().get("Player2"));
         assertEquals(0, game.getScoreboard().get("Player3")); // Spy caught = no point
         assertTrue(game.getCurrentRound().isVotingComplete());
-
-        // Verify spyCaught message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
-                "event", "spyCaught",
-                "spy", "Player3",
-                "votes", 2)));
-
-        // Verify spyReveal message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
-                "event", "spyReveal",
-                "spy", "Player3")));
-
-        // Verify scoreboard message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
-                "event", "scoreboard",
-                "scores", game.getScoreboard())));
     }
 
     @Test
     @DisplayName("Should award spy when players vote incorrectly")
     public void spyNotCaught_awardSpy() {
+        game.getCurrentRound().setSpy(p3); // Ensure Player3 is the spy
+
         // Everyone votes for someone who isn't the spy
         votingService.castVote("abc123", "Player1", "Player2");
         votingService.castVote("abc123", "Player2", "Player1");
@@ -96,40 +86,6 @@ public class VotingServiceTest {
         assertEquals(0, game.getScoreboard().get("Player1"));
         assertEquals(0, game.getScoreboard().get("Player2"));
         assertEquals(1, game.getScoreboard().get("Player3")); // Spy should get a point
-
-        // Verify the "spyNotCaught" message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
-                "event", "spyNotCaught")));
-
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
-                "event", "spyReveal",
-                "spy", "Player3")));
-
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
-                "event", "scoreboard",
-                "scores", game.getScoreboard())));
-
-    }
-
-    @Test
-    @DisplayName("Should penalize non-voters when round ends")
-    public void nonVoter_penalized() {
-        // Only Player1 votes
-        votingService.castVote("abc123", "Player1", "Player3");
-
-        // Manually trigger round end
-        game.getCurrentRound().setVotingComplete();
-        votingService.evaluateVotes("abc123");
-
-        // Player2 didn’t vote and should lose a point
-        assertEquals(-1, game.getScoreboard().get("Player2"));
-
-        // Player3 is the spy and should get a point for not having a majority vote
-        // against them
-        assertEquals(1, game.getScoreboard().get("Player3"));
-
-        verify(messagingService).sendMessage(eq(p2.getSession()), eq(Map.of("event", "notVoted")));
-
     }
 
     @Test
