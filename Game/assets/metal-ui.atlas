@@ -466,3 +466,8 @@ window-pattern
   orig: 8, 17
   offset: 0, 0
   index: -1
+dialog-background
+  size: 300,300
+  format: RGBA8888
+  filter: Linear,Linear
+  repeat: none

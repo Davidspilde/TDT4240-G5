@@ -1,4 +1,4 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.view;
 
 public enum Stages {
     CREATE_LOBBY,

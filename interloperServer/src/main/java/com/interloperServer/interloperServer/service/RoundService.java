@@ -1,21 +1,21 @@
 package com.interloperServer.interloperServer.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
-import com.interloperServer.interloperServer.model.GameRole;
 import com.interloperServer.interloperServer.model.Player;
 
 @Service
 public class RoundService {
     private final MessagingService messagingService;
-    private final RoleService roleService;
     private final GameManagerService gameManagerService;
 
-    public RoundService(MessagingService messagingService, RoleService roleService,
+    public RoundService(MessagingService messagingService,
             GameManagerService gameManagerService) {
         this.messagingService = messagingService;
-        this.roleService = roleService;
         this.gameManagerService = gameManagerService;
     }
 
@@ -29,28 +29,32 @@ public class RoundService {
 
         // Check if there are more rounds
         if (!game.hasMoreRounds()) {
-            messagingService.broadcastMessage(game, "gameComplete:scores: " + game.getScoreboard().toString());
+            // Send game completion message with scores
+            messagingService.broadcastMessage(game.getLobby(), Map.of(
+                    "event", "gameComplete",
+                    "scoreboard", game.getScoreboard()));
             return; // The game ends here
         }
 
         game.startNextRound();
-
-        if (!game.getPlayers().isEmpty()) {
-            roleService.assignRoles(game);
-        }
-
-        // Send message to players about which round it is
+        // Send message to players about which round it is and round duration
         for (Player player : game.getPlayers()) {
+            Map<String, Object> roundMessage = new HashMap<>();
+            roundMessage.put("event", "newRound");
+            roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
+            roundMessage.put("roundDuration", game.getCurrentRound().getRoundDuration());
+
             // Show location to players, but not the spy
-            if (player.getGameRole() != GameRole.SPY) {
-                messagingService.sendMessage(player.getSession(),
-                        "round" + game.getCurrentRound().getRoundNumber() + ":location:"
-                                + game.getCurrentRound().getLocation());
+            if (!game.getCurrentRound().getSpy().equals(player)) {
+                roundMessage.put("role", "Player");
+                roundMessage.put("location", game.getCurrentRound().getLocation());
             } else {
-                messagingService.sendMessage(player.getSession(),
-                        "round" + game.getCurrentRound().getRoundNumber());
+
+                roundMessage.put("role", "Spy");
             }
+            messagingService.sendMessage(player.getSession(), roundMessage);
         }
 
     }
+
 }

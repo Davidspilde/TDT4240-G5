@@ -1,24 +1,25 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.controller;
 
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.Spyfall.client.GameClient;
+
+import io.github.Spyfall.view.StageView;
 
 public class StageManager {
-    private MainMenuStage currentStage;
+    private StageView currentStage;
     private static StageManager instance;
     private ScreenViewport viewport;
 
     private StageManager(){
     }
 
-    public static StageManager getInstance(GameClient listener){
+    public static StageManager getInstance(){
         return (instance == null) ? (instance = new StageManager()) : instance;
     }
-    public void setStage(MainMenuStage newState){
+    public void setStage(StageView newState){
         currentStage = newState;
     }
 
-    public MainMenuStage getStage(){
+    public StageView getStage(){
         return currentStage;
     }
 

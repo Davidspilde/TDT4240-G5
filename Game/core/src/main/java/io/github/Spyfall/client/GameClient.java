@@ -2,41 +2,36 @@ package io.github.Spyfall.client;
 
 import java.net.URISyntaxException;
 
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 import io.github.Spyfall.services.LocalWebSocketClient;
-import io.github.Spyfall.stages.MainMenuStage;
-import io.github.Spyfall.stages.StageController;
-import io.github.Spyfall.stages.StageManager;
-import io.github.Spyfall.stages.Stages;
+import io.github.Spyfall.view.MainMenuStage;
+import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.controller.StageManager;
 
 public class GameClient {
 
-    private StageController currentStage;
+    private StageView currentStage;
+    private StageManager stageManager;
 
     private LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
-        try {
-            webSocketClient = new LocalWebSocketClient("ws://localhost:8080/ws/game");
-        } catch (URISyntaxException e) {
-        }
+        webSocketClient = LocalWebSocketClient.getInstance("ws://localhost:8080/ws/game");
         webSocketClient.connect();
+        stageManager = StageManager.getInstance();
+        stageManager.setStage(new MainMenuStage(viewport));
 
-        this.currentStage = new MainMenuStage(viewport);
     }
 
     public void onStateChanged(MainMenuStage currentStage) {
     }
 
     public void resize(int width, int height) {
-        currentStage.resize(width, height);
+        stageManager.getStage().resize(width, height);
     }
 
     public void update() {
-        currentStage.update();
+        stageManager.getStage().update();
     }
 }

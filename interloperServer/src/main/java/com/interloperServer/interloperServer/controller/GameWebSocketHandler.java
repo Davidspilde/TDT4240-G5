@@ -8,6 +8,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.messages.CreateLobbyMessage;
+import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
 import com.interloperServer.interloperServer.model.messages.Message;
 import com.interloperServer.interloperServer.model.messages.VoteMessage;
 import com.interloperServer.interloperServer.service.GameManagerService;
@@ -88,7 +89,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              */
             case "startGame":
                 Message startMsg = objectMapper.treeToValue(root, Message.class);
-                gameService.startGame(startMsg.getLobbyCode(), startMsg.getUsername(), lobbyService, session);
+                gameService.startGame(startMsg.getUsername(),
+                        startMsg.getLobbyCode(), session);
                 break;
 
             /*
@@ -111,6 +113,22 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * Message on the format:
              * 
              * {
+             * "type": "spyVote",
+             * "lobbyCode": "a9b7f9",
+             * "username": "Bob",
+             * "target": "Sauna"
+             * }
+             * 
+             */
+            case "spyVote":
+                VoteMessage spyVoteMsg = objectMapper.treeToValue(root, VoteMessage.class);
+                gameService.castSpyGuess(spyVoteMsg.getLobbyCode(), spyVoteMsg.getUsername(), spyVoteMsg.getTarget());
+                break;
+
+            /*
+             * Message on the format:
+             * 
+             * {
              * "type": "advanceRound",
              * "lobbyCode": "a9b7f9",
              * "username": "Alice"
@@ -120,6 +138,22 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             case "advanceRound":
                 Message advanceMsg = objectMapper.treeToValue(root, Message.class);
                 gameService.advanceRound(advanceMsg.getLobbyCode());
+                break;
+            /*
+             * Message format:
+             * {
+             * "type": "updateOptions",
+             * "lobbyCode": "a9b7f9",
+             * "roundLimit": 8,
+             * "locationNumber": 25,
+             * "spyCount": 2,
+             * "maxPlayerCount": 6,
+             * "timePerRound": 120
+             * }
+             */
+            case "updateOptions":
+                LobbyOptionsMessage optionsMsg = objectMapper.treeToValue(root, LobbyOptionsMessage.class);
+                lobbyService.updateLobbyOptions(optionsMsg.getLobbyCode(), optionsMsg);
                 break;
 
             // When the message doesn't conform to any legal format

@@ -1,14 +1,16 @@
-package io.github.Spyfall.stages;
+package io.github.Spyfall.view;
 
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-public abstract class StageController {
+public abstract class StageView {
     protected Stage stage;
+    protected ScreenViewport viewport;
 
     //constructor
-    public StageController(ScreenViewport viewport){
+    public StageView(ScreenViewport viewport){
         stage = new Stage(viewport);
+        this.viewport = viewport;
     }
 
 
