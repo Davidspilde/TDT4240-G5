@@ -65,18 +65,18 @@ public class VotingServiceTest {
         assertTrue(game.getCurrentRound().isVotingComplete());
 
         // Verify spyCaught message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "spyCaught",
                 "spy", "Player3",
                 "votes", 2)));
 
         // Verify spyReveal message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "spyReveal",
                 "spy", "Player3")));
 
         // Verify scoreboard message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "scoreboard",
                 "scores", game.getScoreboard())));
     }
@@ -98,14 +98,14 @@ public class VotingServiceTest {
         assertEquals(1, game.getScoreboard().get("Player3")); // Spy should get a point
 
         // Verify the "spyNotCaught" message
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "spyNotCaught")));
 
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "spyReveal",
                 "spy", "Player3")));
 
-        verify(messagingService).broadcastMessage(eq(game), eq(Map.of(
+        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "scoreboard",
                 "scores", game.getScoreboard())));
 
