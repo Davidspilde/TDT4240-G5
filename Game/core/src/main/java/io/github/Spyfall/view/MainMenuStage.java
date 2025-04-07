@@ -124,7 +124,7 @@ public class MainMenuStage extends StageView {
         textField.setMessageText("Enter Lobby Code");
         username.setMessageText("Enter Username");
 
-        Dialog dialog = new Dialog("Join", skin, "dialog") {
+        Dialog dialog = new Dialog("", skin, "dialog") {
             @Override
             public void result(Object obj) {
                 audioService.playSound("click");
@@ -180,6 +180,8 @@ public class MainMenuStage extends StageView {
             }
         });
 
+        dialog.getTitleTable().padTop(20f);
+        dialog.getTitleTable().padBottom(5f);
         // Sound Volume Slider
         final Slider soundSlider = new Slider(0, 1, 0.05f, false, skin);
         soundSlider.setValue(audioService.getSoundVolume());
@@ -194,14 +196,13 @@ public class MainMenuStage extends StageView {
         Table contentTable = dialog.getContentTable();
         contentTable.pad(20);
 
-        contentTable.add(new Label("Music Volume:", skin)).left().padRight(10);
-        contentTable.add(musicSlider).width(200).row();
-        contentTable.add(new Label("Sound Volume:", skin)).left().padRight(10);
-        contentTable.add(soundSlider).width(200).row();
+        contentTable.add(new Label("Music Volume:", skin)).left().padRight(10).row();
+        contentTable.add(musicSlider).width(200).center().pad(15).row();
+        contentTable.add(new Label("Sound Volume:", skin)).left().padRight(10).row();
+        contentTable.add(soundSlider).width(200).center().pad(15).row();
 
         dialog.button("Close", true);
         dialog.key(Input.Keys.ESCAPE, false); // Close with ESC
-
         // Center and show dialog
         dialog.show(stage);
         dialog.setPosition(
