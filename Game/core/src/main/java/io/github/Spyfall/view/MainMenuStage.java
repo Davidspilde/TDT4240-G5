@@ -52,9 +52,10 @@ public class MainMenuStage extends StageView {
         TextButton howToPlayButton = new TextButton("How to play", skin);
 
         //Settings
-        TextButton settings = new TextButton("Settings", skin);
+        TextureRegion region = new TextureRegion(new Texture("settings-logo.png"));
+        Image settings = new Image(region);
 
-
+        settings.setSize((float) (viewport.getScreenWidth()*0.1), (float) (viewport.getScreenHeight()*0.1));
         TextureRegionDrawable texture = new TextureRegionDrawable(
                 new TextureRegion(new Texture("Background_city.png")));
         Table table = new Table();
@@ -111,7 +112,9 @@ public class MainMenuStage extends StageView {
         Table bottomRightTable = new Table();
         bottomRightTable.setFillParent(true);
         bottomRightTable.bottom().right();
-        bottomRightTable.add(settings).pad(20);
+        bottomRightTable.add(settings).width(viewport.getScreenWidth() * 0.15f) // 50% of screen width
+                .height(viewport.getScreenHeight() * 0.075f)
+                .pad(20); // 20% of screen height
 
         // Add UI to Stage
         stage.addActor(table);
