@@ -1,4 +1,4 @@
-package com.interloperServer.interloperServer.service;
+package com.interloperServer.interloperServer.model;
 
 import java.time.Duration;
 

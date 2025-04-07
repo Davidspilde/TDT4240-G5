@@ -18,12 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LobbyManagementService {
     private final MessagingService messagingService;
+    private final LobbyHostService lobbyHostService;
 
     // Stores lobbies by their unique code
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
-    public LobbyManagementService(MessagingService messagingService) {
+    public LobbyManagementService(MessagingService messagingService, LobbyHostService lobbyHostService) {
         this.messagingService = messagingService;
+        this.lobbyHostService = lobbyHostService;
     }
 
     /**
@@ -50,10 +52,13 @@ public class LobbyManagementService {
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.put(lobbyCode, newLobby);
 
+        lobbyHostService.setInitialLocations(newLobby);
+
         messagingService.sendMessage(session, Map.of(
                 "event", "lobbyCreated",
                 "lobbyCode", lobbyCode,
-                "host", username));
+                "host", username,
+                "locations", newLobby.getLocations()));
         return lobbyCode;
     }
 

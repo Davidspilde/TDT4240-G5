@@ -13,7 +13,8 @@ import com.interloperServer.interloperServer.model.messages.Message;
 import com.interloperServer.interloperServer.model.messages.VoteMessage;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
-import com.interloperServer.interloperServer.service.LobbyService;
+import com.interloperServer.interloperServer.service.LobbyHostService;
+import com.interloperServer.interloperServer.service.LobbyManagementService;
 
 /**
  * Receives all messages sent to /ws/game and delegates to the appropriate
@@ -22,15 +23,18 @@ import com.interloperServer.interloperServer.service.LobbyService;
 @Component
 public class GameWebSocketHandler extends TextWebSocketHandler {
     private final GameService gameService;
-    private final LobbyService lobbyService;
+    private final LobbyManagementService lobbyService;
+    private final LobbyHostService lobbyHostService;
     private final GameManagerService gameManagerService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public GameWebSocketHandler(GameService gameService, LobbyService lobbyService,
+    public GameWebSocketHandler(GameService gameService, LobbyManagementService lobbyService,
+            LobbyHostService lobbyHostService,
             GameManagerService gameManagerService) {
         this.gameService = gameService;
         this.lobbyService = lobbyService;
+        this.lobbyHostService = lobbyHostService;
         this.gameManagerService = gameManagerService;
     }
 
@@ -153,7 +157,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              */
             case "updateOptions":
                 LobbyOptionsMessage optionsMsg = objectMapper.treeToValue(root, LobbyOptionsMessage.class);
-                lobbyService.updateLobbyOptions(optionsMsg.getLobbyCode(), optionsMsg);
+                lobbyHostService.updateLobbyOptions(lobbyService.getLobbyFromLobbyCode(optionsMsg.getLobbyCode()),
+                        optionsMsg);
                 break;
 
             // When the message doesn't conform to any legal format

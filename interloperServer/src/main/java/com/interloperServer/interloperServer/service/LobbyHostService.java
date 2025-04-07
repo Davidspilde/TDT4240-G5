@@ -16,15 +16,12 @@ import com.interloperServer.interloperServer.model.Location;
 /*Contains all Host-only related logiContains all Host-only related logicc*/
 @Service
 public class LobbyHostService {
-    private LobbyManagementService lobbyManagementService;
 
-    public LobbyHostService(LobbyManagementService lobbyManagementService) {
-
-        this.lobbyManagementService = lobbyManagementService;
+    public LobbyHostService() {
     }
 
-    public void updateLobbyOptions(String lobbycode, LobbyOptionsMessage newOptions) {
-        LobbyOptions lobbyOptions = lobbyManagementService.getLobbyFromLobbyCode(lobbycode).getLobbyOptions();
+    public void updateLobbyOptions(Lobby lobby, LobbyOptionsMessage newOptions) {
+        LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
         lobbyOptions.setRoundLimit(newOptions.getRoundLimit());
         lobbyOptions.setSpyCount(newOptions.getSpyCount());
@@ -33,15 +30,13 @@ public class LobbyHostService {
         lobbyOptions.setMaxPlayerCount(newOptions.getMaxPlayerCount());
     }
 
-    public void setLocations(String lobbyCode, List<Location> locations) {
-        Lobby lobby = lobbyManagementService.getLobbyFromLobbyCode(lobbyCode);
+    public void setLocations(Lobby lobby, List<Location> locations) {
         lobby.setLocations(locations);
     }
 
-    public void setInitialLocations(String lobbyCode) {
+    public void setInitialLocations(Lobby lobby) {
 
         // Reads from json file with baseLocations
-        Lobby lobby = lobbyManagementService.getLobbyFromLobbyCode(lobbyCode);
         ObjectMapper mapper = new ObjectMapper();
         String path = "BaseLocations.json";
         List<Location> baseLocations;

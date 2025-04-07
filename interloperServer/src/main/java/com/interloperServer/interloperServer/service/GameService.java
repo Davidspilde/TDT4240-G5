@@ -16,7 +16,7 @@ public class GameService {
     private final VotingService votingService;
     private final RoundService roundService;
     private final MessagingService messagingService;
-    private final LobbyService lobbyService;
+    private final LobbyManagementService lobbyService;
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
@@ -28,7 +28,8 @@ public class GameService {
      * @param roleService
      */
     public GameService(VotingService votingService, RoundService roundService,
-            MessagingService messagingService, GameManagerService gameManagerService, LobbyService lobbyService) {
+            MessagingService messagingService, GameManagerService gameManagerService,
+            LobbyManagementService lobbyService) {
         this.lobbyService = lobbyService;
         this.votingService = votingService;
         this.roundService = roundService;
