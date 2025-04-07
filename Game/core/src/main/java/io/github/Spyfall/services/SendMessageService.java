@@ -68,6 +68,17 @@ public class SendMessageService {
         return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+        System.out.println("Username set in SendMessageService: " + username);
+    }
+
+    public void startGame(String lobbyCode) {
+        System.out.println("Sending start game request for lobby: " + lobbyCode + ", username: " + username);
+        RequestMessage message = new RequestMessage("startGame", username, lobbyCode);
+        sendMessage(message);
+    }
+
     private boolean sendMessage(Object message) {
         try {
             String jsonMessage = convertMessageToJson(message);

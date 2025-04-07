@@ -31,4 +31,10 @@ public abstract class StageView {
     public void resize(int width, int height){
         stage.getViewport().update(width, height);
     }
+
+    public void dispose() {
+        if (stage != null) {
+            stage.dispose();
+        }
+    }
 }

@@ -73,7 +73,8 @@ public class LobbyService {
             messagingService.sendMessage(session, Map.of(
                     "event", "joinedLobby",
                     "lobbyCode", lobbyCode,
-                    "host", lobby.getHost().getUsername()));
+                    "host", lobby.getHost().getUsername(),
+                    "username", username));
         }
 
         broadcastPlayerList(lobbyCode);

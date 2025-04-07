@@ -16,7 +16,13 @@ public class StageManager {
         return (instance == null) ? (instance = new StageManager()) : instance;
     }
     public void setStage(StageView newState){
+        System.out.println("Setting new stage: " + newState.getClass().getSimpleName());
+        if (currentStage != null) {
+            System.out.println("Disposing old stage: " + currentStage.getClass().getSimpleName());
+            currentStage.dispose();
+        }
         currentStage = newState;
+        System.out.println("New stage set: " + currentStage.getClass().getSimpleName());
     }
 
     public StageView getStage(){

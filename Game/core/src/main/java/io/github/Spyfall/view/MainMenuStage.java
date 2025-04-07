@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -26,7 +27,7 @@ public class MainMenuStage extends StageView {
         super(viewport);
         initMainMenu();
 
-        sendMsgService = SendMessageService.getInstace();
+        sendMsgService = SendMessageService.getInstance();
     }
 
     private void initMainMenu() {
@@ -54,28 +55,36 @@ public class MainMenuStage extends StageView {
         joinGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                sendMsgService.createLobby("Bob");
-                Dialog dialog = new Dialog("Warning", skin, "dialog") {
-                    @Override
-                    public void result(Object obj) {
-                        if (obj.equals(true)) { // Only change stage if "Yes" is pressed
-                            StageManager.getInstance().setStage(new GameLobby(true, "meow", "mjes", viewport));
+                System.out.println("Join game button clicked");
+                
+                // Create text fields before dialog
+                final TextField lobbyCodeField = new TextField("", skin);
+                lobbyCodeField.setMessageText("Enter lobby code");
+                final TextField usernameField = new TextField("", skin);
+                usernameField.setMessageText("Enter your username");
+
+                // Create a custom dialog that handles its own result
+                Dialog dialog = new Dialog("Join Game", skin) {
+                    protected void result(Object obj) {
+                        if (obj instanceof Boolean && (Boolean) obj) {
+                            String lobbyCode = lobbyCodeField.getText().trim();
+                            String username = usernameField.getText().trim();
+                            System.out.println("Lobby code: " + lobbyCode);
+                            System.out.println("Username: " + username);
+                            if (!lobbyCode.isEmpty() && !username.isEmpty()) {
+                                sendMsgService.joinLobby(username, lobbyCode);
+                            }
                         }
                     }
                 };
 
-                Label label = new Label("Are you sure you want to join the game?", skin);
-                label.setWrap(true);
-                ScrollPane scrollPane = new ScrollPane(label, skin);
-                scrollPane.setFadeScrollBars(false);
-                dialog.getContentTable().add(scrollPane)
-                        .width((float) ((float) viewport.getScreenWidth() * 0.83333333333))
-                        .height((float) ((float) viewport.getScreenWidth() * 0.2));
-                System.out.println(dialog.getWidth() + "\t" + dialog.getHeight());
-                dialog.button("Yes", true); // Sends "true" when clicked
-                dialog.button("No", false); // Sends "false" when clicked
-                dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
-                dialog.setDebug(true);
+                dialog.getContentTable().add(new Label("Enter lobby code:", skin)).pad(5).row();
+                dialog.getContentTable().add(lobbyCodeField).width(200).pad(5).row();
+                dialog.getContentTable().add(new Label("Enter your username:", skin)).pad(5).row();
+                dialog.getContentTable().add(usernameField).width(200).pad(5).row();
+
+                dialog.button("Join", true);
+                dialog.button("Cancel", false);
                 dialog.show(stage);
             }
         });

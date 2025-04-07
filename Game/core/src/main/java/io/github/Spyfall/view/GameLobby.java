@@ -16,120 +16,145 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.StageManager;
+import io.github.Spyfall.services.SendMessageService;
+
+import java.util.List;
 
 public class GameLobby extends StageView {
 
     private Skin skin;
     private Stage stage;
+    private String lobbyCode;
+    private String host;
+    private boolean isHost;
+    private String username;
 
     // UI elements
-    private Label timerLabel;
-    private Label locationLabel;
-    private Label roleLabel;
-    private TextButton endGameButton;
-    private TextButton leaveGameButton;
+    private Label lobbyCodeLabel;
+    private TextButton createGameButton;
+    private TextButton gameSettingsButton;
+    private TextButton editLocationsButton;
+    private TextButton backButton;
+    private Table playersTable;
 
     // The background texture
     private Texture bgTexture;
 
-    private boolean isSpy;
-    private String locationName;
-    private String roleName;
-
-    public GameLobby(boolean isSpy, String locationName, String roleName,ScreenViewport viewport) {
+    public GameLobby(String lobbyCode, String host, String username, ScreenViewport viewport) {
         super(viewport);
-        this.isSpy = isSpy;
-        this.locationName = locationName;
-        this.roleName = roleName;
+        this.lobbyCode = lobbyCode;
+        this.host = host;
+        this.username = username;
+        this.isHost = username.equals(host); // Set isHost based on whether the current user is the host
+        System.out.println("GameLobby created with lobbyCode: " + lobbyCode + ", host: " + host + ", username: " + username + ", isHost: " + isHost);
+        init();
+    }
+
+    private void init() {
         stage = new Stage(viewport);
+        Gdx.input.setInputProcessor(stage);
         initStage();
     }
 
-    public void initStage() {
-        // 1) Load the background texture
-        bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
-
-        // Let the stage receive input events
-        Gdx.input.setInputProcessor(stage);
-
-        // Load skin
+    private void initStage() {
+        System.out.println("Initializing GameLobby stage");
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
-        // 2) Create the root table that fills the screen
+        // Create UI Elements
+        createGameButton = new TextButton("Start Game", skin);
+        gameSettingsButton = new TextButton("Game Settings", skin);
+        editLocationsButton = new TextButton("Edit Locations", skin);
+        backButton = new TextButton("Back", skin);
+        lobbyCodeLabel = new Label("Lobby Code: " + lobbyCode, skin);
+        lobbyCodeLabel.setAlignment(Align.center);
+
+        // Create players table
+        playersTable = new Table(skin);
+        playersTable.defaults().pad(5);
+        Label playersLabel = new Label("Players in Lobby:", skin);
+        playersTable.add(playersLabel).row();
+        
+        // Add host as first player
+        Label hostLabel = new Label(host + " (Host)", skin);
+        playersTable.add(hostLabel).row();
+
+        // Create root table
         Table rootTable = new Table();
-
-        // 3) Create a drawable from the background texture and set as table background
-        TextureRegion bgRegion = new TextureRegion(bgTexture);
-        TextureRegionDrawable bgDrawable = new TextureRegionDrawable(bgRegion);
-        rootTable.setBackground(bgDrawable);
-
         rootTable.setFillParent(true);
-        stage.addActor(rootTable);
+        rootTable.setBackground(new TextureRegionDrawable(new TextureRegion(new Texture("Background_city.png"))));
 
-        // Create timer label for top of screen
-        timerLabel = new Label("2:53", skin);
-        timerLabel.setAlignment(Align.center);
+        // Add lobby code
+        rootTable.add(lobbyCodeLabel).expandX().center().padTop(50).row();
 
-        // Create location label and role label
-        // If player is spy, location name is replaced with ???
-        String displayedLocation = isSpy ? "???" : locationName;
-        locationLabel = new Label(displayedLocation, skin);
-        roleLabel = new Label(roleName, skin);
+        // Create buttons table
+        Table buttonsTable = new Table(skin);
+        buttonsTable.defaults().pad(5);
+        buttonsTable.add(createGameButton).row();
+        buttonsTable.add(gameSettingsButton).row();
+        buttonsTable.add(editLocationsButton).row();
+        buttonsTable.add(backButton).row();
 
-        // A container (vertical group) for the top “info” area
-        VerticalGroup infoGroup = new VerticalGroup();
-        infoGroup.addActor(timerLabel);
-        infoGroup.addActor(locationLabel);
-        infoGroup.addActor(roleLabel);
+        rootTable.add(buttonsTable).expandX().center().padTop(50).row();
 
-        // Create the list of players
-        Table playersTable = new Table(skin);
-        Label player1 = new Label("Player 1", skin);
-        Label player2 = new Label("Player 2", skin);
-        playersTable.add(player1).row();
-        playersTable.add(player2).row();
+        // Add players table
+        rootTable.add(playersTable).expandX().center().padTop(50).row();
 
-        // Create the list of possible locations
-        Table possibleLocationsTable = new Table(skin);
-        Label loc1 = new Label("Airplane", skin);
-        Label loc2 = new Label("Bank", skin);
-        Label loc3 = new Label("Beach", skin);
-        possibleLocationsTable.add(loc1).row();
-        possibleLocationsTable.add(loc2).row();
-        possibleLocationsTable.add(loc3).row();
-
-        // Create end/leave game buttons
-        endGameButton = new TextButton("End Game", skin);
-        leaveGameButton = new TextButton("Leave Game", skin);
-
-        endGameButton.addListener(new ClickListener(){
+        // Add button listeners
+        backButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y){
+            public void clicked(InputEvent event, float x, float y) {
                 StageManager.getInstance().setStage(new MainMenuStage(viewport));
             }
         });
 
-        // Layout with rootTable
-        rootTable.top().pad(20f);
+        createGameButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (isHost) {
+                    System.out.println("Start Game button clicked by host: " + username);
+                    SendMessageService.getInstance().startGame(lobbyCode);
+                } else {
+                    System.out.println("Only the host can start the game. Current user: " + username + ", Host: " + host);
+                }
+            }
+        });
 
-        // Top row: infoGroup
-        rootTable.add(infoGroup).expandX().center().colspan(2).row();
+        gameSettingsButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (isHost) {
+                    GameSettingsDialog dialog = new GameSettingsDialog("Game Settings", skin, username, lobbyCode);
+                    dialog.show(stage);
+                }
+            }
+        });
 
-        // Middle area: players (left), locations (right)
-        rootTable.row().padTop(30);
-        rootTable.add(playersTable).expand().fill().padRight(20);
-        rootTable.add(possibleLocationsTable).expand().fill();
+        editLocationsButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (isHost) {
+                    LocationsEditorDialog dialog = new LocationsEditorDialog(skin, lobbyCode);
+                    dialog.show(stage);
+                }
+            }
+        });
 
-        // Bottom area: End game / Leave game side by side
-        Table bottomButtonsTable = new Table();
-        bottomButtonsTable.add(endGameButton).padRight(20);
-        bottomButtonsTable.add(leaveGameButton);
+        stage.addActor(rootTable);
+        System.out.println("GameLobby stage initialized");
+    }
 
-        rootTable.row().padTop(30);
-        rootTable.add(bottomButtonsTable).colspan(2);
-
-        // Optionally set debug to see table outlines
-//        rootTable.setDebug(true);
+    public void updatePlayerList(List<String> players) {
+        System.out.println("Updating player list: " + players);
+        Gdx.app.postRunnable(() -> {
+            playersTable.clear();
+            Label playersLabel = new Label("Players in Lobby:", skin);
+            playersTable.add(playersLabel).row();
+            
+            for (String player : players) {
+                Label playerLabel = new Label(player + (player.equals(host) ? " (Host)" : ""), skin);
+                playersTable.add(playerLabel).row();
+            }
+        });
     }
 
     public void update() {
@@ -141,7 +166,7 @@ public class GameLobby extends StageView {
         viewport.update(width, height, true);
     }
 
-    public Stage getStage(){
+    public Stage getStage() {
         return stage;
     }
 

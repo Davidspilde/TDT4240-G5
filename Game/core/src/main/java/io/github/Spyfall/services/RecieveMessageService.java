@@ -15,6 +15,9 @@ import io.github.Spyfall.message.response.LobbyPlayersMessage;
 import io.github.Spyfall.message.response.ResponseMessage;
 import io.github.Spyfall.view.GameLobby;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.GameStage;
+
+import java.util.Map;
 
 public class RecieveMessageService {
     private static RecieveMessageService instance;
@@ -39,21 +42,21 @@ public class RecieveMessageService {
         System.out.println("Handling message: " + message);
         
         try {
-            JsonValue root = jsonReader.parse(message);
-            String type = root.getString("event", "");
+            JsonValue jsonValue = jsonReader.parse(message);
+            String type = jsonValue.getString("event");
             System.out.println("Message type: " + type);
             
             if (type.isEmpty()) {
                 System.out.println("Warning: Empty message type, trying to get 'type' field instead");
-                type = root.getString("type", "");
+                type = jsonValue.getString("type", "");
                 System.out.println("Message type from 'type' field: " + type);
             }
             
             switch (type) {
                 case "lobbyCreated":
-                    System.out.println("Parsing lobbyCreated message");
-                    LobbyCreatedMessage created = json.fromJson(LobbyCreatedMessage.class, message);
-                    handleLobbyCreated(created.getLobbyCode(), created.getHost());
+                    String lobbyCode = jsonValue.getString("lobbyCode");
+                    String host = jsonValue.getString("host");
+                    handleLobbyCreated(lobbyCode, host);
                     break;
                     
                 case "joinedLobby":
@@ -72,6 +75,38 @@ public class RecieveMessageService {
                     System.out.println("Parsing lobbyUpdate message");
                     LobbyPlayersMessage players = json.fromJson(LobbyPlayersMessage.class, message);
                     handleLobbyPlayers(players);
+                    break;
+
+                case "newRound":
+                    handleNewRound(jsonValue);
+                    break;
+
+                case "roundEnded":
+                    handleRoundEnded(jsonValue);
+                    break;
+
+                case "gameComplete":
+                    handleGameComplete(jsonValue);
+                    break;
+
+                case "spyCaught":
+                    handleSpyCaught(jsonValue);
+                    break;
+
+                case "spyNotCaught":
+                    handleSpyNotCaught(jsonValue);
+                    break;
+
+                case "spyGuessCorrect":
+                    handleSpyGuessCorrect(jsonValue);
+                    break;
+
+                case "spyGuessIncorrect":
+                    handleSpyGuessIncorrect(jsonValue);
+                    break;
+
+                case "error":
+                    handleError(jsonValue);
                     break;
                     
                 default:
@@ -99,6 +134,11 @@ public class RecieveMessageService {
         System.out.println("Creating GameLobby stage");
         Gdx.app.postRunnable(() -> {
             String username = message.getUsername() != null ? message.getUsername() : SendMessageService.getInstance().getUsername();
+            System.out.println("Lobby joined - lobbyCode: " + message.getLobbyCode() + ", host: " + message.getHost() + ", username: " + username);
+            
+            // Ensure the username is set in SendMessageService
+            SendMessageService.getInstance().setUsername(username);
+            
             StageManager.getInstance().setStage(new GameLobby(message.getLobbyCode(), message.getHost(), username, new ScreenViewport()));
         });
     }
@@ -120,5 +160,85 @@ public class RecieveMessageService {
 
     private void handleResponse(ResponseMessage msg) {
         System.out.println("Handling generic response: " + msg);
+    }
+
+    private void handleNewRound(JsonValue jsonValue) {
+        System.out.println("Handling new round");
+        int roundNumber = jsonValue.getInt("roundNumber");
+        int roundDuration = jsonValue.getInt("roundDuration");
+        String role = jsonValue.getString("role");
+        String location = role.equals("Spy") ? null : jsonValue.getString("location");
+
+        Gdx.app.postRunnable(() -> {
+            StageManager.getInstance().setStage(new GameStage(
+                jsonValue.getString("lobbyCode"),
+                SendMessageService.getInstance().getUsername(),
+                role,
+                location,
+                roundNumber,
+                roundDuration,
+                new ScreenViewport()
+            ));
+        });
+    }
+
+    private void handleRoundEnded(JsonValue jsonValue) {
+        System.out.println("Handling round ended");
+        String spy = jsonValue.getString("spy");
+        Map<String, Integer> scoreboard = json.fromJson(Map.class, jsonValue.get("scoreboard").toString());
+        
+        Gdx.app.postRunnable(() -> {
+            StageView currentStage = stageManager.getStage();
+            if (currentStage instanceof GameStage) {
+                GameStage gameStage = (GameStage) currentStage;
+                gameStage.updateScoreboard(scoreboard);
+            }
+        });
+    }
+
+    private void handleGameComplete(JsonValue jsonValue) {
+        System.out.println("Handling game complete");
+        Map<String, Integer> scoreboard = json.fromJson(Map.class, jsonValue.get("scoreboard").toString());
+        
+        Gdx.app.postRunnable(() -> {
+            StageView currentStage = stageManager.getStage();
+            if (currentStage instanceof GameStage) {
+                GameStage gameStage = (GameStage) currentStage;
+                gameStage.updateScoreboard(scoreboard);
+                // TODO: Show game complete dialog and return to lobby
+            }
+        });
+    }
+
+    private void handleSpyCaught(JsonValue jsonValue) {
+        System.out.println("Handling spy caught");
+        String spy = jsonValue.getString("spy");
+        int votes = jsonValue.getInt("votes");
+        // TODO: Show spy caught dialog
+    }
+
+    private void handleSpyNotCaught(JsonValue jsonValue) {
+        System.out.println("Handling spy not caught");
+        // TODO: Show spy not caught dialog
+    }
+
+    private void handleSpyGuessCorrect(JsonValue jsonValue) {
+        System.out.println("Handling spy guess correct");
+        String spy = jsonValue.getString("spy");
+        String location = jsonValue.getString("location");
+        // TODO: Show spy guess correct dialog
+    }
+
+    private void handleSpyGuessIncorrect(JsonValue jsonValue) {
+        System.out.println("Handling spy guess incorrect");
+        String spy = jsonValue.getString("spy");
+        String location = jsonValue.getString("location");
+        // TODO: Show spy guess incorrect dialog
+    }
+
+    private void handleError(JsonValue jsonValue) {
+        String errorMessage = jsonValue.getString("message");
+        System.out.println("Error from server: " + errorMessage);
+        // TODO: Show error dialog to user
     }
 }
