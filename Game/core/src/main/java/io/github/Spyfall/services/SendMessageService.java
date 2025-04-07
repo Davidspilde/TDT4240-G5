@@ -8,13 +8,14 @@ import io.github.Spyfall.message.request.*;
 public class SendMessageService {
     private LocalWebSocketClient wsClient;
     private static SendMessageService instance;
+    private String username;
 
     private SendMessageService() {
         // the server url must be set before sendMessageService is
         this.wsClient = LocalWebSocketClient.getInstance();
     }
 
-    public static SendMessageService getInstace() {
+    public static SendMessageService getInstance() {
         if (instance == null) {
             instance = new SendMessageService();
         }
@@ -28,7 +29,11 @@ public class SendMessageService {
 
     public boolean joinLobby(String username, String lobbyCode) {
         String type = "joinLobby";
+        this.username = username;
         RequestMessage msg = new RequestMessage(type, username, lobbyCode);
+        System.out.println("Sending join lobby message: " + msg);
+        String jsonMessage = convertMessageToJson(msg);
+        System.out.println("JSON message: " + jsonMessage);
         return sendMessage(msg);
     }
 
@@ -53,21 +58,28 @@ public class SendMessageService {
     }
 
     public boolean updateLobbyOptions(String username, String lobbyCode, int roundlimit, int locationNumber,
-            int maxPlayers, int timeperRound) {
-        LobbyOptionsMessage msg = new LobbyOptionsMessage(username, lobbyCode, roundlimit, locationNumber, maxPlayers,
-                timeperRound);
+            int spyCount, int maxPlayers, int timeperRound) {
+        LobbyOptionsMessage msg = new LobbyOptionsMessage(username, lobbyCode, roundlimit, locationNumber, spyCount,
+                maxPlayers, timeperRound);
         return sendMessage(msg);
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     private boolean sendMessage(Object message) {
         try {
-            wsClient.send(convertMessageToJson(message));
+            String jsonMessage = convertMessageToJson(message);
+            System.out.println("Sending message: " + jsonMessage);
+            wsClient.send(jsonMessage);
+            System.out.println("Message sent successfully");
+            return true;
         } catch (Exception e) {
             System.out.println("Error sending Message: " + e);
+            e.printStackTrace();
             return false;
         }
-
-        return true;
     }
 
     private String convertMessageToJson(Object message) {
