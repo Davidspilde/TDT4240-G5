@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.Lobby;
+import com.interloperServer.interloperServer.model.LobbyOptions;
+import com.interloperServer.interloperServer.model.Location;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
 
@@ -14,13 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class for handling lobby-related logic.
  */
 @Service
-public class LobbyService {
+public class LobbyManagementService {
     private final MessagingService messagingService;
 
     // Stores lobbies by their unique code
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
-    public LobbyService(MessagingService messagingService) {
+    public LobbyManagementService(MessagingService messagingService) {
         this.messagingService = messagingService;
     }
 
@@ -162,16 +164,6 @@ public class LobbyService {
     public List<Player> getPlayersInLobby(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
         return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
-    }
-
-    public void updateLobbyOptions(String lobbycode, LobbyOptionsMessage newOptions) {
-        LobbyOptions lobbyOptions = getLobbyFromLobbyCode(lobbycode).getLobbyOptions();
-
-        lobbyOptions.setRoundLimit(newOptions.getRoundLimit());
-        lobbyOptions.setSpyCount(newOptions.getSpyCount());
-        lobbyOptions.setLocationNumber(newOptions.getRoundLimit());
-        lobbyOptions.setTimePerRound(newOptions.getTimePerRound());
-        lobbyOptions.setMaxPlayerCount(newOptions.getMaxPlayerCount());
     }
 
     public Lobby getLobbyFromLobbyCode(String lobbyCode) {

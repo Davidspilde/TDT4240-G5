@@ -3,11 +3,11 @@ package com.interloperServer.interloperServer.model;
 import java.util.List;
 
 public class Location {
-    private String locationName;
+    private String name;
     private List<String> roles;
 
-    public Location(String locationName, List<String> roles) {
-        this.locationName = locationName;
+    public Location(String name, List<String> roles) {
+        this.name = name;
         this.roles = roles;
 
     }
@@ -20,11 +20,11 @@ public class Location {
         this.roles = roles;
     }
 
-    public String getLocationName() {
-        return locationName;
+    public String getName() {
+        return name;
     }
 
-    public void setLocationName(String locationName) {
-        this.locationName = locationName;
+    public void setName(String name) {
+        this.name = name;
     }
 }

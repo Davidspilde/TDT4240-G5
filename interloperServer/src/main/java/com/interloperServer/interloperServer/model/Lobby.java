@@ -1,12 +1,9 @@
 package com.interloperServer.interloperServer.model;
 
-import java.io.Console;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import com.interloperServer.interloperServer.service.LobbyOptions;
 
 public class Lobby {
 
