@@ -1,13 +1,10 @@
 package io.github.Spyfall.controller;
 
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-
 import io.github.Spyfall.view.StageView;
 
 public class StageManager {
     private StageView currentStage;
     private static StageManager instance;
-    private ScreenViewport viewport;
 
     private StageManager(){
     }
