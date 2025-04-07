@@ -2,14 +2,11 @@ package io.github.Spyfall;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.client.GameClient;
 import io.github.Spyfall.launcher.GameLauncher;
-import io.github.Spyfall.controller.StageManager;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter {
@@ -17,11 +14,6 @@ public class Main extends ApplicationAdapter {
     public final int HEIGHT = 1280/2;
     public static final String TITLE = "Spyfall";
     private GameClient gameClient;
-
-    //Ny kode
-    private Stage stage;
-    private Skin skin;
-    private StageManager stageManager;
 
     @Override
     public void create() {
