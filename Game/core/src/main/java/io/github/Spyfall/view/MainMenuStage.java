@@ -4,22 +4,28 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import org.w3c.dom.Text;
+
 import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.controller.StageManager;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuStage extends StageView {
@@ -41,6 +47,11 @@ public class MainMenuStage extends StageView {
         TextButton createGameButton = new TextButton("Create game", skin);
         TextButton joinGameButton = new TextButton("Join game", skin);
         TextButton howToPlayButton = new TextButton("How to play", skin);
+
+        //Settings
+        TextButton settings = new TextButton("Settings", skin);
+
+
         TextureRegionDrawable texture = new TextureRegionDrawable(
                 new TextureRegion(new Texture("Background_city.png")));
         Table table = new Table();
@@ -68,6 +79,13 @@ public class MainMenuStage extends StageView {
             }
         });
 
+        settings.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                showSettingsDialog();
+            }
+        });
+
         // Align Table to Top
         table.top().setFillParent(true);
         table.setBackground(texture);
@@ -83,16 +101,23 @@ public class MainMenuStage extends StageView {
         table.row();
         table.add(howToPlayButton).padBottom((float) viewport.getScreenHeight() / 10);
 
+
+        Table bottomRightTable = new Table();
+        bottomRightTable.setFillParent(true);
+        bottomRightTable.bottom().right();
+        bottomRightTable.add(settings).pad(20);
+
         // Add UI to Stage
         stage.addActor(table);
+        stage.addActor(bottomRightTable);
     }
-    
+
     private void showJoinGameDialog() {
         final TextField username = new TextField("", skin);
         final TextField textField = new TextField("", skin);
         textField.setMessageText("Enter Lobby Code");
         username.setMessageText("Enter Username");
-        
+
         Dialog dialog = new Dialog("Join", skin, "dialog") {
             @Override
             public void result(Object obj) {
@@ -121,10 +146,59 @@ public class MainMenuStage extends StageView {
         dialog.button("Join", true); // Sends "true" when clicked
         dialog.button("Cancel", false);  // Sends "false" when clicked
         dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
-        
+
         dialog.show(stage);
         dialog.pack(); // for calculating layout libgdx stuff
 
         dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+    }
+
+    private void showSettingsDialog() {
+        Dialog dialog = new Dialog("Settings", skin, "dialog") {
+            @Override
+            public void result(Object obj) {
+                // Save settings when dialog closes
+                AudioService.getInstance().saveSettings();
+            }
+        };
+
+        // Music Volume Slider
+        final Slider musicSlider = new Slider(0, 1, 0.05f, false, skin);
+        musicSlider.setValue(AudioService.getInstance().getMusicVolume());
+        musicSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                AudioService.getInstance().setMusicVolume(musicSlider.getValue());
+            }
+        });
+
+        // Sound Volume Slider
+        final Slider soundSlider = new Slider(0, 1, 0.05f, false, skin);
+        soundSlider.setValue(AudioService.getInstance().getSoundVolume());
+        soundSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                AudioService.getInstance().setSoundVolume(soundSlider.getValue());
+            }
+        });
+
+        // Add components to dialog
+        Table contentTable = dialog.getContentTable();
+        contentTable.pad(20);
+
+        contentTable.add(new Label("Music Volume:", skin)).left().padRight(10);
+        contentTable.add(musicSlider).width(200).row();
+        contentTable.add(new Label("Sound Volume:", skin)).left().padRight(10);
+        contentTable.add(soundSlider).width(200).row();
+
+        dialog.button("Close", true);
+        dialog.key(Input.Keys.ESCAPE, false); // Close with ESC
+
+        // Center and show dialog
+        dialog.show(stage);
+        dialog.setPosition(
+            (stage.getWidth() - dialog.getWidth()) / 2,
+            (stage.getHeight() - dialog.getHeight()) / 2
+        );
     }
 }
