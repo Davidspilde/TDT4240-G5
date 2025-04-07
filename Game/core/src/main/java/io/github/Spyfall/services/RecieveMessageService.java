@@ -110,6 +110,7 @@ public class RecieveMessageService {
         System.out.println("New round received: Round " + msg.getRoundNumber());
         
         // update model with new data
+        
         gameModel.getGameData().setCurrentRound(msg.getRoundNumber());
         gameModel.getGameData().setTimeRemaining(msg.getRoundDuration());
         
