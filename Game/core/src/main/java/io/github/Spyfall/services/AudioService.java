@@ -14,8 +14,8 @@ import io.github.Spyfall.controller.StageManager;
 public class AudioService {
     private final Map<String, Sound> sounds;
     private final Map<String, Music> musicTracks;
-    private float musicVolume = 1.0f;
-    private float soundVolume = 1.0f;
+    private float musicVolume = 0.5f;
+    private float soundVolume = 0.5f;
     private Preferences prefs;
     private Music currentMusic;
     private static AudioService instance;
@@ -31,8 +31,8 @@ public class AudioService {
     }
 
     public void loadSettings() {
-        musicVolume = prefs.getFloat("musicVolume", 1.0f);
-        soundVolume = prefs.getFloat("soundVolume", 1.0f);
+        musicVolume = prefs.getFloat("musicVolume", 0.5f);
+        soundVolume = prefs.getFloat("soundVolume", 0.5f);
     }
 
     public void saveSettings() {
