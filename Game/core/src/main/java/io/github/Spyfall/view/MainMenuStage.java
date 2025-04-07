@@ -31,14 +31,17 @@ import io.github.Spyfall.services.SendMessageService;
 public class MainMenuStage extends StageView {
     private MainMenuController controller;
     private Skin skin;
+    private final AudioService audioService;
 
     public MainMenuStage(ScreenViewport viewport, MainMenuController controller) {
         super(viewport);
         this.controller = controller;
+        audioService = AudioService.getInstance();
         initMainMenu();
     }
 
     private void initMainMenu() {
+
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(
                 Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
@@ -61,6 +64,7 @@ public class MainMenuStage extends StageView {
         createGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                audioService.playSound("click");
                 controller.onCreateGame();
             }
         });
@@ -68,6 +72,7 @@ public class MainMenuStage extends StageView {
         joinGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                audioService.playSound("click");
                 showJoinGameDialog();
             }
         });
@@ -82,6 +87,7 @@ public class MainMenuStage extends StageView {
         settings.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                audioService.playSound("click");
                 showSettingsDialog();
             }
         });
@@ -121,6 +127,7 @@ public class MainMenuStage extends StageView {
         Dialog dialog = new Dialog("Join", skin, "dialog") {
             @Override
             public void result(Object obj) {
+                audioService.playSound("click");
                 if (obj.equals(true)) {  // Only change stage if "Join" is pressed
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
@@ -157,28 +164,29 @@ public class MainMenuStage extends StageView {
         Dialog dialog = new Dialog("Settings", skin, "dialog") {
             @Override
             public void result(Object obj) {
+                audioService.playSound("click");
                 // Save settings when dialog closes
-                AudioService.getInstance().saveSettings();
+                audioService.saveSettings();
             }
         };
 
         // Music Volume Slider
         final Slider musicSlider = new Slider(0, 1, 0.05f, false, skin);
-        musicSlider.setValue(AudioService.getInstance().getMusicVolume());
+        musicSlider.setValue(audioService.getMusicVolume());
         musicSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                AudioService.getInstance().setMusicVolume(musicSlider.getValue());
+                audioService.setMusicVolume(musicSlider.getValue());
             }
         });
 
         // Sound Volume Slider
         final Slider soundSlider = new Slider(0, 1, 0.05f, false, skin);
-        soundSlider.setValue(AudioService.getInstance().getSoundVolume());
+        soundSlider.setValue(audioService.getSoundVolume());
         soundSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                AudioService.getInstance().setSoundVolume(soundSlider.getValue());
+                audioService.setSoundVolume(soundSlider.getValue());
             }
         });
 
