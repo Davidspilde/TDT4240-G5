@@ -99,12 +99,11 @@ public class LobbyService {
         // Find the lobby and player
         for (Lobby lobby : lobbies.values()) {
             synchronized (lobby) {
-                for (Player player : lobby.getPlayers()) {
-                    if (player.getSession().equals(session)) {
-                        targetLobby = lobby;
-                        targetPlayer = player;
-                        break;
-                    }
+                Player found = lobby.getPlayerBySession(session);
+                if (found != null) {
+                    targetLobby = lobby;
+                    targetPlayer = found;
+                    break;
                 }
             }
             if (targetLobby != null)

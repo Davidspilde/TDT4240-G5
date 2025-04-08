@@ -41,15 +41,10 @@ public class VotingService {
         if (currentRound.isVotingComplete())
             return;
 
-        List<Player> players = game.getPlayers();
-
-        Player voter = players.stream()
-                .filter(p -> p.getUsername().equals(voterUsername))
-                .findFirst()
-                .orElse(null);
+        Player voter = game.getPlayer(voterUsername);
 
         // Check for invalid target
-        if (players.stream().noneMatch(p -> p.getUsername().equals(targetUsername))) {
+        if (game.getPlayer(targetUsername) == null) {
             if (voter != null) {
                 messagingService.sendMessage(voter.getSession(), Map.of(
                         "event", "invalidVote",

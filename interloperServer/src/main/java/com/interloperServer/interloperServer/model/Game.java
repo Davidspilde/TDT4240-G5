@@ -2,6 +2,8 @@ package com.interloperServer.interloperServer.model;
 
 import java.util.*;
 
+import org.springframework.web.socket.WebSocketSession;
+
 public class Game {
     private final Map<String, Integer> scoreboard;
     private Lobby lobby;
@@ -51,6 +53,28 @@ public class Game {
 
     public List<Player> getPlayers() {
         return lobby.getPlayers();
+    }
+
+    /**
+     * Retrieves a player from the game based on their username.
+     *
+     * @param username The username of the player to retrieve.
+     * @return The Player object if found, or null if no player with the given
+     *         username exists.
+     */
+    public Player getPlayer(String username) {
+        return lobby.getPlayer(username);
+    }
+
+    /**
+     * Retrieves a player from the game based on their WebSocketSession.
+     *
+     * @param session The WebSocketSession of the player to retrieve.
+     * @return The Player object if found, or null if no player with the given
+     *         session exists.
+     */
+    public Player getPlayerBySession(WebSocketSession session) {
+        return lobby.getPlayerBySession(session);
     }
 
     public void startNextRound() {
