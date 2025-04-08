@@ -25,6 +25,12 @@ public class VotingServiceTest {
     @Mock
     private GameManagerService gameManagerService;
 
+    @Mock
+    private GameService gameService;
+
+    @Mock
+    private RoundService roundService;
+
     @InjectMocks
     private VotingService votingService;
 
@@ -48,44 +54,10 @@ public class VotingServiceTest {
         lobby.addPlayer(p3);
 
         game = new Game(lobby);
+        game.startNextRound();
+
         when(gameManagerService.getGame("abc123")).thenReturn(game);
-    }
 
-    @Test
-    @DisplayName("Should catch the spy and award players when majority vote is correct")
-    public void spyCaught_awardPlayers() {
-        game.getCurrentRound().setSpy(p3); // Ensure Player3 is the spy
-
-        // Player1 and Player2 vote for the spy: Player3
-        votingService.castVote("abc123", "Player1", "Player3");
-        votingService.castVote("abc123", "Player2", "Player3");
-
-        System.out.println("Spy: " + game.getCurrentRound().getSpy().getUsername());
-
-        // Should result in a majority and spy caught
-        assertEquals(1, game.getScoreboard().get("Player1"));
-        assertEquals(1, game.getScoreboard().get("Player2"));
-        assertEquals(0, game.getScoreboard().get("Player3")); // Spy caught = no point
-        assertTrue(game.getCurrentRound().isVotingComplete());
-    }
-
-    @Test
-    @DisplayName("Should award spy when players vote incorrectly")
-    public void spyNotCaught_awardSpy() {
-        game.getCurrentRound().setSpy(p3); // Ensure Player3 is the spy
-
-        // Everyone votes for someone who isn't the spy
-        votingService.castVote("abc123", "Player1", "Player2");
-        votingService.castVote("abc123", "Player2", "Player1");
-
-        // Manually trigger round end
-        game.getCurrentRound().setVotingComplete();
-        votingService.evaluateVotes("abc123");
-
-        // Should not result in a majority for the spy
-        assertEquals(0, game.getScoreboard().get("Player1"));
-        assertEquals(0, game.getScoreboard().get("Player2"));
-        assertEquals(1, game.getScoreboard().get("Player3")); // Spy should get a point
     }
 
     @Test

@@ -9,6 +9,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -51,6 +52,7 @@ public class RoundServiceTest {
         // Move to the last round
         roundService.advanceRound("abc123");
         roundService.advanceRound("abc123"); // Last round
+        roundService.advanceRound("abc123");
 
         // Verify the "gameComplete" message
         verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
@@ -74,18 +76,44 @@ public class RoundServiceTest {
             if (player.equals(spy)) {
                 verify(messagingService).sendMessage(eq(player.getSession()), eq(Map.of(
                         "event", "newRound",
-                        "roundNumber", 2,
+                        "roundNumber", 1,
                         "role", "Spy",
                         "roundDuration", roundDuration)));
             } else {
                 verify(messagingService).sendMessage(eq(player.getSession()), eq(Map.of(
                         "event", "newRound",
-                        "roundNumber", 2,
+                        "roundNumber", 1,
                         "role", "Player",
                         "location", location,
                         "roundDuration", roundDuration)));
             }
         }
-
     }
+
+    @Test
+    @DisplayName("Should award all players except the spy when the spy is caught")
+    public void spyCaught_awardsOtherPlayers() {
+        game.startNextRound();
+        game.getCurrentRound().setSpy(spy);
+
+        roundService.endRoundDueToVotes("abc123", true, "Player3");
+
+        assertEquals(1, game.getScoreboard().get("Player1"));
+        assertEquals(1, game.getScoreboard().get("Player2"));
+        assertEquals(0, game.getScoreboard().get("Player3"));
+    }
+
+    @Test
+    @DisplayName("Should award spy when they are not caught")
+    public void spyNotCaught_awardsSpy() {
+        game.startNextRound();
+        game.getCurrentRound().setSpy(spy);
+
+        roundService.endRoundDueToVotes("abc123", false, "Player3");
+
+        assertEquals(0, game.getScoreboard().get("Player1"));
+        assertEquals(0, game.getScoreboard().get("Player2"));
+        assertEquals(1, game.getScoreboard().get("Player3"));
+    }
+
 }

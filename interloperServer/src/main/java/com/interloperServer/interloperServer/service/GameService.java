@@ -114,7 +114,9 @@ public class GameService {
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
 
-        game.startTimer(roundDuration, () -> beginEndOfRound(lobbyCode));
+        // Start timer and end the round due to timeout if the spy haven't guessed or
+        // the players haven't gotten a majority
+        game.startTimer(roundDuration, () -> endRoundDueToTimeout(lobbyCode));
     }
 
     /**
@@ -170,23 +172,20 @@ public class GameService {
     }
 
     /**
-     * Shows the scoreboard after the round is complete
+     * Ends the round, calls roundservice to award points and broadcast end round
+     * message
      * 
      * @param lobbyCode
      */
-    public void beginEndOfRound(String lobbyCode) {
+    public void endRoundDueToTimeout(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
 
-        // Mark voting as complete
-        game.getCurrentRound().setVotingComplete();
+        Round currentRound = game.getCurrentRound();
+        String spyName = currentRound.getSpy().getUsername();
 
-        // Evaluate all votes, give and deduct points accordingly
-        votingService.evaluateVotes(lobbyCode);
-
-        // Stop timer here as well just to be sure
-        game.stopTimer();
+        roundService.endRoundDueToTimeout(lobbyCode, spyName);
     }
 
     /**
