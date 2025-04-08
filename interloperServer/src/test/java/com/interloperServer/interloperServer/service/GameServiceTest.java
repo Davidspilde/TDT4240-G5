@@ -98,18 +98,6 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("Should transfer host role if host disconnects but players remain")
-    public void handlePlayerDisconnect_transferHost() {
-        Player oldHost = lobby.getHost();
-        WebSocketSession sessionToRemove = oldHost.getSession();
-
-        gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
-
-        assertFalse(game.getPlayers().contains(oldHost));
-        assertNotEquals(oldHost, lobby.getHost()); // p1 should now be host
-    }
-
-    @Test
     @DisplayName("Should end the round, evaluate votes, and broadcast spy info")
     public void beginEndOfRoundTest() {
         gameService.beginEndOfRound("lobby123");

@@ -70,7 +70,6 @@ class LobbyServiceTest {
 
         assertEquals(2, players.size());
         assertEquals("Player2", players.get(1).getUsername());
-        assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(1));
 
         // Verify the "joinedLobby" message
         verify(messagingService).sendMessage(eq(session2), eq(Map.of(

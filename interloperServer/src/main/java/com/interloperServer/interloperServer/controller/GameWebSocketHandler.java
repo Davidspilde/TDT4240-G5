@@ -113,14 +113,14 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * Message on the format:
              * 
              * {
-             * "type": "spyVote",
+             * "type": "spyGuess",
              * "lobbyCode": "a9b7f9",
              * "username": "Bob",
              * "target": "Sauna"
              * }
              * 
              */
-            case "spyVote":
+            case "spyGuess":
                 VoteMessage spyVoteMsg = objectMapper.treeToValue(root, VoteMessage.class);
                 gameService.castSpyGuess(spyVoteMsg.getLobbyCode(), spyVoteMsg.getUsername(), spyVoteMsg.getTarget());
                 break;

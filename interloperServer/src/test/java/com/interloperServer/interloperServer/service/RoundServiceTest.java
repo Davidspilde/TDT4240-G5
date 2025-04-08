@@ -36,7 +36,7 @@ public class RoundServiceTest {
         p2 = new Player(mock(WebSocketSession.class), "Player2");
         spy = new Player(mock(WebSocketSession.class), "Player3");
 
-        LobbyOptions lobbyOptions = new LobbyOptions(3, 25, 1, 10, 120);
+        LobbyOptions lobbyOptions = new LobbyOptions(2, 25, 1, 10, 120);
         lobby = new Lobby("abc123", p1, lobbyOptions);
         lobby.addPlayer(p2);
         lobby.addPlayer(spy);
