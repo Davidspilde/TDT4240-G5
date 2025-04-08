@@ -145,11 +145,11 @@ public class VotingService {
             return;
         }
 
-        // Otherwise, we have a majority
+        // Otherwise we have a majority
         String spyUsername = currentRound.getSpy().getUsername();
         boolean spyCaught = mostVoted.equals(spyUsername);
 
-        // Delegate awarding points and broadcasting to RoundService
+        // Delegate awarding points and broadcasting
         roundService.endRoundDueToVotes(lobbyCode, spyCaught, spyUsername);
     }
 

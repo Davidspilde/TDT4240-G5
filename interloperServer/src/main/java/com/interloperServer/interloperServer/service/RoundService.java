@@ -46,8 +46,10 @@ public class RoundService {
         broadcastRoundStart(game);
     }
 
-    // Broadcast new-round data
-    // Send message to players about which round it is and round duration
+    /*
+     * Broadcast new-round data
+     * Send message to players about which round it is and round duration
+     */
     private void broadcastRoundStart(Game game) {
         Round newRound = game.getCurrentRound();
 
@@ -68,6 +70,18 @@ public class RoundService {
         }
     }
 
+    /**
+     * Method called when a majority of votes has been reachd.
+     * Ends the round, stops the timer
+     * Calling this means that a majority is reached, which may or may not be the
+     * spy
+     * Spy gets point if majority is not for spy
+     * Players get points if majority is for spy
+     * 
+     * @param lobbyCode
+     * @param spyCaught
+     * @param spyUsername
+     */
     public void endRoundDueToVotes(String lobbyCode, boolean spyCaught, String spyUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
@@ -76,6 +90,16 @@ public class RoundService {
         finalizeRound(game, RoundEndReason.VOTES, spyCaught, false, spyUsername);
     }
 
+    /**
+     * Method called when the spy has guessed.
+     * Ends the round, stops the timer
+     * Calling this means that the spy has guessed location
+     * Spy gets a point if guessing correctly
+     * 
+     * @param lobbyCode
+     * @param spyUsername
+     * @param spyGuessedCorrectly
+     */
     public void endRoundDueToSpyGuess(String lobbyCode, String spyUsername, boolean spyGuessedCorrectly) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
@@ -84,6 +108,15 @@ public class RoundService {
         finalizeRound(game, RoundEndReason.SPY_GUESS, false, spyGuessedCorrectly, spyUsername);
     }
 
+    /**
+     * Method called when the timer has reached the round duration.
+     * Ends the round, stops the timer
+     * Calling this means that the spy is not caught and the spy has not guessed
+     * location
+     * 
+     * @param lobbyCode
+     * @param spyUsername
+     */
     public void endRoundDueToTimeout(String lobbyCode, String spyUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
@@ -149,7 +182,7 @@ public class RoundService {
         }
 
         if (!spyCaught && !spyGuessCorrect) {
-            // If we get here, spy wasn't caught, spy didn't guess, or guessed incorrectly
+            // If we get here, spy wasn't caught, spy didn't guess or guessed incorrectly
             game.updateScore(spyUsername, 1);
         }
     }
