@@ -91,7 +91,7 @@ public class Game {
     }
 
     /**
-     * Starts a timer that executes the given task after the specified delay.
+     * Starts a timer that executes the given task after the specified duration.
      *
      * @param durationInSeconds The duration in seconds before the task is executed.
      * @param task              The task to execute when the timer expires.
