@@ -106,7 +106,8 @@ class GameServiceTest {
         verify(votingService).evaluateVotes("lobby123");
         verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername())));
+                "spy", game.getCurrentRound().getSpy().getUsername(),
+                "scoreboard", game.getScoreboard())));
     }
 
     @Test

@@ -156,10 +156,7 @@ public class GameService {
         roundService.advanceRound(lobbyCode);
 
         // Stop existing timer if there is one
-        Timer existing = game.getRoundTimer();
-        if (existing != null) {
-            existing.cancel();
-        }
+        game.stopTimer();
 
         // Start round countdown
         startRoundCountdown(lobbyCode);
@@ -182,11 +179,7 @@ public class GameService {
         votingService.evaluateVotes(lobbyCode);
 
         // Stop timer here as well just to be sure
-        Timer timer = game.getRoundTimer();
-        if (timer != null) {
-            timer.cancel();
-            game.setRoundTimer(null);
-        }
+        game.stopTimer();
 
         // Notify users that the round has ended
         messagingService.broadcastMessage(game.getLobby(), Map.of(

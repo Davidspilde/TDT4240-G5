@@ -85,6 +85,14 @@ public class Game {
         return this.roundTimer;
     }
 
+    // Stop existing timer if there is one
+    public void stopTimer() {
+        if (roundTimer != null) {
+            roundTimer.cancel();
+            setRoundTimer(null);
+        }
+    }
+
     private Player chooseRandomSpy(List<Player> players) {
         Random random = new Random();
         int index = random.nextInt(0, players.size() - 1);

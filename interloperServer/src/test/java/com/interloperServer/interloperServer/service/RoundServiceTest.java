@@ -52,12 +52,11 @@ public class RoundServiceTest {
         roundService.advanceRound("abc123");
         roundService.advanceRound("abc123"); // Last round
 
-        roundService.advanceRound("abc123");
-
         // Verify the "gameComplete" message
         verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
                 "event", "gameComplete",
-                "scores", game.getScoreboard())));
+                "scoreboard", game.getScoreboard())));
+
     }
 
     @Test
@@ -66,22 +65,27 @@ public class RoundServiceTest {
         roundService.advanceRound("abc123");
 
         // Verify messages sent to players
-        verify(messagingService).sendMessage(eq(p1.getSession()), eq(Map.of(
-                "event", "newRound",
-                "roundNumber", 2,
-                "role", "Player",
-                "location", game.getCurrentRound().getLocation())));
-        verify(messagingService).sendMessage(eq(p2.getSession()), eq(Map.of(
-                "event", "newRound",
-                "roundNumber", 2,
-                "role", "Player",
-                "location", game.getCurrentRound().getLocation())));
+        Round currentRound = game.getCurrentRound();
+        Player spy = currentRound.getSpy();
+        String location = currentRound.getLocation();
+        int roundDuration = game.getRoundDuration();
 
-        // Spy only gets round number and role, not location
-        verify(messagingService).sendMessage(eq(spy.getSession()), eq(Map.of(
-                "event", "newRound",
-                "roundNumber", 2,
-                "role", "Spy")));
+        for (Player player : game.getPlayers()) {
+            if (player.equals(spy)) {
+                verify(messagingService).sendMessage(eq(player.getSession()), eq(Map.of(
+                        "event", "newRound",
+                        "roundNumber", 2,
+                        "role", "Spy",
+                        "roundDuration", roundDuration)));
+            } else {
+                verify(messagingService).sendMessage(eq(player.getSession()), eq(Map.of(
+                        "event", "newRound",
+                        "roundNumber", 2,
+                        "role", "Player",
+                        "location", location,
+                        "roundDuration", roundDuration)));
+            }
+        }
 
     }
 }
