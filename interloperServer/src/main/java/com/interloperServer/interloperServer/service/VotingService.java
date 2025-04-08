@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 
 import org.springframework.stereotype.Service;
 
@@ -119,11 +118,7 @@ public class VotingService {
      */
     private void completeRound(Round currentRound, Game game) {
         currentRound.setVotingComplete();
-        Timer timer = game.getRoundTimer();
-        if (timer != null) {
-            timer.cancel();
-            game.setRoundTimer(null);
-        }
+        game.stopTimer();
     }
 
     /**
@@ -186,6 +181,7 @@ public class VotingService {
         // Broadcast end of round message
         Map<String, Object> endRoundMessage = new HashMap<>();
         endRoundMessage.put("event", "roundEnded");
+        endRoundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
         endRoundMessage.put("spyCaught", spyCaught);
         endRoundMessage.put("spy", spyName);
         endRoundMessage.put("location", currentRound.getLocation());
@@ -243,6 +239,7 @@ public class VotingService {
         // Broadcast end of round message
         Map<String, Object> endRoundMessage = new HashMap<>();
         endRoundMessage.put("event", "roundEnded");
+        endRoundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
         endRoundMessage.put("spyCaught", false);
         endRoundMessage.put("spy", spyUsername);
         endRoundMessage.put("location", location);

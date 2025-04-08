@@ -23,9 +23,6 @@ public class Game {
         for (Player player : getPlayers()) {
             scoreboard.put(player.getUsername(), 0);
         }
-
-        startNextRound();
-
     }
 
     public boolean isActive() {
@@ -83,6 +80,35 @@ public class Game {
 
     public Timer getRoundTimer() {
         return this.roundTimer;
+    }
+
+    // Stop existing timer if there is one
+    public void stopTimer() {
+        if (roundTimer != null) {
+            roundTimer.cancel();
+            setRoundTimer(null);
+        }
+    }
+
+    /**
+     * Starts a timer that executes the given task after the specified duration.
+     *
+     * @param durationInSeconds The duration in seconds before the task is executed.
+     * @param task              The task to execute when the timer expires.
+     */
+    public void startTimer(int durationInSeconds, Runnable task) {
+        stopTimer(); // Stop any existing timer to avoid conflicts
+
+        Timer timer = new Timer();
+        this.roundTimer = timer;
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // Execute provided task
+                task.run();
+            }
+        }, durationInSeconds * 1000);
     }
 
     private Player chooseRandomSpy(List<Player> players) {

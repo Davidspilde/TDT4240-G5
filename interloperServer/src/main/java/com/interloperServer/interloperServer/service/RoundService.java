@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
 import com.interloperServer.interloperServer.model.Player;
+import com.interloperServer.interloperServer.model.Round;
 
 @Service
 public class RoundService {
@@ -25,7 +26,11 @@ public class RoundService {
     public void advanceRound(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
 
-        game.getCurrentRound().endRound();
+        Round currentRound = game.getCurrentRound();
+
+        if (currentRound != null) {
+            game.getCurrentRound().endRound();
+        }
 
         // Check if there are more rounds
         if (!game.hasMoreRounds()) {
