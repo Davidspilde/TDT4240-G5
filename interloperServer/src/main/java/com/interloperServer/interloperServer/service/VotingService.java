@@ -15,10 +15,13 @@ import com.interloperServer.interloperServer.model.Round;
 public class VotingService {
     private final MessagingService messagingService;
     private final GameManagerService gameManagerService;
+    private final RoundService roundService;
 
-    public VotingService(MessagingService messagingService, GameManagerService gameManagerService) {
+    public VotingService(MessagingService messagingService, GameManagerService gameManagerService,
+            RoundService roundService) {
         this.messagingService = messagingService;
         this.gameManagerService = gameManagerService;
+        this.roundService = roundService;
     }
 
     /**
@@ -111,17 +114,6 @@ public class VotingService {
     }
 
     /**
-     * Stops the current round
-     * 
-     * @param currentRound
-     * @param game
-     */
-    private void completeRound(Round currentRound, Game game) {
-        currentRound.setVotingComplete();
-        game.stopTimer();
-    }
-
-    /**
      * Checks if the players have managed to vote out the spy
      * 
      * @param lobbyCode the lobby having the vote
@@ -132,62 +124,33 @@ public class VotingService {
             return;
 
         Round currentRound = game.getCurrentRound();
+        // If round is already complete, do nothing
+        if (currentRound.isVotingComplete())
+            return;
 
         Map<String, String> voteMap = currentRound.getVotes();
-
         List<Player> players = game.getPlayers();
 
         boolean votesWereCast = !voteMap.isEmpty();
+        // If no votes cast, do nothing (just keep waiting for votes)
+        if (!votesWereCast)
+            return;
 
-        if (!votesWereCast && !currentRound.isVotingComplete()) {
+        String mostVoted = getMostVotedPlayer(voteMap);
+        int highestVoteCount = getVoteCountForPlayer(voteMap, mostVoted);
+        int majorityThreshold = (int) Math.ceil(players.size() / 2.0);
+
+        // If no majority, do not end the round
+        if (!hasMajority(highestVoteCount, majorityThreshold)) {
             return;
         }
 
-        String mostVoted = null;
+        // Otherwise, we have a majority
+        String spyUsername = currentRound.getSpy().getUsername();
+        boolean spyCaught = mostVoted.equals(spyUsername);
 
-        int highestVoteCount = 0;
-        int majorityThreshold = (int) Math.ceil(players.size() / 2.0);
-
-        if (votesWereCast) {
-            // Count how many votes each target received
-            mostVoted = getMostVotedPlayer(voteMap);
-            highestVoteCount = getVoteCountForPlayer(voteMap, mostVoted);
-
-            // Continue round if majority is not found and the round is not over
-            if (!hasMajority(highestVoteCount, majorityThreshold) && !currentRound.isVotingComplete())
-                return;
-        }
-
-        // Stop timer and mark round as done
-        completeRound(currentRound, game);
-
-        // Find real spy and check if the majority vote is for the spy
-        String spyName = currentRound.getSpy().getUsername();
-        boolean spyCaught = votesWereCast && mostVoted != null && mostVoted.equals(spyName);
-
-        // Award points based on votes
-        if (spyCaught) {
-            // Award points to every player who is not the spy
-            for (Player p : players) {
-                if (!spyName.equals(p.getUsername())) {
-                    game.updateScore(p.getUsername(), 1);
-                }
-            }
-        } else {
-            // Award a point to the spy if not caught
-            game.updateScore(currentRound.getSpy().getUsername(), 1);
-        }
-
-        // Broadcast end of round message
-        Map<String, Object> endRoundMessage = new HashMap<>();
-        endRoundMessage.put("event", "roundEnded");
-        endRoundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
-        endRoundMessage.put("spyCaught", spyCaught);
-        endRoundMessage.put("spy", spyName);
-        endRoundMessage.put("location", currentRound.getLocation());
-        endRoundMessage.put("scoreboard", game.getScoreboard());
-
-        messagingService.broadcastMessage(game.getLobby(), endRoundMessage);
+        // Delegate awarding points and broadcasting to RoundService
+        roundService.endRoundDueToVotes(lobbyCode, spyCaught, spyUsername);
     }
 
     /**
@@ -204,48 +167,22 @@ public class VotingService {
 
         Round currentRound = game.getCurrentRound();
 
-        // Not legal to try after the round is over
+        // Not legal to guess after round is over
         if (currentRound.isVotingComplete()) {
             return;
         }
 
         Player spy = currentRound.getSpy();
 
-        // Stop if a player tries to guess location (not legal)
+        // Not legal to guess location if the one guessing is not the spy
         if (!spy.getUsername().equals(spyUsername)) {
             return;
         }
 
-        // Stop timer
-        completeRound(currentRound, game);
+        // Check if guess is correct
+        boolean spyGuessedCorrectly = currentRound.getLocation().equals(location);
 
-        boolean spyCorrectGuess = currentRound.getLocation().equals(location);
-
-        // Find spy and update points
-        if (spyCorrectGuess) {
-            // Give spy a point
-            game.updateScore(spyUsername, 1);
-        } else {
-            // Give all players except spy a point
-            List<Player> players = game.getPlayers();
-
-            for (Player p : players) {
-                if (!p.getUsername().equals(spyUsername)) {
-                    game.updateScore(p.getUsername(), 1);
-                }
-            }
-        }
-
-        // Broadcast end of round message
-        Map<String, Object> endRoundMessage = new HashMap<>();
-        endRoundMessage.put("event", "roundEnded");
-        endRoundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
-        endRoundMessage.put("spyCaught", false);
-        endRoundMessage.put("spy", spyUsername);
-        endRoundMessage.put("location", location);
-        endRoundMessage.put("spyGuess", spyCorrectGuess);
-        endRoundMessage.put("scoreboard", game.getScoreboard());
-
-        messagingService.broadcastMessage(game.getLobby(), endRoundMessage);
+        roundService.endRoundDueToSpyGuess(lobbyCode, spyUsername, spyGuessedCorrectly);
     }
+
 }

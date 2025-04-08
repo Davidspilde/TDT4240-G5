@@ -47,6 +47,7 @@ class GameServiceTest {
         lobby.addPlayer(p1);
 
         game = new Game(lobby);
+        game.startNextRound();
 
         when(lobbyService.getLobbyFromLobbyCode("lobby123")).thenReturn(lobby);
         when(gameManagerService.getGame("lobby123")).thenReturn(game);
@@ -98,16 +99,11 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("Should end the round, evaluate votes, and broadcast spy info")
-    public void beginEndOfRoundTest() {
-        gameService.beginEndOfRound("lobby123");
+    @DisplayName("Should end the round due to timeout using RoundService")
+    public void endRoundDueToTimeout() {
+        gameService.endRoundDueToTimeout("lobby123");
 
-        assertTrue(game.getCurrentRound().isVotingComplete());
-        verify(votingService).evaluateVotes("lobby123");
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername(),
-                "scoreboard", game.getScoreboard())));
+        verify(roundService).endRoundDueToTimeout(eq("lobby123"), eq(game.getCurrentRound().getSpy().getUsername()));
     }
 
     @Test
