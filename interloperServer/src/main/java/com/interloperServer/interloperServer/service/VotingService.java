@@ -212,7 +212,6 @@ public class VotingService {
 
         // Not legal to try after the round is over
         if (currentRound.isVotingComplete()) {
-            System.out.println("STOP VOTING COMPLETE");
             return;
         }
 
@@ -220,7 +219,6 @@ public class VotingService {
 
         // Stop if a player tries to guess location (not legal)
         if (!spy.getUsername().equals(spyUsername)) {
-            System.out.println("STOP WRONG USERNAME SPYUSERNAME: " + spy.getUsername() + " WRONG: " + spyUsername);
             return;
         }
 
