@@ -170,7 +170,6 @@ public class VotingService {
         String spyName = currentRound.getSpy().getUsername();
         boolean spyCaught = votesWereCast && mostVoted != null && mostVoted.equals(spyName);
 
-
         // Award points based on votes
         if (spyCaught) {
             // Award points to every player who is not the spy
@@ -192,7 +191,7 @@ public class VotingService {
         endRoundMessage.put("location", currentRound.getLocation());
         endRoundMessage.put("scoreboard", game.getScoreboard());
 
-        messagingService.broadcastMessage(game, endRoundMessage);
+        messagingService.broadcastMessage(game.getLobby(), endRoundMessage);
     }
 
     /**
@@ -250,6 +249,6 @@ public class VotingService {
         endRoundMessage.put("spyGuess", spyCorrectGuess);
         endRoundMessage.put("scoreboard", game.getScoreboard());
 
-        messagingService.broadcastMessage(game, endRoundMessage);
+        messagingService.broadcastMessage(game.getLobby(), endRoundMessage);
     }
 }
