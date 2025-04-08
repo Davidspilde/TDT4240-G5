@@ -45,10 +45,26 @@ public class GameService {
     public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
         Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
 
+        if (lobby == null) {
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "Lobby doesn't exist."));
+            return false;
+        }
+
+        // Prevent users other than host to begin the game
         if (!lobby.getHost().getUsername().equals(username)) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Only the host can start the game."));
+            return false;
+        }
+
+        // Prevent game from starting with too few players
+        if (lobby.getPlayers().size() < 2) {
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "Too few players to start the game."));
             return false;
         }
 
@@ -98,16 +114,7 @@ public class GameService {
 
         int roundDuration = game.getCurrentRound().getRoundDuration();
 
-        Timer timer = new Timer();
-        game.setRoundTimer(timer);
-
-        timer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-                beginEndOfRound(lobbyCode);
-            }
-        }, roundDuration * 1000);
+        game.startTimer(roundDuration, () -> beginEndOfRound(lobbyCode));
     }
 
     /**
@@ -180,12 +187,6 @@ public class GameService {
 
         // Stop timer here as well just to be sure
         game.stopTimer();
-
-        // Notify users that the round has ended
-        messagingService.broadcastMessage(game.getLobby(), Map.of(
-                "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername(),
-                "scoreboard", game.getScoreboard()));
     }
 
     /**
