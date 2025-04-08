@@ -181,6 +181,7 @@ public class VotingService {
         // Broadcast end of round message
         Map<String, Object> endRoundMessage = new HashMap<>();
         endRoundMessage.put("event", "roundEnded");
+        endRoundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
         endRoundMessage.put("spyCaught", spyCaught);
         endRoundMessage.put("spy", spyName);
         endRoundMessage.put("location", currentRound.getLocation());
@@ -238,6 +239,7 @@ public class VotingService {
         // Broadcast end of round message
         Map<String, Object> endRoundMessage = new HashMap<>();
         endRoundMessage.put("event", "roundEnded");
+        endRoundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
         endRoundMessage.put("spyCaught", false);
         endRoundMessage.put("spy", spyUsername);
         endRoundMessage.put("location", location);
