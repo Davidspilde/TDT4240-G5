@@ -125,7 +125,7 @@ public class LobbyService {
                 for (Player p : targetLobby.getPlayers()) {
                     messagingService.sendMessage(p.getSession(), Map.of(
                             "event", "newHost",
-                            "username", newHost.getUsername()));
+                            "host", newHost.getUsername()));
                 }
             }
 

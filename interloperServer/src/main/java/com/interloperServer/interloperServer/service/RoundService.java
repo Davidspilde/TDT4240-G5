@@ -30,9 +30,9 @@ public class RoundService {
         // Check if there are more rounds
         if (!game.hasMoreRounds()) {
             // Send game completion message with scores
-            messagingService.broadcastMessage(game, Map.of(
+            messagingService.broadcastMessage(game.getLobby(), Map.of(
                     "event", "gameComplete",
-                    "scores", game.getScoreboard()));
+                    "scoreboard", game.getScoreboard()));
             return; // The game ends here
         }
 
@@ -42,6 +42,7 @@ public class RoundService {
             Map<String, Object> roundMessage = new HashMap<>();
             roundMessage.put("event", "newRound");
             roundMessage.put("roundNumber", game.getCurrentRound().getRoundNumber());
+            roundMessage.put("roundDuration", game.getCurrentRound().getRoundDuration());
 
             // Show location to players, but not the spy
             if (!game.getCurrentRound().getSpy().equals(player)) {
@@ -51,7 +52,6 @@ public class RoundService {
 
                 roundMessage.put("role", "Spy");
             }
-
             messagingService.sendMessage(player.getSession(), roundMessage);
         }
 

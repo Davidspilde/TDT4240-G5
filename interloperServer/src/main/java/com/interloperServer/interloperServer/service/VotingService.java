@@ -170,16 +170,15 @@ public class VotingService {
         String spyName = currentRound.getSpy().getUsername();
         boolean spyCaught = votesWereCast && mostVoted != null && mostVoted.equals(spyName);
 
+
         // Award points based on votes
         if (spyCaught) {
             // Award points to every player who is not the spy
             for (Player p : players) {
                 if (!spyName.equals(p.getUsername())) {
-
                     game.updateScore(p.getUsername(), 1);
                 }
             }
-
         } else {
             // Award a point to the spy if not caught
             game.updateScore(currentRound.getSpy().getUsername(), 1);

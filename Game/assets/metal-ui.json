@@ -240,11 +240,16 @@
 		"selection": "selection"
 	}
 },
-"com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle": {
-	"default": {
-		"background": "window",
-		"titleFont": "font",
-		"titleFontColor": "black"
-	}
-}
+  "com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle": {
+    "default": {
+      "background": "window",
+      "titleFont": "font",
+      "titleFontColor": "black"
+    },
+    "dialog": {
+      "background": "dialog-background",
+      "titleFont": "font",
+      "titleFontColor": "white"
+    }
+  }
 }
