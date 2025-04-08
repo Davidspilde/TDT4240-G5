@@ -62,10 +62,32 @@ public class LobbyService {
     public boolean joinLobby(WebSocketSession session, String lobbyCode, String username) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
 
+        // Check for non-existent lobby
         if (lobby == null) {
             messagingService.sendMessage(session, Map.of(
                     "event", "error",
                     "message", "Lobby not found!"));
+            return false;
+        }
+
+        LobbyOptions options = lobby.getLobbyOptions();
+        List<Player> players = lobby.getPlayers();
+
+        // Check for full lobby
+        if (options.getMaxPlayerCount() <= players.size()) {
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "Lobby is full!"));
+            return false;
+        }
+
+        // Check if player is already in the lobby
+        Player existingPlayer = lobby.getPlayerBySession(session);
+
+        if (existingPlayer != null) {
+            messagingService.sendMessage(session, Map.of(
+                    "event", "error",
+                    "message", "You are already in the lobby!"));
             return false;
         }
 

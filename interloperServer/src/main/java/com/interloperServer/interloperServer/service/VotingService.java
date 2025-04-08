@@ -53,6 +53,13 @@ public class VotingService {
             return;
         }
 
+        // Check for self vote
+        if (voter != null && voterUsername.equals(targetUsername)) {
+            messagingService.sendMessage(voter.getSession(), Map.of(
+                    "event", "invalidVote",
+                    "message", "Invalid vote. Cannot vote for yourself."));
+        }
+
         // Don't register vote if the voter doesn't exist
         if (voter == null) {
             return;
@@ -119,6 +126,10 @@ public class VotingService {
             return;
 
         Round currentRound = game.getCurrentRound();
+        if (currentRound == null) {
+            return;
+        }
+
         // If round is already complete, do nothing
         if (currentRound.isVotingComplete())
             return;

@@ -137,6 +137,10 @@ public class RoundService {
     private void finalizeRound(Game game, RoundEndReason reason, boolean spyCaught, boolean spyGuessCorrect,
             String spyUsername) {
         Round currentRound = game.getCurrentRound();
+
+        if (currentRound == null) {
+            return;
+        }
         currentRound.setVotingComplete();
         game.stopTimer();
 
