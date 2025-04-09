@@ -161,11 +161,7 @@ public class LobbyService {
         }
 
         List<String> usernames = players.stream().map(Player::getUsername).toList();
-        for (Player player : players) {
-            messagingService.sendMessage(player.getSession(), Map.of(
-                    "event", "lobbyUpdate",
-                    "players", usernames));
-        }
+        messagingService.broadcastMessage(lobby, usernames);
     }
 
     /**

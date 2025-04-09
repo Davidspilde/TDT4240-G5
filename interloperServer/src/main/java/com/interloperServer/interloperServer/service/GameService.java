@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.*;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 import java.util.*;
@@ -17,6 +18,7 @@ public class GameService {
     private final VotingService votingService;
     private final RoundService roundService;
     private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
     private final LobbyService lobbyService;
 
     // All active games
@@ -29,11 +31,13 @@ public class GameService {
      * @param roleService
      */
     public GameService(VotingService votingService, RoundService roundService,
-            MessagingService messagingService, GameManagerService gameManagerService, LobbyService lobbyService) {
+            MessagingService messagingService, GameMessageFactory messageFactory, GameManagerService gameManagerService,
+            LobbyService lobbyService) {
         this.lobbyService = lobbyService;
         this.votingService = votingService;
         this.roundService = roundService;
         this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
         this.gameManagerService = gameManagerService;
     }
 
@@ -47,25 +51,19 @@ public class GameService {
         Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
 
         if (lobby == null) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "Lobby doesn't exist."));
+            messagingService.sendMessage(session, messageFactory.error("Lobby doesn't exist."));
             return false;
         }
 
         // Prevent users other than host to begin the game
         if (!lobby.getHost().getUsername().equals(username)) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "Only the host can start the game."));
+            messagingService.sendMessage(session, messageFactory.error("Only the host can start the game"));
             return false;
         }
 
         // Prevent game from starting with too few players
         if (lobby.getPlayers().size() < 2) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "Too few players to start the game."));
+            messagingService.sendMessage(session, messageFactory.error("Too few players to start the game."));
             return false;
         }
 
@@ -73,8 +71,7 @@ public class GameService {
         Game game = new Game(lobby);
         gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
-        messagingService.sendMessage(session, Map.of(
-                "event", "gameStarted"));
+        messagingService.broadcastMessage(lobby, messageFactory.gameStarted());
 
         roundService.advanceRound(lobbyCode);
 
@@ -208,9 +205,7 @@ public class GameService {
             return;
 
         gameManagerService.removeGame(lobbyCode);
-        messagingService.broadcastMessage(game.getLobby(), Map.of(
-                "event", "gameEnded",
-                "message", "Game has ended."));
+        messagingService.broadcastMessage(game.getLobby(), messageFactory.gameEnded());
     }
 
 }

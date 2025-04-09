@@ -17,6 +17,10 @@ public class GameMessageFactory {
         return new GameMessage("gameStarted");
     }
 
+    public GameMessage gameEnded() {
+        return new GameMessage("gameEnded");
+    }
+
     public NewRoundMessage newRound(int number, int duration, String role, String location) {
         return new NewRoundMessage(number, duration, role, location);
     }
