@@ -56,6 +56,7 @@ public class RoundService {
     private void broadcastRoundStart(Game game) {
         Round newRound = game.getCurrentRound();
 
+        System.out.println("Starting braodcast");
         for (Player player : game.getPlayers()) {
 
             if (!newRound.getSpy().equals(player)) {

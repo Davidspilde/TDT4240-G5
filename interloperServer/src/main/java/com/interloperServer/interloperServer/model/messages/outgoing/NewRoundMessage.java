@@ -22,5 +22,19 @@ public class NewRoundMessage extends GameMessage {
 		this.location = null;
 	}
 
-	// Getters
+	public int getRoundNumber() {
+		return roundNumber;
+	}
+
+	public int getRoundDuration() {
+		return roundDuration;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public String getLocation() {
+		return location;
+	}
 }
