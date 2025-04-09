@@ -7,10 +7,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.model.messages.CreateLobbyMessage;
-import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
-import com.interloperServer.interloperServer.model.messages.Message;
-import com.interloperServer.interloperServer.model.messages.VoteMessage;
+import com.interloperServer.interloperServer.model.messages.recievedMessages.*;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
 import com.interloperServer.interloperServer.service.LobbyService;
@@ -58,7 +55,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "createLobby":
-                CreateLobbyMessage createMsg = objectMapper.treeToValue(root, CreateLobbyMessage.class);
+                RecieveCreateLobbyMessage createMsg = objectMapper.treeToValue(root, RecieveCreateLobbyMessage.class);
                 lobbyService.createLobby(session, createMsg.getUsername());
                 break;
 
@@ -73,7 +70,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "joinLobby":
-                Message joinMsg = objectMapper.treeToValue(root, Message.class);
+                RecieveMessage joinMsg = objectMapper.treeToValue(root, RecieveMessage.class);
                 lobbyService.joinLobby(session, joinMsg.getLobbyCode(), joinMsg.getUsername());
                 break;
 
@@ -88,7 +85,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "startGame":
-                Message startMsg = objectMapper.treeToValue(root, Message.class);
+                RecieveMessage startMsg = objectMapper.treeToValue(root, RecieveMessage.class);
                 gameService.startGame(startMsg.getUsername(),
                         startMsg.getLobbyCode(), session);
                 break;
@@ -105,7 +102,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "vote":
-                VoteMessage voteMsg = objectMapper.treeToValue(root, VoteMessage.class);
+                RecieveVoteMessage voteMsg = objectMapper.treeToValue(root, RecieveVoteMessage.class);
                 gameService.castVote(voteMsg.getLobbyCode(), voteMsg.getUsername(), voteMsg.getTarget());
                 break;
 
@@ -121,7 +118,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "spyGuess":
-                VoteMessage spyVoteMsg = objectMapper.treeToValue(root, VoteMessage.class);
+                RecieveVoteMessage spyVoteMsg = objectMapper.treeToValue(root, RecieveVoteMessage.class);
                 gameService.castSpyGuess(spyVoteMsg.getLobbyCode(), spyVoteMsg.getUsername(), spyVoteMsg.getTarget());
                 break;
 
@@ -136,7 +133,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * 
              */
             case "advanceRound":
-                Message advanceMsg = objectMapper.treeToValue(root, Message.class);
+                RecieveMessage advanceMsg = objectMapper.treeToValue(root, RecieveMessage.class);
                 gameService.advanceRound(advanceMsg.getLobbyCode());
                 break;
             /*
@@ -152,7 +149,8 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
              * }
              */
             case "updateOptions":
-                LobbyOptionsMessage optionsMsg = objectMapper.treeToValue(root, LobbyOptionsMessage.class);
+                RecieveLobbyOptionsMessage optionsMsg = objectMapper.treeToValue(root,
+                        RecieveLobbyOptionsMessage.class);
                 lobbyService.updateLobbyOptions(optionsMsg.getLobbyCode(), optionsMsg);
                 break;
 

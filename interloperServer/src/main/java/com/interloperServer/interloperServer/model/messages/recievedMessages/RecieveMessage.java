@@ -1,10 +1,11 @@
-package com.interloperServer.interloperServer.model.messages;
+package com.interloperServer.interloperServer.model.messages.recievedMessages;
 
-public class CreateLobbyMessage {
+public class RecieveMessage {
     private String type;
+    private String lobbyCode;
     private String username;
 
-    public CreateLobbyMessage() {
+    public RecieveMessage() {
     }
 
     public String getType() {
@@ -13,6 +14,14 @@ public class CreateLobbyMessage {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getLobbyCode() {
+        return lobbyCode;
+    }
+
+    public void setLobbyCode(String lobbyCode) {
+        this.lobbyCode = lobbyCode;
     }
 
     public String getUsername() {
