@@ -1,121 +1,175 @@
+
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.*;
+import com.interloperServer.interloperServer.model.messages.outgoing.GameMessage;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.Mockito;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class GameServiceTest {
 
-    @Mock
     private VotingService votingService;
-    @Mock
     private RoundService roundService;
-    @Mock
     private MessagingService messagingService;
-    @Mock
+    private GameMessageFactory messageFactory;
     private GameManagerService gameManagerService;
-    @Mock
     private LobbyService lobbyService;
-
-    @InjectMocks
     private GameService gameService;
 
-    private Game game;
-    private Lobby lobby;
-    private Player p1, p2, p3;
-
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() {
+        votingService = mock(VotingService.class);
+        roundService = mock(RoundService.class);
+        messagingService = mock(MessagingService.class);
+        messageFactory = mock(GameMessageFactory.class);
+        gameManagerService = mock(GameManagerService.class);
+        lobbyService = mock(LobbyService.class);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1");
-        p2 = new Player(mock(WebSocketSession.class), "Player2");
-        p3 = new Player(mock(WebSocketSession.class), "Player3");
-
-        LobbyOptions options = new LobbyOptions(8, 8, 8, 8, 8);
-        lobby = new Lobby("lobby123", p3, options); // p3 is host
-        lobby.addPlayer(p2);
-        lobby.addPlayer(p1);
-
-        game = new Game(lobby);
-        game.startNextRound();
-
-        when(lobbyService.getLobbyFromLobbyCode("lobby123")).thenReturn(lobby);
-        when(gameManagerService.getGame("lobby123")).thenReturn(game);
+        gameService = new GameService(votingService, roundService, messagingService, messageFactory, gameManagerService,
+                lobbyService);
     }
 
     @Test
-    @DisplayName("Should start game if the caller is the host")
-    public void startGame_hostCanStart() {
-        WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("Player3", "lobby123", mockSession);
+    void startGame_ShouldSendError_IfLobbyNotFound() {
+        WebSocketSession session = mock(WebSocketSession.class);
+        when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(null);
 
-        assertTrue(result, "startGame should return true if the host started the game");
+        gameService.startGame("Alice", "XYZ", session);
 
-        // Capture the Game instance passed to storeGame
-        ArgumentCaptor<Game> gameCaptor = ArgumentCaptor.forClass(Game.class);
-        verify(gameManagerService).storeGame(eq("lobby123"), gameCaptor.capture());
-
-        Game capturedGame = gameCaptor.getValue();
-        assertEquals("lobby123", capturedGame.getLobby().getLobbyCode());
-        assertEquals(3, capturedGame.getPlayers().size());
+        verify(messagingService).sendMessage(eq(session), any());
     }
 
     @Test
-    @DisplayName("Should not start game if the caller is not the host")
-    public void startGame_nonHostShouldFail() {
-        WebSocketSession mockSession = mock(WebSocketSession.class);
-        boolean result = gameService.startGame("Player1", "lobby123", mockSession); // Player1 is not host
+    void startGame_ShouldSendError_IfNotHost() {
+        Lobby lobby = mock(Lobby.class);
+        WebSocketSession session = mock(WebSocketSession.class);
+        when(lobby.getHost()).thenReturn(new Player(null, "Bob"));
+        when(lobbyService.getLobbyFromLobbyCode("ABC")).thenReturn(lobby);
 
-        assertFalse(result, "startGame should return false if non-host tries to start");
+        gameService.startGame("Alice", "ABC", session);
 
-        verify(messagingService).sendMessage(eq(mockSession), eq(Map.of(
-                "event", "error",
-                "message", "Only the host can start the game.")));
+        verify(messagingService).sendMessage(eq(session), any());
     }
 
     @Test
-    @DisplayName("Should remove player and end game if nobody remains")
-    public void handlePlayerDisconnect_lastPlayerLeaves() {
-        WebSocketSession sessionToRemove = p3.getSession();
+    void startGame_ShouldSendError_IfTooFewPlayers() {
+        Lobby lobby = mock(Lobby.class);
+        WebSocketSession session = mock(WebSocketSession.class);
+        when(lobby.getHost()).thenReturn(new Player(null, "Alice"));
+        when(lobby.getPlayers()).thenReturn(List.of(new Player(null, "Alice"))); // only 1 player
+        when(lobbyService.getLobbyFromLobbyCode("ABC")).thenReturn(lobby);
 
-        lobby.removePlayer(p2);
-        lobby.removePlayer(p1);
-        gameService.handlePlayerDisconnect(sessionToRemove, "lobby123");
+        gameService.startGame("Alice", "ABC", session);
 
-        verify(gameManagerService).removeGame("lobby123");
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "gameEnded",
-                "message", "Game has ended.")));
+        verify(messagingService).sendMessage(eq(session), any());
     }
 
     @Test
-    @DisplayName("Should end the round due to timeout using RoundService")
-    public void endRoundDueToTimeout() {
-        gameService.endRoundDueToTimeout("lobby123");
+    void startGame_ShouldStartGame_IfValidConditionsMet() {
+        Lobby lobby = mock(Lobby.class);
+        WebSocketSession session = mock(WebSocketSession.class);
 
-        verify(roundService).endRoundDueToTimeout(eq("lobby123"), eq(game.getCurrentRound().getSpy().getUsername()));
+        when(lobby.getHost()).thenReturn(new Player(null, "Alice"));
+        when(lobby.getPlayers()).thenReturn(List.of(
+                new Player(null, "Alice"),
+                new Player(null, "Bob")));
+        when(lobby.getLobbyCode()).thenReturn("XYZ");
+
+        // 🛠️ Fix: Add this to prevent NullPointerException
+        LobbyOptions options = new LobbyOptions(5, 30, 1, 8, 120);
+        when(lobby.getLobbyOptions()).thenReturn(options);
+
+        when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(lobby);
+
+        GameMessage mockGameMessage = mock(GameMessage.class);
+        when(messageFactory.gameStarted()).thenReturn(mockGameMessage);
+
+        gameService.startGame("Alice", "XYZ", session);
+
+        verify(gameManagerService).storeGame(eq("XYZ"), any(Game.class));
+        verify(messagingService).broadcastMessage(eq(lobby), eq(mockGameMessage));
+        verify(roundService).advanceRound(eq("XYZ"));
     }
 
     @Test
-    @DisplayName("Should remove game and announce end when endGame is called")
-    public void endGameTest() {
-        gameService.endGame("lobby123");
+    void handlePlayerDisconnect_ShouldEndGame_IfTooFewPlayers() {
+        Game game = mock(Game.class);
+        when(game.getPlayers()).thenReturn(Collections.singletonList(mock(Player.class)));
+        when(gameManagerService.getGame("XYZ")).thenReturn(game);
 
-        verify(gameManagerService).removeGame("lobby123");
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "gameEnded",
-                "message", "Game has ended.")));
+        gameService.handlePlayerDisconnect(mock(WebSocketSession.class), "XYZ");
+
+        verify(gameManagerService).removeGame("XYZ");
+        verify(messagingService).broadcastMessage(any(), any());
+    }
+
+    @Test
+    void castVote_DelegatesToVotingService() {
+        Game game = mock(Game.class);
+        when(gameManagerService.getGame("XYZ")).thenReturn(game);
+
+        gameService.castVote("XYZ", "voter", "target");
+
+        verify(votingService).castVote("XYZ", "voter", "target");
+    }
+
+    @Test
+    void castSpyGuess_DelegatesToVotingService() {
+        Game game = mock(Game.class);
+        when(gameManagerService.getGame("XYZ")).thenReturn(game);
+
+        gameService.castSpyGuess("XYZ", "spy", "location");
+
+        verify(votingService).castSpyGuess("XYZ", "spy", "location");
+    }
+
+    @Test
+    void advanceRound_ShouldAdvance_IfVotingComplete() {
+        Game game = mock(Game.class);
+        Round round = mock(Round.class);
+        when(gameManagerService.getGame("XYZ")).thenReturn(game);
+        when(game.getCurrentRound()).thenReturn(round);
+        when(round.isVotingComplete()).thenReturn(true);
+
+        gameService.advanceRound("XYZ");
+
+        verify(roundService).advanceRound("XYZ");
+        verify(game).stopTimer();
+    }
+
+    @Test
+    void endRoundDueToTimeout_DelegatesToRoundService() {
+        Game game = mock(Game.class);
+        Round round = mock(Round.class);
+        Player spy = mock(Player.class);
+        when(spy.getUsername()).thenReturn("Spy");
+        when(round.getSpy()).thenReturn(spy);
+        when(game.getCurrentRound()).thenReturn(round);
+        when(gameManagerService.getGame("XYZ")).thenReturn(game);
+
+        gameService.endRoundDueToTimeout("XYZ");
+
+        verify(roundService).endRoundDueToTimeout("XYZ", "Spy");
+    }
+
+    @Test
+    void endGame_ShouldRemoveGame() {
+        Lobby lobby = mock(Lobby.class);
+        Game game = mock(Game.class);
+        when(game.getLobby()).thenReturn(lobby);
+        when(gameManagerService.getGame("XYZ")).thenReturn(game);
+
+        gameService.endGame("XYZ");
+
+        verify(gameManagerService).removeGame("XYZ");
     }
 }

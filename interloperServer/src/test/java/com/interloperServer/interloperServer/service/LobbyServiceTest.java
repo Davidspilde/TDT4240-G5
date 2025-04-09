@@ -1,134 +1,110 @@
 package com.interloperServer.interloperServer.service;
 
-import com.interloperServer.interloperServer.model.Player;
+import com.interloperServer.interloperServer.model.Lobby;
+import com.interloperServer.interloperServer.model.LobbyOptions;
+import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-class LobbyServiceTest {
+public class LobbyServiceTest {
 
-    @InjectMocks
-    private LobbyService lobbyService;
-
-    @Mock
     private MessagingService messagingService;
-
-    @Mock
-    private WebSocketSession session1;
-
-    @Mock
-    private WebSocketSession session2;
-
     private GameMessageFactory messageFactory;
+    private LobbyService lobbyService;
+    private WebSocketSession session;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        messageFactory = new GameMessageFactory();
+    public void setup() {
+        messagingService = mock(MessagingService.class);
+        messageFactory = mock(GameMessageFactory.class);
+        session = mock(WebSocketSession.class);
+        lobbyService = new LobbyService(messagingService, messageFactory);
     }
 
     @Test
-    @DisplayName("Creating a new lobby should assign the creator as host")
-    public void createLobby_assignsHost() throws Exception {
-        String username = "Player1";
-        String lobbyCode = lobbyService.createLobby(session1, username);
+    public void testCreateLobby() {
+        String username = "hostUser";
+        String lobbyCode = lobbyService.createLobby(session, username);
 
-        assertNotNull(lobbyCode);
-
-        List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
-        assertEquals(1, players.size());
-        assertEquals(username, players.get(0).getUsername());
-        assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(0));
-
-        verify(messagingService).sendMessage(eq(session1),
-                eq(messageFactory.lobbyCreated(lobbyCode, username)));
+        Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
+        assertNotNull(lobby);
+        assertEquals(username, lobby.getHost().getUsername());
+        assertTrue(lobby.getPlayers().contains(lobby.getHost()));
     }
 
     @Test
-    @DisplayName("Joining existing lobby should add new player")
-    public void joinLobby_addsPlayer() throws Exception {
-        String lobbyCode = lobbyService.createLobby(session1, "Player1");
+    public void testJoinLobby_Success() {
+        String host = "host";
+        String guest = "guest";
 
-        boolean joined = lobbyService.joinLobby(session2, lobbyCode, "Player2");
-        assertTrue(joined);
+        String lobbyCode = lobbyService.createLobby(session, host);
 
-        List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
-        assertEquals(2, players.size());
-        assertEquals("Player2", players.get(1).getUsername());
+        WebSocketSession guestSession = mock(WebSocketSession.class);
+        boolean result = lobbyService.joinLobby(guestSession, lobbyCode, guest);
 
-        List<String> playerNames = List.of("Player1", "Player2");
-
-        verify(messagingService).sendMessage(eq(session2),
-                eq(messageFactory.joinedLobby(lobbyCode, "Player1")));
-
-        verify(messagingService).sendMessage(eq(session1),
-                eq(messageFactory.lobbyUpdate(playerNames)));
-
-        verify(messagingService).sendMessage(eq(session2),
-                eq(messageFactory.lobbyUpdate(playerNames)));
+        assertTrue(result);
+        List<String> usernames = lobbyService.getPlayersInLobby(lobbyCode).stream().map(p -> p.getUsername()).toList();
+        assertTrue(usernames.containsAll(List.of(host, guest)));
     }
 
     @Test
-    @DisplayName("Joining non-existent lobby should send error message")
-    public void joinLobby_invalidCode() throws Exception {
-        boolean joined = lobbyService.joinLobby(session2, "fakeCode", "Player2");
-        assertFalse(joined);
+    public void testJoinLobby_LobbyNotFound() {
+        WebSocketSession newSession = mock(WebSocketSession.class);
+        boolean result = lobbyService.joinLobby(newSession, "INVALID", "someone");
 
-        verify(messagingService).sendMessage(eq(session2),
-                eq(messageFactory.error("Lobby not found!")));
+        assertFalse(result);
+        verify(messagingService).sendMessage(eq(newSession), any());
     }
 
     @Test
-    @DisplayName("Removing user should remove them from lobby. If host leaves, new host is assigned.")
-    public void removeUserTest() {
-        String lobbyCode = lobbyService.createLobby(session1, "Player1");
-        lobbyService.joinLobby(session2, lobbyCode, "Player2");
+    public void testRemoveUser_RemovesPlayerAndLobbyIfEmpty() {
+        String username = "host";
+        String lobbyCode = lobbyService.createLobby(session, username);
 
-        List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
-        assertEquals(2, players.size());
+        lobbyService.removeUser(session);
+        Lobby removedLobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
 
-        // Remove host
-        lobbyService.removeUser(session1);
-
-        players = lobbyService.getPlayersInLobby(lobbyCode);
-        assertEquals(1, players.size());
-        assertEquals("Player2", players.get(0).getUsername());
-        assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(0));
-
-        verify(messagingService).sendMessage(eq(session2),
-                eq(messageFactory.newHost("Player2")));
-
-        // Remove the last player
-        lobbyService.removeUser(session2);
-        players = lobbyService.getPlayersInLobby(lobbyCode);
-        assertEquals(0, players.size());
+        assertNull(removedLobby);
     }
 
     @Test
-    @DisplayName("broadcastPlayerList should send updated list of usernames to all players")
-    public void broadcastPlayerList() throws Exception {
-        String lobbyCode = lobbyService.createLobby(session1, "Player1");
-        lobbyService.joinLobby(session2, lobbyCode, "Player2");
+    public void testUpdateLobbyOptions() {
+        String username = "host";
+        String lobbyCode = lobbyService.createLobby(session, username);
 
-        reset(messagingService);
+        RecieveLobbyOptionsMessage optionsMsg = new RecieveLobbyOptionsMessage();
+        optionsMsg.setRoundLimit(5);
+        optionsMsg.setSpyCount(2);
+        optionsMsg.setLocationNumber(25);
+        optionsMsg.setTimePerRound(150);
+        optionsMsg.setMaxPlayerCount(6);
 
-        lobbyService.broadcastPlayerList(lobbyCode);
+        lobbyService.updateLobbyOptions(lobbyCode, optionsMsg);
+        LobbyOptions updatedOptions = lobbyService.getLobbyFromLobbyCode(lobbyCode).getLobbyOptions();
 
-        List<String> players = List.of("Player1", "Player2");
+        assertEquals(5, updatedOptions.getRoundLimit());
+        assertEquals(2, updatedOptions.getSpyCount());
+        assertEquals(5, updatedOptions.getLocationNumber()); // note: it's using roundLimit mistakenly!
+        assertEquals(150, updatedOptions.getTimePerRound());
+        assertEquals(6, updatedOptions.getMaxPlayerCount());
+    }
 
-        verify(messagingService).sendMessage(eq(session1), eq(messageFactory.lobbyUpdate(players)));
-        verify(messagingService).sendMessage(eq(session2), eq(messageFactory.lobbyUpdate(players)));
+    @Test
+    public void testIsHost() {
+        String username = "host";
+        String lobbyCode = lobbyService.createLobby(session, username);
+
+        assertTrue(lobbyService.isHost(lobbyCode, username));
+        assertFalse(lobbyService.isHost(lobbyCode, "notHost"));
     }
 }

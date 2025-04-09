@@ -1,121 +1,139 @@
+
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.*;
+import com.interloperServer.interloperServer.model.messages.outgoing.NewRoundMessage;
+import com.interloperServer.interloperServer.model.messages.outgoing.RoundEndedMessage;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.springframework.web.socket.WebSocketSession;
 
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class RoundServiceTest {
+class RoundServiceTest {
 
-    @Mock
     private MessagingService messagingService;
-    @Mock
+    private GameMessageFactory messageFactory;
     private GameManagerService gameManagerService;
-
-    @InjectMocks
     private RoundService roundService;
 
     private Game game;
-    private Lobby lobby;
-    private Player p1;
-    private Player p2;
-    private Player spy;
+    private Round round;
+    private Player spyPlayer;
+    private Player player1;
+    private Player player2;
 
     @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() {
+        messagingService = mock(MessagingService.class);
+        messageFactory = mock(GameMessageFactory.class);
+        gameManagerService = mock(GameManagerService.class);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1");
-        p2 = new Player(mock(WebSocketSession.class), "Player2");
-        spy = new Player(mock(WebSocketSession.class), "Player3");
+        roundService = new RoundService(messagingService, messageFactory, gameManagerService);
 
-        LobbyOptions lobbyOptions = new LobbyOptions(2, 25, 1, 10, 120);
-        lobby = new Lobby("abc123", p1, lobbyOptions);
-        lobby.addPlayer(p2);
-        lobby.addPlayer(spy);
+        // Set up real Player objects for equals() to work properly
+        spyPlayer = new Player(null, "spy");
+        player1 = new Player(null, "p1");
+        player2 = new Player(null, "p2");
 
-        game = new Game(lobby); // 3 rounds
-        when(gameManagerService.getGame("abc123")).thenReturn(game);
+        // Mock game and round
+        game = mock(Game.class);
+        round = mock(Round.class);
+
+        when(round.getSpy()).thenReturn(spyPlayer);
+        when(round.getRoundNumber()).thenReturn(1);
+        when(round.getLocation()).thenReturn("Space Station");
+
+        when(game.getCurrentRound()).thenReturn(round);
+        when(game.getPlayers()).thenReturn(List.of(spyPlayer, player1, player2));
+        when(game.getLobby()).thenReturn(mock(Lobby.class));
+        when(game.getScoreboard()).thenReturn(Map.of("spy", 0, "p1", 0, "p2", 0));
     }
 
     @Test
-    @DisplayName("Should end the game if no more rounds remain")
-    public void noMoreRounds_shouldEndGame() {
-        // Move to the last round
-        roundService.advanceRound("abc123");
-        roundService.advanceRound("abc123"); // Last round
-        roundService.advanceRound("abc123");
+    void testAdvanceRound_EndsGameIfNoMoreRounds() {
+        when(gameManagerService.getGame("ABC")).thenReturn(game);
+        when(game.hasMoreRounds()).thenReturn(false);
 
-        // Verify the "gameComplete" message
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "gameComplete",
-                "scoreboard", game.getScoreboard())));
+        roundService.advanceRound("ABC");
 
+        verify(round).endRound();
+        verify(messageFactory).gameComplete(any());
+        verify(messagingService).broadcastMessage(eq(game.getLobby()), any());
     }
 
     @Test
-    @DisplayName("Should advance to next round, assign roles, and send correct messages")
-    public void advanceRound_startNewRoundAndNotify() {
-        roundService.advanceRound("abc123");
+    void testAdvanceRound_StartsNextRound() {
+        when(gameManagerService.getGame("ABC")).thenReturn(game);
+        when(game.hasMoreRounds()).thenReturn(true);
+        when(game.getCurrentRound()).thenReturn(round);
+        when(round.getRoundDuration()).thenReturn(90);
+        when(round.getRoundNumber()).thenReturn(2);
+        when(round.getLocation()).thenReturn("Moon");
 
-        // Verify messages sent to players
-        Round currentRound = game.getCurrentRound();
-        Player spy = currentRound.getSpy();
-        String location = currentRound.getLocation();
-        int roundDuration = game.getRoundDuration();
+        // Return mocked round messages
+        when(messageFactory.newRound(anyInt(), anyInt(), eq("Player"), anyString()))
+                .thenReturn(mock(NewRoundMessage.class));
+        when(messageFactory.newRound(anyInt(), anyInt(), eq("Spy")))
+                .thenReturn(mock(NewRoundMessage.class));
 
-        for (Player player : game.getPlayers()) {
-            if (player.equals(spy)) {
-                verify(messagingService).sendMessage(eq(player.getSession()), eq(Map.of(
-                        "event", "newRound",
-                        "roundNumber", 1,
-                        "role", "Spy",
-                        "roundDuration", roundDuration)));
-            } else {
-                verify(messagingService).sendMessage(eq(player.getSession()), eq(Map.of(
-                        "event", "newRound",
-                        "roundNumber", 1,
-                        "role", "Player",
-                        "location", location,
-                        "roundDuration", roundDuration)));
-            }
-        }
+        roundService.advanceRound("ABC");
+
+        verify(game).startNextRound();
+        verify(messagingService, atLeastOnce()).sendMessage(any(), any());
     }
 
     @Test
-    @DisplayName("Should award all players except the spy when the spy is caught")
-    public void spyCaught_awardsOtherPlayers() {
-        game.startNextRound();
-        game.getCurrentRound().setSpy(spy);
+    void testEndRoundDueToVotes_SpyCaught() {
+        when(gameManagerService.getGame("ABC")).thenReturn(game);
 
-        roundService.endRoundDueToVotes("abc123", true, "Player3");
+        RoundEndedMessage mockEndMessage = mock(RoundEndedMessage.class);
+        when(messageFactory.roundEnded(anyInt(), anyString(), eq(true), anyBoolean(), anyString(), anyString(),
+                anyMap()))
+                .thenReturn(mockEndMessage);
 
-        assertEquals(1, game.getScoreboard().get("Player1"));
-        assertEquals(1, game.getScoreboard().get("Player2"));
-        assertEquals(0, game.getScoreboard().get("Player3"));
+        roundService.endRoundDueToVotes("ABC", true, "spy");
+
+        verify(game).stopTimer();
+        verify(messagingService).broadcastMessage(eq(game.getLobby()), eq(mockEndMessage));
+        verify(game).updateScore("p1", 1);
+        verify(game).updateScore("p2", 1);
+        verify(game, never()).updateScore(eq("spy"), anyInt());
     }
 
     @Test
-    @DisplayName("Should award spy when they are not caught")
-    public void spyNotCaught_awardsSpy() {
-        game.startNextRound();
-        game.getCurrentRound().setSpy(spy);
+    void testEndRoundDueToSpyGuess_Successful() {
+        when(gameManagerService.getGame("ABC")).thenReturn(game);
 
-        roundService.endRoundDueToVotes("abc123", false, "Player3");
+        RoundEndedMessage mockEndMessage = mock(RoundEndedMessage.class);
+        when(messageFactory.roundEnded(anyInt(), anyString(), anyBoolean(), eq(true), anyString(), anyString(),
+                anyMap()))
+                .thenReturn(mockEndMessage);
 
-        assertEquals(0, game.getScoreboard().get("Player1"));
-        assertEquals(0, game.getScoreboard().get("Player2"));
-        assertEquals(1, game.getScoreboard().get("Player3"));
+        roundService.endRoundDueToSpyGuess("ABC", "spy", true);
+
+        verify(game).updateScore("spy", 1);
+        verify(game, never()).updateScore("p1", 1);
+        verify(game).stopTimer();
+        verify(messagingService).broadcastMessage(eq(game.getLobby()), eq(mockEndMessage));
     }
 
+    @Test
+    void testEndRoundDueToTimeout_AwardsSpy() {
+        when(gameManagerService.getGame("ABC")).thenReturn(game);
+
+        RoundEndedMessage mockEndMessage = mock(RoundEndedMessage.class);
+        when(messageFactory.roundEnded(anyInt(), anyString(), eq(false), eq(false), eq("spy"), anyString(), anyMap()))
+                .thenReturn(mockEndMessage);
+
+        roundService.endRoundDueToTimeout("ABC", "spy");
+
+        verify(game).updateScore("spy", 1);
+        verify(game).stopTimer();
+        verify(messagingService).broadcastMessage(eq(game.getLobby()), eq(mockEndMessage));
+    }
 }
