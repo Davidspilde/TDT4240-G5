@@ -3,7 +3,7 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.interloperServer.interloperServer.model.messages.recievedMessages.RecieveLobbyOptionsMessage;
+import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.LobbyService;
 
 @Component

@@ -3,7 +3,7 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.interloperServer.interloperServer.model.messages.recievedMessages.RecieveVoteMessage;
+import com.interloperServer.interloperServer.model.messages.incomming.RecieveVoteMessage;
 import com.interloperServer.interloperServer.service.GameService;
 
 @Component

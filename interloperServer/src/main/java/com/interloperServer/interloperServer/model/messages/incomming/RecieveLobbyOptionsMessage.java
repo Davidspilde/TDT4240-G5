@@ -1,4 +1,4 @@
-package com.interloperServer.interloperServer.model.messages.recievedMessages;
+package com.interloperServer.interloperServer.model.messages.incomming;
 
 public class RecieveLobbyOptionsMessage extends RecieveMessage {
     private int roundLimit;

@@ -1,4 +1,4 @@
-package com.interloperServer.interloperServer.model.messages.recievedMessages;
+package com.interloperServer.interloperServer.model.messages.incomming;
 
 public class RecieveVoteMessage extends RecieveMessage {
     private String target;

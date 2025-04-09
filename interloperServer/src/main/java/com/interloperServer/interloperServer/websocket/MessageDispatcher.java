@@ -1,6 +1,5 @@
 package com.interloperServer.interloperServer.websocket;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.websocket.handlers.WebSocketMessageHandler;
 
+/*Dispatches the different messages to the right handlers */
 @Component
 public class MessageDispatcher {
 
