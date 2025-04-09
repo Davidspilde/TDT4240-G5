@@ -1,13 +1,16 @@
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.Player;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.*;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,12 +31,12 @@ class LobbyServiceTest {
     @Mock
     private WebSocketSession session2;
 
-    @Captor
-    private ArgumentCaptor<String> messageCaptor;
+    private GameMessageFactory messageFactory;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        messageFactory = new GameMessageFactory();
     }
 
     @Test
@@ -44,18 +47,13 @@ class LobbyServiceTest {
 
         assertNotNull(lobbyCode);
 
-        // There is exactly 1 player in the new lobby so the player should be the host
         List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
-
         assertEquals(1, players.size());
         assertEquals(username, players.get(0).getUsername());
         assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(0));
 
-        // Check that a success message was sent
-        verify(messagingService).sendMessage(eq(session1), eq(Map.of(
-                "event", "lobbyCreated",
-                "lobbyCode", lobbyCode,
-                "host", username)));
+        verify(messagingService).sendMessage(eq(session1),
+                eq(messageFactory.lobbyCreated(lobbyCode, username)));
     }
 
     @Test
@@ -67,21 +65,19 @@ class LobbyServiceTest {
         assertTrue(joined);
 
         List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
-
         assertEquals(2, players.size());
         assertEquals("Player2", players.get(1).getUsername());
 
-        // Verify the "joinedLobby" message
-        verify(messagingService).sendMessage(eq(session2), eq(Map.of(
-                "event", "joinedLobby",
-                "lobbyCode", lobbyCode,
-                "host", "Player1")));
+        List<String> playerNames = List.of("Player1", "Player2");
 
-        // Verify the "lobbyUpdate" message
-        verify(messagingService, times(2)).sendMessage(eq(session2), any());
-        verify(messagingService).sendMessage(eq(players.get(0).getSession()), eq(Map.of(
-                "event", "lobbyUpdate",
-                "players", List.of("Player1", "Player2"))));
+        verify(messagingService).sendMessage(eq(session2),
+                eq(messageFactory.joinedLobby(lobbyCode, "Player1")));
+
+        verify(messagingService).sendMessage(eq(session1),
+                eq(messageFactory.lobbyUpdate(playerNames)));
+
+        verify(messagingService).sendMessage(eq(session2),
+                eq(messageFactory.lobbyUpdate(playerNames)));
     }
 
     @Test
@@ -90,9 +86,8 @@ class LobbyServiceTest {
         boolean joined = lobbyService.joinLobby(session2, "fakeCode", "Player2");
         assertFalse(joined);
 
-        verify(messagingService).sendMessage(eq(session2), eq(Map.of(
-                "event", "error",
-                "message", "Lobby not found!")));
+        verify(messagingService).sendMessage(eq(session2),
+                eq(messageFactory.error("Lobby not found!")));
     }
 
     @Test
@@ -101,20 +96,21 @@ class LobbyServiceTest {
         String lobbyCode = lobbyService.createLobby(session1, "Player1");
         lobbyService.joinLobby(session2, lobbyCode, "Player2");
 
-        // Check initial state
         List<Player> players = lobbyService.getPlayersInLobby(lobbyCode);
         assertEquals(2, players.size());
 
-        // remove host (Player1)
+        // Remove host
         lobbyService.removeUser(session1);
 
-        // Player2 should now be host
         players = lobbyService.getPlayersInLobby(lobbyCode);
         assertEquals(1, players.size());
         assertEquals("Player2", players.get(0).getUsername());
         assertEquals(lobbyService.getLobbyFromLobbyCode(lobbyCode).getHost(), players.get(0));
 
-        // remove Player2 => lobby empty => remove entire lobby
+        verify(messagingService).sendMessage(eq(session2),
+                eq(messageFactory.newHost("Player2")));
+
+        // Remove the last player
         lobbyService.removeUser(session2);
         players = lobbyService.getPlayersInLobby(lobbyCode);
         assertEquals(0, players.size());
@@ -126,23 +122,13 @@ class LobbyServiceTest {
         String lobbyCode = lobbyService.createLobby(session1, "Player1");
         lobbyService.joinLobby(session2, lobbyCode, "Player2");
 
-        // reset to only capture broadcast calls
         reset(messagingService);
 
         lobbyService.broadcastPlayerList(lobbyCode);
 
-        // Capture the messages
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Map<String, Object>> messageCaptor = ArgumentCaptor.forClass(Map.class);
+        List<String> players = List.of("Player1", "Player2");
 
-        verify(messagingService, times(2)).sendMessage(any(), messageCaptor.capture());
-
-        List<Map<String, Object>> allMessages = messageCaptor.getAllValues();
-
-        Map<String, Object> expectedMessage = Map.of(
-                "event", "lobbyUpdate",
-                "players", List.of("Player1", "Player2"));
-
-        assertTrue(allMessages.contains(expectedMessage), "lobbyUpdate not found in sent messages.");
+        verify(messagingService).sendMessage(eq(session1), eq(messageFactory.lobbyUpdate(players)));
+        verify(messagingService).sendMessage(eq(session2), eq(messageFactory.lobbyUpdate(players)));
     }
 }

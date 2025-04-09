@@ -1,6 +1,8 @@
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.*;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

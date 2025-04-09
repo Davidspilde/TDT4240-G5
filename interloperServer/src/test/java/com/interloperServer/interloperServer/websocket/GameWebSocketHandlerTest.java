@@ -71,7 +71,16 @@ public class GameWebSocketHandlerTest {
 
     // Dummy DTO for testing
     public static class TestMessage {
+        private String type;
         private String value;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
 
         public String getValue() {
             return value;
