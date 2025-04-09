@@ -6,7 +6,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import com.interloperServer.interloperServer.controller.GameWebSocketHandler;
+import com.interloperServer.interloperServer.websocket.GameWebSocketHandler;
 
 /*
  * Connect using ws://localhost:8080/ws/game

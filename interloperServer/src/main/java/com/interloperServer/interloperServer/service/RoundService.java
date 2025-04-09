@@ -9,15 +9,19 @@ import com.interloperServer.interloperServer.model.Game;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.Round;
 import com.interloperServer.interloperServer.model.RoundEndReason;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 @Service
 public class RoundService {
     private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
     private final GameManagerService gameManagerService;
 
-    public RoundService(MessagingService messagingService,
+    public RoundService(MessagingService messagingService, GameMessageFactory messageFactory,
             GameManagerService gameManagerService) {
         this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
         this.gameManagerService = gameManagerService;
     }
 
@@ -36,9 +40,8 @@ public class RoundService {
         // Check if there are more rounds
         if (!game.hasMoreRounds()) {
             // Send game completion message with scores
-            messagingService.broadcastMessage(game.getLobby(), Map.of(
-                    "event", "gameComplete",
-                    "scoreboard", game.getScoreboard()));
+            messagingService.broadcastMessage(game.getLobby(), messageFactory.gameComplete(game.getScoreboard()));
+
             return; // The game ends here
         }
 
@@ -48,25 +51,28 @@ public class RoundService {
 
     /*
      * Broadcast new-round data
-     * Send message to players about which round it is and round duration
+     * Send message to players about which round it is and details about the round
      */
     private void broadcastRoundStart(Game game) {
         Round newRound = game.getCurrentRound();
 
+        System.out.println("Starting braodcast");
         for (Player player : game.getPlayers()) {
-            Map<String, Object> roundMessage = new HashMap<>();
-            roundMessage.put("event", "newRound");
-            roundMessage.put("roundNumber", newRound.getRoundNumber());
-            roundMessage.put("roundDuration", newRound.getRoundDuration());
 
             if (!newRound.getSpy().equals(player)) {
-                roundMessage.put("role", "Player");
-                roundMessage.put("location", newRound.getLocation());
+                messagingService.sendMessage(player.getSession(), messageFactory.newRound(
+                        newRound.getRoundNumber(),
+                        newRound.getRoundDuration(),
+                        "Player",
+                        newRound.getLocation()));
+
             } else {
-                roundMessage.put("role", "Spy");
+                messagingService.sendMessage(player.getSession(), messageFactory.newRound(
+                        newRound.getRoundNumber(),
+                        newRound.getRoundDuration(),
+                        "Spy"));
             }
 
-            messagingService.sendMessage(player.getSession(), roundMessage);
         }
     }
 
@@ -148,17 +154,14 @@ public class RoundService {
         awardPoints(game, spyCaught, spyGuessCorrect, spyUsername);
 
         // Broadcast end of round message
-        Map<String, Object> message = new HashMap<>();
-        message.put("event", "roundEnded");
-        message.put("roundNumber", currentRound.getRoundNumber());
-        message.put("reason", reason.toString());
-        message.put("spyCaught", spyCaught);
-        message.put("spyGuessCorrect", spyGuessCorrect);
-        message.put("spy", (spyUsername != null) ? spyUsername : currentRound.getSpy().getUsername());
-        message.put("location", currentRound.getLocation());
-        message.put("scoreboard", game.getScoreboard());
-
-        messagingService.broadcastMessage(game.getLobby(), message);
+        messagingService.broadcastMessage(game.getLobby(), messageFactory.roundEnded(
+                currentRound.getRoundNumber(),
+                reason.toString(),
+                spyCaught,
+                spyGuessCorrect,
+                currentRound.getSpy().getUsername(),
+                currentRound.getLocation(),
+                game.getScoreboard()));
     }
 
     /**

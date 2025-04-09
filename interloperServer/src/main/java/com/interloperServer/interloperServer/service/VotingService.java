@@ -10,16 +10,21 @@ import org.springframework.stereotype.Service;
 import com.interloperServer.interloperServer.model.Game;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.Round;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 @Service
 public class VotingService {
     private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
     private final GameManagerService gameManagerService;
     private final RoundService roundService;
 
-    public VotingService(MessagingService messagingService, GameManagerService gameManagerService,
+    public VotingService(MessagingService messagingService, GameMessageFactory messageFactory,
+            GameManagerService gameManagerService,
             RoundService roundService) {
         this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
         this.gameManagerService = gameManagerService;
         this.roundService = roundService;
     }
@@ -46,18 +51,15 @@ public class VotingService {
         // Check for invalid target
         if (game.getPlayer(targetUsername) == null) {
             if (voter != null) {
-                messagingService.sendMessage(voter.getSession(), Map.of(
-                        "event", "invalidVote",
-                        "message", "Invalid vote. " + targetUsername + " is not in the game."));
+                messagingService.sendMessage(voter.getSession(),
+                        messageFactory.error("Invalid Vote: " + targetUsername + " is not in the game."));
             }
             return;
         }
 
         // Check for self vote
         if (voter != null && voterUsername.equals(targetUsername)) {
-            messagingService.sendMessage(voter.getSession(), Map.of(
-                    "event", "invalidVote",
-                    "message", "Invalid vote. Cannot vote for yourself."));
+            messagingService.sendMessage(voter.getSession(), "Invalid Vote. Cannot vote for yourself.");
         }
 
         // Don't register vote if the voter doesn't exist
@@ -69,9 +71,7 @@ public class VotingService {
         currentRound.castVote(voterUsername, targetUsername);
 
         // Notify voter of successful vote
-        messagingService.sendMessage(voter.getSession(), Map.of(
-                "event", "voted",
-                "voter", voterUsername));
+        messagingService.sendMessage(voter.getSession(), messageFactory.voted());
 
         // Look for majority after every vote
         evaluateVotes(lobbyCode);

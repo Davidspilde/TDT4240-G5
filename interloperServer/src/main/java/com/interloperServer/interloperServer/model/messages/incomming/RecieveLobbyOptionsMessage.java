@@ -1,13 +1,13 @@
-package com.interloperServer.interloperServer.model.messages;
+package com.interloperServer.interloperServer.model.messages.incomming;
 
-public class LobbyOptionsMessage extends Message {
+public class RecieveLobbyOptionsMessage extends RecieveMessage {
     private int roundLimit;
     private int locationNumber;
     private int spyCount;
     private int maxPlayerCount;
     private int timePerRound;
 
-    public LobbyOptionsMessage() {
+    public RecieveLobbyOptionsMessage() {
     }
 
     public int getRoundLimit() {
