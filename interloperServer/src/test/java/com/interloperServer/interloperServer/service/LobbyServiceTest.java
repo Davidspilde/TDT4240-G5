@@ -5,10 +5,9 @@ import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
-
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
@@ -16,6 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@DisplayName("LobbyService Tests")
 public class LobbyServiceTest {
 
     private MessagingService messagingService;
@@ -32,6 +32,7 @@ public class LobbyServiceTest {
     }
 
     @Test
+    @DisplayName("Should create a new lobby and assign host correctly")
     public void testCreateLobby() {
         String username = "hostUser";
         String lobbyCode = lobbyService.createLobby(session, username);
@@ -43,13 +44,14 @@ public class LobbyServiceTest {
     }
 
     @Test
+    @DisplayName("Should allow a player to join an existing lobby")
     public void testJoinLobby_Success() {
         String host = "host";
         String guest = "guest";
 
         String lobbyCode = lobbyService.createLobby(session, host);
-
         WebSocketSession guestSession = mock(WebSocketSession.class);
+
         boolean result = lobbyService.joinLobby(guestSession, lobbyCode, guest);
 
         assertTrue(result);
@@ -58,6 +60,7 @@ public class LobbyServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject join if lobby is not found")
     public void testJoinLobby_LobbyNotFound() {
         WebSocketSession newSession = mock(WebSocketSession.class);
         boolean result = lobbyService.joinLobby(newSession, "INVALID", "someone");
@@ -67,6 +70,7 @@ public class LobbyServiceTest {
     }
 
     @Test
+    @DisplayName("Should remove player and delete lobby if empty")
     public void testRemoveUser_RemovesPlayerAndLobbyIfEmpty() {
         String username = "host";
         String lobbyCode = lobbyService.createLobby(session, username);
@@ -78,6 +82,7 @@ public class LobbyServiceTest {
     }
 
     @Test
+    @DisplayName("Should update lobby options from message input")
     public void testUpdateLobbyOptions() {
         String username = "host";
         String lobbyCode = lobbyService.createLobby(session, username);
@@ -94,12 +99,13 @@ public class LobbyServiceTest {
 
         assertEquals(5, updatedOptions.getRoundLimit());
         assertEquals(2, updatedOptions.getSpyCount());
-        assertEquals(5, updatedOptions.getLocationNumber()); // note: it's using roundLimit mistakenly!
+        assertEquals(5, updatedOptions.getLocationNumber()); // still note: method uses roundLimit here
         assertEquals(150, updatedOptions.getTimePerRound());
         assertEquals(6, updatedOptions.getMaxPlayerCount());
     }
 
     @Test
+    @DisplayName("Should correctly identify if user is host")
     public void testIsHost() {
         String username = "host";
         String lobbyCode = lobbyService.createLobby(session, username);
@@ -108,3 +114,4 @@ public class LobbyServiceTest {
         assertFalse(lobbyService.isHost(lobbyCode, "notHost"));
     }
 }
+

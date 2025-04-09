@@ -7,6 +7,7 @@ import com.interloperServer.interloperServer.model.messages.outgoing.RoundEndedM
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
+@DisplayName("RoundService Tests")
 class RoundServiceTest {
 
     private MessagingService messagingService;
@@ -35,12 +37,10 @@ class RoundServiceTest {
 
         roundService = new RoundService(messagingService, messageFactory, gameManagerService);
 
-        // Set up real Player objects for equals() to work properly
         spyPlayer = new Player(null, "spy");
         player1 = new Player(null, "p1");
         player2 = new Player(null, "p2");
 
-        // Mock game and round
         game = mock(Game.class);
         round = mock(Round.class);
 
@@ -55,6 +55,7 @@ class RoundServiceTest {
     }
 
     @Test
+    @DisplayName("Should end game and broadcast final message when no more rounds")
     void testAdvanceRound_EndsGameIfNoMoreRounds() {
         when(gameManagerService.getGame("ABC")).thenReturn(game);
         when(game.hasMoreRounds()).thenReturn(false);
@@ -67,6 +68,7 @@ class RoundServiceTest {
     }
 
     @Test
+    @DisplayName("Should start next round and broadcast round start")
     void testAdvanceRound_StartsNextRound() {
         when(gameManagerService.getGame("ABC")).thenReturn(game);
         when(game.hasMoreRounds()).thenReturn(true);
@@ -75,7 +77,6 @@ class RoundServiceTest {
         when(round.getRoundNumber()).thenReturn(2);
         when(round.getLocation()).thenReturn("Moon");
 
-        // Return mocked round messages
         when(messageFactory.newRound(anyInt(), anyInt(), eq("Player"), anyString()))
                 .thenReturn(mock(NewRoundMessage.class));
         when(messageFactory.newRound(anyInt(), anyInt(), eq("Spy")))
@@ -88,6 +89,7 @@ class RoundServiceTest {
     }
 
     @Test
+    @DisplayName("Should award players if spy is caught and end round")
     void testEndRoundDueToVotes_SpyCaught() {
         when(gameManagerService.getGame("ABC")).thenReturn(game);
 
@@ -106,6 +108,7 @@ class RoundServiceTest {
     }
 
     @Test
+    @DisplayName("Should award spy if guess is correct and end round")
     void testEndRoundDueToSpyGuess_Successful() {
         when(gameManagerService.getGame("ABC")).thenReturn(game);
 
@@ -123,6 +126,7 @@ class RoundServiceTest {
     }
 
     @Test
+    @DisplayName("Should award spy if timeout and no one guessed or caught spy")
     void testEndRoundDueToTimeout_AwardsSpy() {
         when(gameManagerService.getGame("ABC")).thenReturn(game);
 

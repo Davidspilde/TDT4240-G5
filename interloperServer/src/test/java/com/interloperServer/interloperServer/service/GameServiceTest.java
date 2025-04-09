@@ -6,8 +6,8 @@ import com.interloperServer.interloperServer.model.messages.outgoing.GameMessage
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Collections;
@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
+@DisplayName("GameService Tests")
 class GameServiceTest {
 
     private VotingService votingService;
@@ -34,11 +35,11 @@ class GameServiceTest {
         gameManagerService = mock(GameManagerService.class);
         lobbyService = mock(LobbyService.class);
 
-        gameService = new GameService(votingService, roundService, messagingService, messageFactory, gameManagerService,
-                lobbyService);
+        gameService = new GameService(votingService, roundService, messagingService, messageFactory, gameManagerService, lobbyService);
     }
 
     @Test
+    @DisplayName("Should send error if lobby is not found when starting game")
     void startGame_ShouldSendError_IfLobbyNotFound() {
         WebSocketSession session = mock(WebSocketSession.class);
         when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(null);
@@ -49,6 +50,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should send error if non-host tries to start the game")
     void startGame_ShouldSendError_IfNotHost() {
         Lobby lobby = mock(Lobby.class);
         WebSocketSession session = mock(WebSocketSession.class);
@@ -61,11 +63,12 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should send error if not enough players to start the game")
     void startGame_ShouldSendError_IfTooFewPlayers() {
         Lobby lobby = mock(Lobby.class);
         WebSocketSession session = mock(WebSocketSession.class);
         when(lobby.getHost()).thenReturn(new Player(null, "Alice"));
-        when(lobby.getPlayers()).thenReturn(List.of(new Player(null, "Alice"))); // only 1 player
+        when(lobby.getPlayers()).thenReturn(List.of(new Player(null, "Alice")));
         when(lobbyService.getLobbyFromLobbyCode("ABC")).thenReturn(lobby);
 
         gameService.startGame("Alice", "ABC", session);
@@ -74,20 +77,15 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should start game when valid host and enough players")
     void startGame_ShouldStartGame_IfValidConditionsMet() {
         Lobby lobby = mock(Lobby.class);
         WebSocketSession session = mock(WebSocketSession.class);
 
         when(lobby.getHost()).thenReturn(new Player(null, "Alice"));
-        when(lobby.getPlayers()).thenReturn(List.of(
-                new Player(null, "Alice"),
-                new Player(null, "Bob")));
+        when(lobby.getPlayers()).thenReturn(List.of(new Player(null, "Alice"), new Player(null, "Bob")));
         when(lobby.getLobbyCode()).thenReturn("XYZ");
-
-        // 🛠️ Fix: Add this to prevent NullPointerException
-        LobbyOptions options = new LobbyOptions(5, 30, 1, 8, 120);
-        when(lobby.getLobbyOptions()).thenReturn(options);
-
+        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120));
         when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(lobby);
 
         GameMessage mockGameMessage = mock(GameMessage.class);
@@ -101,6 +99,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should end game if player disconnects and only one remains")
     void handlePlayerDisconnect_ShouldEndGame_IfTooFewPlayers() {
         Game game = mock(Game.class);
         when(game.getPlayers()).thenReturn(Collections.singletonList(mock(Player.class)));
@@ -113,6 +112,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should delegate vote casting to VotingService")
     void castVote_DelegatesToVotingService() {
         Game game = mock(Game.class);
         when(gameManagerService.getGame("XYZ")).thenReturn(game);
@@ -123,6 +123,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should delegate spy guess to VotingService")
     void castSpyGuess_DelegatesToVotingService() {
         Game game = mock(Game.class);
         when(gameManagerService.getGame("XYZ")).thenReturn(game);
@@ -133,6 +134,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should advance round if voting is complete")
     void advanceRound_ShouldAdvance_IfVotingComplete() {
         Game game = mock(Game.class);
         Round round = mock(Round.class);
@@ -147,6 +149,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should delegate timeout round end to RoundService")
     void endRoundDueToTimeout_DelegatesToRoundService() {
         Game game = mock(Game.class);
         Round round = mock(Round.class);
@@ -162,6 +165,7 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Should remove game when it ends")
     void endGame_ShouldRemoveGame() {
         Lobby lobby = mock(Lobby.class);
         Game game = mock(Game.class);

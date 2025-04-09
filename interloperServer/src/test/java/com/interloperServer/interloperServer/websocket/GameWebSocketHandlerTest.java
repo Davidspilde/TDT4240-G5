@@ -1,24 +1,31 @@
 package com.interloperServer.interloperServer.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.interloperServer.interloperServer.service.GameManagerService;
+import com.interloperServer.interloperServer.service.GameService;
+import com.interloperServer.interloperServer.service.LobbyService;
 import com.interloperServer.interloperServer.websocket.handlers.WebSocketMessageHandler;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
+@DisplayName("GameWebSocketHandler Tests")
 public class GameWebSocketHandlerTest {
 
     private WebSocketMessageHandler<TestMessage> mockHandler;
     private WebSocketSession mockSession;
     private MessageDispatcher dispatcher;
     private GameWebSocketHandler handler;
+    private GameService gameService;
+    private LobbyService lobbyService;
+    private GameManagerService gameManagerService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -26,15 +33,19 @@ public class GameWebSocketHandlerTest {
     void setup() {
         mockHandler = mock(WebSocketMessageHandler.class);
         mockSession = mock(WebSocketSession.class);
+        gameService = mock(GameService.class);
+        lobbyService = mock(LobbyService.class);
+        gameManagerService = mock(GameManagerService.class);
 
         when(mockHandler.getType()).thenReturn("testEvent");
         when(mockHandler.getMessageClass()).thenReturn(TestMessage.class);
 
         dispatcher = new MessageDispatcher(List.of(mockHandler), objectMapper);
-        handler = new GameWebSocketHandler(dispatcher);
+        handler = new GameWebSocketHandler(dispatcher, lobbyService, gameService, gameManagerService);
     }
 
     @Test
+    @DisplayName("Should dispatch known message type to its handler")
     void shouldDispatchMessageToCorrectHandler() throws Exception {
         String json = """
                 {
@@ -54,6 +65,7 @@ public class GameWebSocketHandlerTest {
     }
 
     @Test
+    @DisplayName("Should return error when message type is unknown")
     void shouldSendUnknownMessageResponseWhenNoHandler() throws Exception {
         String json = """
                 {
