@@ -9,14 +9,24 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.interloperServer.interloperServer.service.GameManagerService;
+import com.interloperServer.interloperServer.service.GameService;
+import com.interloperServer.interloperServer.service.LobbyService;
 
 @Component
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
     private final MessageDispatcher dispatcher;
+    private final LobbyService lobbyService;
+    private final GameService gameService;
+    private final GameManagerService gameManagerService;
 
-    public GameWebSocketHandler(MessageDispatcher dispatcher) {
+    public GameWebSocketHandler(MessageDispatcher dispatcher, LobbyService lobbyService, GameService gameService,
+            GameManagerService gameManagerService) {
         this.dispatcher = dispatcher;
+        this.lobbyService = lobbyService;
+        this.gameService = gameService;
+        this.gameManagerService = gameManagerService;
     }
 
     @Override
@@ -32,6 +42,11 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
-        // keep as-is
+        lobbyService.removeUser(session);
+
+        // Check if the user was in a game
+        for (String lobbyCode : gameManagerService.getAllGameCodes()) {
+            gameService.handlePlayerDisconnect(session, lobbyCode);
+        }
     }
 }
