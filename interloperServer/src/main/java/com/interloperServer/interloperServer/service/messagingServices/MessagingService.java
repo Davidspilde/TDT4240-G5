@@ -1,4 +1,4 @@
-package com.interloperServer.interloperServer.service;
+package com.interloperServer.interloperServer.service.messagingServices;
 
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
