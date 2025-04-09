@@ -161,7 +161,7 @@ public class LobbyService {
         }
 
         List<String> usernames = players.stream().map(Player::getUsername).toList();
-        messagingService.broadcastMessage(lobby, usernames);
+        messagingService.broadcastMessage(lobby, messageFactory.lobbyUpdate(usernames));
     }
 
     /**

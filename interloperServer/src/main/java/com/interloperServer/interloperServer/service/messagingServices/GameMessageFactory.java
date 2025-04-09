@@ -51,6 +51,10 @@ public class GameMessageFactory {
         return new GameCompleteMessage(scoreboard);
     }
 
+    public GameMessage voted() {
+        return new GameMessage("voted");
+    }
+
     public RoundEndedMessage roundEnded(
             int roundNumber,
             String reason,
