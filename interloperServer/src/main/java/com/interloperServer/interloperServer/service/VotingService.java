@@ -41,21 +41,23 @@ public class VotingService {
         if (currentRound.isVotingComplete())
             return;
 
-        List<Player> players = game.getPlayers();
-
-        Player voter = players.stream()
-                .filter(p -> p.getUsername().equals(voterUsername))
-                .findFirst()
-                .orElse(null);
+        Player voter = game.getPlayer(voterUsername);
 
         // Check for invalid target
-        if (players.stream().noneMatch(p -> p.getUsername().equals(targetUsername))) {
+        if (game.getPlayer(targetUsername) == null) {
             if (voter != null) {
                 messagingService.sendMessage(voter.getSession(), Map.of(
                         "event", "invalidVote",
                         "message", "Invalid vote. " + targetUsername + " is not in the game."));
             }
             return;
+        }
+
+        // Check for self vote
+        if (voter != null && voterUsername.equals(targetUsername)) {
+            messagingService.sendMessage(voter.getSession(), Map.of(
+                    "event", "invalidVote",
+                    "message", "Invalid vote. Cannot vote for yourself."));
         }
 
         // Don't register vote if the voter doesn't exist
@@ -124,6 +126,10 @@ public class VotingService {
             return;
 
         Round currentRound = game.getCurrentRound();
+        if (currentRound == null) {
+            return;
+        }
+
         // If round is already complete, do nothing
         if (currentRound.isVotingComplete())
             return;

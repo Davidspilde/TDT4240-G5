@@ -112,7 +112,12 @@ public class GameService {
         if (game == null)
             return;
 
-        int roundDuration = game.getCurrentRound().getRoundDuration();
+        Round currentRound = game.getCurrentRound();
+        if (currentRound == null) {
+            return;
+        }
+
+        int roundDuration = currentRound.getRoundDuration();
 
         // Start timer and end the round due to timeout if the spy haven't guessed or
         // the players haven't gotten a majority
@@ -183,6 +188,11 @@ public class GameService {
             return;
 
         Round currentRound = game.getCurrentRound();
+
+        if (currentRound == null) {
+            return;
+        }
+
         String spyName = currentRound.getSpy().getUsername();
 
         roundService.endRoundDueToTimeout(lobbyCode, spyName);
