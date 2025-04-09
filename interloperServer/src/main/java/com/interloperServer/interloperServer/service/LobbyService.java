@@ -7,6 +7,7 @@ import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 import java.util.*;
@@ -18,12 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LobbyService {
     private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
 
     // Stores lobbies by their unique code
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
-    public LobbyService(MessagingService messagingService) {
+    public LobbyService(MessagingService messagingService, GameMessageFactory messageFactory) {
         this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
     }
 
     /**
@@ -50,10 +53,8 @@ public class LobbyService {
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.put(lobbyCode, newLobby);
 
-        messagingService.sendMessage(session, Map.of(
-                "event", "lobbyCreated",
-                "lobbyCode", lobbyCode,
-                "host", username));
+        messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
+
         return lobbyCode;
     }
 
@@ -65,9 +66,7 @@ public class LobbyService {
 
         // Check for non-existent lobby
         if (lobby == null) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "Lobby not found!"));
+            messagingService.sendMessage(session, messageFactory.error("Lobby not found!"));
             return false;
         }
 
@@ -76,9 +75,7 @@ public class LobbyService {
 
         // Check for full lobby
         if (options.getMaxPlayerCount() <= players.size()) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "Lobby is full!"));
+            messagingService.sendMessage(session, messageFactory.error("Lobby is full!"));
             return false;
         }
 
@@ -86,18 +83,13 @@ public class LobbyService {
         Player existingPlayer = lobby.getPlayerBySession(session);
 
         if (existingPlayer != null) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "You are already in the lobby!"));
+            messagingService.sendMessage(session, messageFactory.error("You are already in the lobby!"));
             return false;
         }
 
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
-            messagingService.sendMessage(session, Map.of(
-                    "event", "joinedLobby",
-                    "lobbyCode", lobbyCode,
-                    "host", lobby.getHost().getUsername()));
+            messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
         }
 
         broadcastPlayerList(lobbyCode);
@@ -144,11 +136,8 @@ public class LobbyService {
                 Player newHost = targetLobby.getPlayers().get(0);
                 targetLobby.setHost(newHost);
 
-                for (Player p : targetLobby.getPlayers()) {
-                    messagingService.sendMessage(p.getSession(), Map.of(
-                            "event", "newHost",
-                            "host", newHost.getUsername()));
-                }
+                messagingService.broadcastMessage(targetLobby, messageFactory.newHost(newHost.getUsername()));
+
             }
 
             // Remove empty lobby
