@@ -14,5 +14,13 @@ public class NewRoundMessage extends GameMessage {
 		this.location = location;
 	}
 
+	public NewRoundMessage(int roundNumber, int roundDuration, String role) {
+		super("newRound");
+		this.roundNumber = roundNumber;
+		this.roundDuration = roundDuration;
+		this.role = role;
+		this.location = null;
+	}
+
 	// Getters
 }

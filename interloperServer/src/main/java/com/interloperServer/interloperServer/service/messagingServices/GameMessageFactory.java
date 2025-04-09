@@ -1,6 +1,7 @@
 package com.interloperServer.interloperServer.service.messagingServices;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,11 @@ public class GameMessageFactory {
         return new NewRoundMessage(number, duration, role, location);
     }
 
+    public NewRoundMessage newRound(int number, int duration, String role) {
+
+        return new NewRoundMessage(number, duration, role);
+    }
+
     public LobbyCreatedMessage lobbyCreated(String lobbyCode, String host) {
         return new LobbyCreatedMessage(lobbyCode, host);
     }
@@ -39,6 +45,22 @@ public class GameMessageFactory {
 
     public LobbyUpdateMessage lobbyUpdate(List<String> players) {
         return new LobbyUpdateMessage(players);
+    }
+
+    public GameCompleteMessage gameComplete(Map<String, Integer> scoreboard) {
+        return new GameCompleteMessage(scoreboard);
+    }
+
+    public RoundEndedMessage roundEnded(
+            int roundNumber,
+            String reason,
+            boolean spyCaught,
+            boolean spyGuessCorrect,
+            String spy,
+            String location,
+            Map<String, Integer> scoreboard) {
+
+        return new RoundEndedMessage(roundNumber, reason, spyCaught, spyGuessCorrect, spy, location, scoreboard);
     }
 
 }
