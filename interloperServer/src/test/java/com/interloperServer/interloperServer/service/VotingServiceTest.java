@@ -1,197 +1,198 @@
+
 package com.interloperServer.interloperServer.service;
 
-import com.interloperServer.interloperServer.model.*;
+import com.interloperServer.interloperServer.model.Game;
+import com.interloperServer.interloperServer.model.Player;
+import com.interloperServer.interloperServer.model.Round;
+import com.interloperServer.interloperServer.model.messages.outgoing.GameMessage;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class VotingServiceTest {
+@DisplayName("VotingService Tests")
+class VotingServiceTest {
 
-    @Mock
     private MessagingService messagingService;
-
-    @Mock
+    private GameMessageFactory messageFactory;
     private GameManagerService gameManagerService;
-
-    @InjectMocks
+    private RoundService roundService;
     private VotingService votingService;
 
     private Game game;
-    private Lobby lobby;
-    private Player p1;
-    private Player p2;
-    private Player p3;
+    private Round round;
+    private Player voter;
+    private Player target;
+    private Player spy;
 
     @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
+    void setup() {
+        messagingService = mock(MessagingService.class);
+        messageFactory = mock(GameMessageFactory.class);
+        gameManagerService = mock(GameManagerService.class);
+        roundService = mock(RoundService.class);
 
-        p1 = new Player(mock(WebSocketSession.class), "Player1");
-        p2 = new Player(mock(WebSocketSession.class), "Player2");
-        p3 = new Player(mock(WebSocketSession.class), "Player3");
+        votingService = new VotingService(messagingService, messageFactory, gameManagerService, roundService);
 
-        LobbyOptions lobbyOptions = new LobbyOptions(3, 25, 1, 10, 120);
-        lobby = new Lobby("abc123", p1, lobbyOptions);
-        lobby.addPlayer(p2);
-        lobby.addPlayer(p3);
+        game = mock(Game.class);
+        round = mock(Round.class);
 
-        game = new Game(lobby);
-        when(gameManagerService.getGame("abc123")).thenReturn(game);
+        WebSocketSession voterSession = mock(WebSocketSession.class);
+        WebSocketSession targetSession = mock(WebSocketSession.class);
+        WebSocketSession spySession = mock(WebSocketSession.class);
+
+        voter = new Player(voterSession, "voter");
+        target = new Player(targetSession, "target");
+        spy = new Player(spySession, "spy");
+
+        when(game.getPlayer(anyString())).thenAnswer(inv -> {
+            String username = inv.getArgument(0);
+            return switch (username) {
+                case "voter" -> voter;
+                case "target" -> target;
+                case "spy" -> spy;
+                default -> null;
+            };
+        });
+
+        when(game.getPlayers()).thenReturn(List.of(voter, target, spy));
+        when(game.getCurrentRound()).thenReturn(round);
+        when(gameManagerService.getGame("LOBBY")).thenReturn(game);
+        when(round.getVotes()).thenReturn(new HashMap<>());
+        when(round.getSpy()).thenReturn(spy);
+        when(round.getLocation()).thenReturn("Airport");
     }
 
     @Test
-    @DisplayName("Should catch the spy and award players when majority vote is correct")
-    public void spyCaught_awardPlayers() {
-        // Player1 and Player2 vote for the spy: Player3
-        votingService.castVote("abc123", "Player1", "Player3");
-        votingService.castVote("abc123", "Player2", "Player3");
+    @DisplayName("Should cast valid vote and evaluate round")
+    void testValidVote_CastsVoteAndEvaluates() {
+        GameMessage msg = mock(GameMessage.class);
 
-        // Should result in a majority and spy caught
-        assertEquals(1, game.getScoreboard().get("Player1"));
-        assertEquals(1, game.getScoreboard().get("Player2"));
-        assertEquals(0, game.getScoreboard().get("Player3")); // Spy caught = no point
-        assertTrue(game.getCurrentRound().isVotingComplete());
+        when(round.isVotingComplete()).thenReturn(false);
+        when(messageFactory.voted()).thenReturn(msg);
 
-        // Verify spyCaught message
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "spyCaught",
-                "spy", "Player3",
-                "votes", 2)));
+        Player p1 = new Player(mock(WebSocketSession.class), "p1");
+        Player p2 = new Player(mock(WebSocketSession.class), "p2");
+        Player target = new Player(mock(WebSocketSession.class), "target");
 
-        // Verify spyReveal message
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "spyReveal",
-                "spy", "Player3")));
+        when(game.getPlayer("p1")).thenReturn(p1);
+        when(game.getPlayer("target")).thenReturn(target);
+        when(game.getPlayers()).thenReturn(List.of(p1, p2, target));
+        when(round.getSpy()).thenReturn(target);
 
-        // Verify scoreboard message
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "scoreboard",
-                "scores", game.getScoreboard())));
+        Map<String, String> votes = new HashMap<>();
+        votes.put("p1", "target");
+        votes.put("p2", "target");
+        when(round.getVotes()).thenReturn(votes);
+
+        votingService.castVote("LOBBY", "p1", "target");
+
+        verify(round).castVote("p1", "target");
+        verify(messagingService).sendMessage(eq(p1.getSession()), any());
+        verify(roundService).endRoundDueToVotes("LOBBY", true, "target");
     }
 
     @Test
-    @DisplayName("Should award spy when players vote incorrectly")
-    public void spyNotCaught_awardSpy() {
-        // Everyone votes for someone who isn't the spy
-        votingService.castVote("abc123", "Player1", "Player2");
-        votingService.castVote("abc123", "Player2", "Player1");
+    @DisplayName("Should reject vote if target is not found")
+    void testInvalidVote_TargetNotFound() {
+        when(round.isVotingComplete()).thenReturn(false);
 
-        // Manually trigger round end
-        game.getCurrentRound().setVotingComplete();
-        votingService.evaluateVotes("abc123");
+        votingService.castVote("LOBBY", "voter", "ghost");
 
-        // Should not result in a majority for the spy
-        assertEquals(0, game.getScoreboard().get("Player1"));
-        assertEquals(0, game.getScoreboard().get("Player2"));
-        assertEquals(1, game.getScoreboard().get("Player3")); // Spy should get a point
-
-        // Verify the "spyNotCaught" message
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "spyNotCaught")));
-
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "spyReveal",
-                "spy", "Player3")));
-
-        verify(messagingService).broadcastMessage(eq(lobby), eq(Map.of(
-                "event", "scoreboard",
-                "scores", game.getScoreboard())));
-
+        verify(messagingService).sendMessage(eq(voter.getSession()), any());
+        verify(round, never()).castVote(any(), any());
     }
 
     @Test
-    @DisplayName("Should penalize non-voters when round ends")
-    public void nonVoter_penalized() {
-        // Only Player1 votes
-        votingService.castVote("abc123", "Player1", "Player3");
+    @DisplayName("Should reject self-vote but still register it")
+    void testInvalidVote_SelfVote() {
+        when(round.isVotingComplete()).thenReturn(false);
 
-        // Manually trigger round end
-        game.getCurrentRound().setVotingComplete();
-        votingService.evaluateVotes("abc123");
+        votingService.castVote("LOBBY", "voter", "voter");
 
-        // Player2 didn’t vote and should lose a point
-        assertEquals(-1, game.getScoreboard().get("Player2"));
-
-        // Player3 is the spy and should get a point for not having a majority vote
-        // against them
-        assertEquals(1, game.getScoreboard().get("Player3"));
-
-        verify(messagingService).sendMessage(eq(p2.getSession()), eq(Map.of("event", "notVoted")));
-
+        verify(messagingService).sendMessage(eq(voter.getSession()), anyString());
+        verify(round).castVote(eq("voter"), eq("voter"));
     }
 
     @Test
-    @DisplayName("Should ignore votes after round is complete")
-    public void voteAfterRoundComplete_ignored() {
-        // Manually trigger round end
-        game.getCurrentRound().setVotingComplete();
+    @DisplayName("Should do nothing if voter is not in game")
+    void testInvalidVote_VoterNotInGame() {
+        when(round.isVotingComplete()).thenReturn(false);
+        when(game.getPlayer("ghostVoter")).thenReturn(null);
 
-        // Try to cast vote after game end
-        votingService.castVote("abc123", "Player1", "Player3");
+        votingService.castVote("LOBBY", "ghostVoter", "target");
 
-        assertTrue(game.getCurrentRound().getVotes().isEmpty()); // No votes should be registered
-
-        // No vote confimation should be sent
-        verify(messagingService, never()).sendMessage(any(), eq(Map.of(
-                "event", "voted",
-                "voter", "Player1")));
-
+        verify(messagingService, never()).sendMessage(any(), any());
+        verify(round, never()).castVote(any(), any());
     }
 
     @Test
-    @DisplayName("Should not allow voting for a nonexistent player")
-    public void voteForInvalidTarget_notAllowed() {
-        // Try to vote for a nonexistent user
-        votingService.castVote("abc123", "Player1", "Player42");
+    @DisplayName("Should end round when majority is reached and spy is caught")
+    void testEvaluateVotes_WithMajority_SpyCaught() {
+        when(round.getVotes()).thenReturn(Map.of("p1", "spy", "p2", "spy"));
+        when(round.isVotingComplete()).thenReturn(false);
 
-        assertTrue(game.getCurrentRound().getVotes().isEmpty());
+        Player p1 = new Player(mock(WebSocketSession.class), "p1");
+        Player p2 = new Player(mock(WebSocketSession.class), "p2");
 
-        verify(messagingService).sendMessage(eq(p1.getSession()), argThat(msg -> msg instanceof Map &&
-                "invalidVote".equals(((Map<?, ?>) msg).get("event")) &&
-                ((Map<?, ?>) msg).get("message").toString().contains("Invalid vote")));
+        when(game.getPlayers()).thenReturn(List.of(p1, p2, spy));
+        when(round.getSpy()).thenReturn(spy);
 
+        votingService.evaluateVotes("LOBBY");
+
+        verify(roundService).endRoundDueToVotes("LOBBY", true, "spy");
     }
 
     @Test
-    @DisplayName("Should ignore votes from unknown player")
-    public void unknownPlayerVote_ignored() {
-        votingService.castVote("abc123", "Player0", "Player1");
+    @DisplayName("Should not end round if no majority is reached")
+    void testEvaluateVotes_NoMajority_DoesNothing() {
+        when(round.getVotes()).thenReturn(Map.of("voter", "target"));
+        when(game.getPlayers()).thenReturn(List.of(voter, target, spy));
+        when(round.isVotingComplete()).thenReturn(false);
 
-        assertTrue(game.getCurrentRound().getVotes().isEmpty());
-        verifyNoInteractions(messagingService);
+        votingService.evaluateVotes("LOBBY");
+
+        verify(roundService, never()).endRoundDueToVotes(any(), anyBoolean(), any());
     }
 
     @Test
-    @DisplayName("Should not end round if there's a tie")
-    public void tieVotes_doesNotEndRound() {
-        votingService.castVote("abc123", "Player1", "Player2");
-        votingService.castVote("abc123", "Player2", "Player3");
+    @DisplayName("Should end round with spy point if guess is correct")
+    void testSpyGuess_CorrectGuess() {
+        when(round.isVotingComplete()).thenReturn(false);
+        when(round.getSpy()).thenReturn(spy);
+        when(round.getLocation()).thenReturn("Airport");
 
-        assertFalse(game.getCurrentRound().isVotingComplete());
-        assertEquals(0, game.getScoreboard().get("Player3"));
+        votingService.castSpyGuess("LOBBY", "spy", "Airport");
+
+        verify(roundService).endRoundDueToSpyGuess("LOBBY", "spy", true);
     }
 
     @Test
-    @DisplayName("Should overwrite previous vote when player votes again")
-    public void doubleVote_overwritesPrevious() {
-        votingService.castVote("abc123", "Player1", "Player2");
-        votingService.castVote("abc123", "Player1", "Player3");
+    @DisplayName("Should end round with no point if guess is incorrect")
+    void testSpyGuess_IncorrectGuess() {
+        when(round.isVotingComplete()).thenReturn(false);
+        when(round.getSpy()).thenReturn(spy);
+        when(round.getLocation()).thenReturn("Airport");
 
-        Map<String, String> votes = game.getCurrentRound().getVotes();
-        assertEquals(1, votes.size());
-        assertEquals("Player3", votes.get("Player1"));
+        votingService.castSpyGuess("LOBBY", "spy", "Library");
+
+        verify(roundService).endRoundDueToSpyGuess("LOBBY", "spy", false);
     }
 
+    @Test
+    @DisplayName("Should do nothing if non-spy tries to guess")
+    void testSpyGuess_NotSpy_NoEffect() {
+        when(round.isVotingComplete()).thenReturn(false);
+        when(round.getSpy()).thenReturn(spy);
+
+        votingService.castSpyGuess("LOBBY", "voter", "Airport");
+
+        verify(roundService, never()).endRoundDueToSpyGuess(any(), any(), anyBoolean());
+    }
 }

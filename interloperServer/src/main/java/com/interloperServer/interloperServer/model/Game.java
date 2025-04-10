@@ -2,6 +2,8 @@ package com.interloperServer.interloperServer.model;
 
 import java.util.*;
 
+import org.springframework.web.socket.WebSocketSession;
+
 public class Game {
     private final Map<String, Integer> scoreboard;
     private Lobby lobby;
@@ -23,9 +25,6 @@ public class Game {
         for (Player player : getPlayers()) {
             scoreboard.put(player.getUsername(), 0);
         }
-
-        startNextRound();
-
     }
 
     public boolean isActive() {
@@ -56,6 +55,28 @@ public class Game {
         return lobby.getPlayers();
     }
 
+    /**
+     * Retrieves a player from the game based on their username.
+     *
+     * @param username The username of the player to retrieve.
+     * @return The Player object if found, or null if no player with the given
+     *         username exists.
+     */
+    public Player getPlayer(String username) {
+        return lobby.getPlayer(username);
+    }
+
+    /**
+     * Retrieves a player from the game based on their WebSocketSession.
+     *
+     * @param session The WebSocketSession of the player to retrieve.
+     * @return The Player object if found, or null if no player with the given
+     *         session exists.
+     */
+    public Player getPlayerBySession(WebSocketSession session) {
+        return lobby.getPlayerBySession(session);
+    }
+
     public void startNextRound() {
         if (hasMoreRounds()) {
             currentRoundIndex++;
@@ -83,6 +104,35 @@ public class Game {
 
     public Timer getRoundTimer() {
         return this.roundTimer;
+    }
+
+    // Stop existing timer if there is one
+    public void stopTimer() {
+        if (roundTimer != null) {
+            roundTimer.cancel();
+            setRoundTimer(null);
+        }
+    }
+
+    /**
+     * Starts a timer that executes the given task after the specified duration.
+     *
+     * @param durationInSeconds The duration in seconds before the task is executed.
+     * @param task              The task to execute when the timer expires.
+     */
+    public void startTimer(int durationInSeconds, Runnable task) {
+        stopTimer(); // Stop any existing timer to avoid conflicts
+
+        Timer timer = new Timer();
+        this.roundTimer = timer;
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // Execute provided task
+                task.run();
+            }
+        }, durationInSeconds * 1000);
     }
 
     private Player chooseRandomSpy(List<Player> players) {
