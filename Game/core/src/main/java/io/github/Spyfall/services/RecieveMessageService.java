@@ -109,25 +109,7 @@ public class RecieveMessageService {
         System.out.println("Handling new round: " + msg);
 
         System.out.println("New round received: Round " + msg.getRoundNumber());
-        
-        mainController.handleGameMessage(msg)
-        
-        // potential locations for spy
-        if (isSpy) {
-            // should fetch from backend
-            List<String> defaultLocations = new ArrayList<>(Arrays.asList(
-                "Airplane", "Bank", "Beach", "Casino", "Hospital", 
-                "Hotel", "Military Base", "Movie Studio", "Ocean Liner", 
-                "Passenger Train", "Restaurant", "School", "Space Station", 
-                "Submarine", "Supermarket", "University"
-            ));
-            gameModel.getGameData().setPossibleLocations(defaultLocations);
-        }
-        
-        // change game state if not there already
-        if (gameModel.getCurrentState() != GameState.IN_GAME) {
-            gameModel.setCurrentState(GameState.IN_GAME);
-        }
+
     }
 
     private void handleRoundEnded(GameRoundEndedMessage msg) {
@@ -159,40 +141,26 @@ public class RecieveMessageService {
         System.out.println("Handling lobby created: " + msg.getLobbyCode());
 
         // update the model with lobby info
-        gameModel.setLobbyCode(msg.getLobbyCode());
-        gameModel.getLobbyData().setHostPlayer(msg.getHost());
-        
-        // add player to the player list
-        gameModel.getLobbyData().getPlayers().clear();
-        gameModel.getLobbyData().addPlayer(gameModel.getUsername());
-        
-        // transition to lobby state
-        gameModel.setCurrentState(GameState.LOBBY);
+
     }
 
     private void handleLobbyJoined(LobbyJoinedMessage msg) {
         System.out.println("Handling lobby joined: " + msg);
 
         // update model
-        gameModel.setLobbyCode(msg.getLobbyCode());
-        gameModel.getLobbyData().setHostPlayer(msg.getHost());
-        
-        // transition to lobby state
-        gameModel.setCurrentState(GameState.LOBBY);
+
     }
 
     private void handleLobbyNewHost(LobbyNewHostMessage msg) {
         System.out.println("Handling new lobby host: " + msg);
 
-        // update model
-        gameModel.getLobbyData().setHostPlayer(msg.getHost());
+
     }
 
     private void handleLobbyPlayers(LobbyPlayersMessage msg) {
         System.out.println("Handling lobby players: " + msg);
 
         // update the model with player list
-        gameModel.getLobbyData().setPlayers(msg.getPlayers());
     }
 
     private void handleResponse(ResponseMessage msg) {
