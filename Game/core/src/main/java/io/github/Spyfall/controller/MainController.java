@@ -11,7 +11,7 @@ import io.github.Spyfall.view.MainMenuStage;
 import io.github.Spyfall.view.StageView;
 
 public class MainController implements GameStateObserver{
-
+    private static MainController instance;
     private StageManager stageManager;
     private GameModel gameModel;
     private ScreenViewport viewport;
@@ -21,7 +21,7 @@ public class MainController implements GameStateObserver{
     private LobbyController lobbyController;
     private GameplayController gameplayController;
     
-    public MainController(ScreenViewport viewport) {
+    private MainController(ScreenViewport viewport) {
         this.viewport = viewport;
         this.stageManager = StageManager.getInstance();
         this.gameModel = GameModel.getInstance();
@@ -30,12 +30,23 @@ public class MainController implements GameStateObserver{
         gameModel.addObserver(this);
         
         // Init sub-controllers
-        this.mainMenuController = new MainMenuController(this);
-        this.lobbyController = new LobbyController(this);
-        this.gameplayController = new GameplayController(this);
+        this.mainMenuController = MainMenuController.getInstance();
+        this.lobbyController = LobbyController.getInstance();
+        this.gameplayController = GameplayController.getInstance();
         
         // Initial state is main menu
         setMainMenuStage();
+    }
+
+    public static MainController getInstance(ScreenViewport viewport){
+        return (instance == null) ? (instance = new MainController(viewport)) : instance;
+    }
+
+    public static MainController getInstance() {
+        if (instance == null) {
+            throw new RuntimeException("MainController must be initialized with viewport first");
+        }
+        return instance;
     }
     
     public void setMainMenuStage() {

@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
+import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.message.response.*;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
@@ -16,12 +17,12 @@ public class RecieveMessageService {
     private static RecieveMessageService instance;
     private final JsonReader jsonReader;
     private final Json json;
-    private final GameModel gameModel;
+    private final MainController mainController;
 
     private RecieveMessageService() {
         jsonReader = new JsonReader();
         json = new Json();
-        gameModel = GameModel.getInstance();
+        mainController = MainController.getInstance();
     }
 
     public static RecieveMessageService GetInstance() {
@@ -109,18 +110,7 @@ public class RecieveMessageService {
 
         System.out.println("New round received: Round " + msg.getRoundNumber());
         
-        // update model with new data
-        
-        gameModel.getGameData().setCurrentRound(msg.getRoundNumber());
-        gameModel.getGameData().setTimeRemaining(msg.getRoundDuration());
-        
-        // bruh
-        boolean isSpy = (msg.getRole() != null && msg.getRole().equalsIgnoreCase("spy"));
-        gameModel.getGameData().setSpy(isSpy);
-        
-        // set location and role
-        gameModel.getGameData().setLocation(msg.getLocation());
-        gameModel.getGameData().setRole(msg.getRole());
+        mainController.handleGameMessage(msg)
         
         // potential locations for spy
         if (isSpy) {
@@ -142,7 +132,6 @@ public class RecieveMessageService {
 
     private void handleRoundEnded(GameRoundEndedMessage msg) {
         System.out.println("Handling round ended: " + msg);
-
         // TODO:
         // Update scoreboard if needed
         // Wait for the next round to start

@@ -5,14 +5,17 @@ import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.SendMessageService;
 
 public class LobbyController {
-    private MainController mainController;
+    private static LobbyController instance;
     private SendMessageService sendMessageService;
     private GameModel gameModel;
     
-    public LobbyController(MainController mainController) {
-        this.mainController = mainController;
+    private LobbyController() {
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstace();
+    }
+
+    public static LobbyController getInstance(){
+        return (instance == null) ? (instance = new LobbyController()) : instance;
     }
     
     public void createLobby(String username) {

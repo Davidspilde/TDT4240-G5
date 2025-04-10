@@ -5,14 +5,17 @@ import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.SendMessageService;
 
 public class GameplayController {
-    private MainController mainController;
+    private static GameplayController instance;
     private SendMessageService sendMessageService;
     private GameModel gameModel;
     
-    public GameplayController(MainController mainController) {
-        this.mainController = mainController;
+    private GameplayController() {
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstace();
+    }
+
+    public static GameplayController getInstance() {
+        return (instance == null) ? (instance = new GameplayController()) : instance;
     }
     
     public void votePlayer(String targetPlayer) {

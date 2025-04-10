@@ -1,18 +1,20 @@
 package io.github.Spyfall.controller;
-
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuController {
-    private MainController mainController;
+    private static MainMenuController instance;
     private SendMessageService sendMessageService;
     private GameModel gameModel;
     
-    public MainMenuController(MainController mainController) {
-        this.mainController = mainController;
+    private MainMenuController() {
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstace();
+    }
+
+    public static MainMenuController getInstance() {
+        return (instance == null) ? (instance = new MainMenuController()) : instance;
     }
     
     public void onCreateGame() {

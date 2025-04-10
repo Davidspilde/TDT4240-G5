@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.services.LocalWebSocketClient;
 import io.github.Spyfall.controller.MainController;
-import io.github.Spyfall.model.GameModel;
 
 public class GameClient {
     private MainController mainController;
@@ -21,7 +20,7 @@ public class GameClient {
         //this.gameModel = GameModel.getInstance();
         
         // init game controller
-        mainController = new MainController(viewport);
+        mainController = MainController.getInstance(viewport);
     }
 
     public void resize(int width, int height) {
