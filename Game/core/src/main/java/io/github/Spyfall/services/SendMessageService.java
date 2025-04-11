@@ -4,6 +4,7 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter.OutputType;
 
 import io.github.Spyfall.message.request.*;
+import io.github.Spyfall.services.websocket.LocalWebSocketClient;
 
 public class SendMessageService {
     private LocalWebSocketClient wsClient;

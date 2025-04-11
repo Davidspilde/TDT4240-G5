@@ -5,13 +5,13 @@ import java.net.URISyntaxException;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.services.LocalWebSocketClient;
+import io.github.Spyfall.services.websocket.LocalWebSocketClient;
 import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.model.GameModel;
 
 public class GameClient {
     private MainController mainController;
-    //private GameModel gameModel;
+    // private GameModel gameModel;
     private LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
@@ -20,10 +20,10 @@ public class GameClient {
         webSocketClient.connect();
 
         // init game model
-        //this.gameModel = GameModel.getInstance();
+        // this.gameModel = GameModel.getInstance();
 
         // init game controller
-        AudioService.getInstance().playMusic("background",true);
+        AudioService.getInstance().playMusic("background", true);
         mainController = new MainController(viewport);
     }
 

@@ -1,4 +1,4 @@
-package io.github.Spyfall.services;
+package io.github.Spyfall.services.websocket;
 
 import java.net.URISyntaxException;
 import java.net.URI;
