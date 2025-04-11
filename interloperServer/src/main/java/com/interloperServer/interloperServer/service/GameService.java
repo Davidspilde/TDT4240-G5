@@ -7,8 +7,6 @@ import com.interloperServer.interloperServer.model.*;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
-import java.util.*;
-
 /**
  * Service for handling game related logic
  */
@@ -21,8 +19,6 @@ public class GameService {
     private final GameMessageFactory messageFactory;
     private final LobbyService lobbyService;
 
-    // All active games
-    // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
     /**
      * Initializes the game service with its dependent services
      * 
@@ -86,14 +82,13 @@ public class GameService {
      * Ends the game if the player to disconnect is the only one left
      */
     public void handlePlayerDisconnect(WebSocketSession session, String lobbyCode) {
+        lobbyService.removeUser(session);
 
         Game game = gameManagerService.getGame(lobbyCode);
-
         if (game == null) {
             return;
         }
 
-        lobbyService.removeUser(session);
         // If there is less than 2 left, end it
         if (game.getPlayers().size() < 2) {
             endGame(lobbyCode);

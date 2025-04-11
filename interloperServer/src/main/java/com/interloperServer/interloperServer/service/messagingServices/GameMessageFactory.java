@@ -67,4 +67,26 @@ public class GameMessageFactory {
         return new RoundEndedMessage(roundNumber, reason, spyCaught, spyGuessCorrect, spy, location, scoreboard);
     }
 
+    /**
+     * Builds a message indicating that a user has reconnected.
+     *
+     * @param lobbyCode The code of the lobby the user is returning to.
+     * @param username  The username of the reconnecting user.
+     * @return A ReconnectedMessage to be sent back to the client.
+     */
+    public ReconnectedMessage reconnected(String lobbyCode, String username) {
+        return new ReconnectedMessage(lobbyCode, username);
+    }
+
+    /**
+     * Builds a message indicating that a user has disconnected.
+     *
+     * @param lobbyCode The code of the lobby the user is returning to.
+     * @param username  The username of the reconnecting user.
+     * @return A ReconnectedMessage to be sent back to the client.
+     */
+    public DisconnectedMessage disconnected(String lobbyCode, String username) {
+        return new DisconnectedMessage(lobbyCode, username);
+    }
+
 }

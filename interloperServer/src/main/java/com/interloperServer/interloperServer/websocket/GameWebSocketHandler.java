@@ -9,6 +9,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.interloperServer.interloperServer.service.DisconnectBufferService;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
 import com.interloperServer.interloperServer.service.LobbyService;
@@ -20,13 +21,15 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final LobbyService lobbyService;
     private final GameService gameService;
     private final GameManagerService gameManagerService;
+    private final DisconnectBufferService disconnectBufferService;
 
     public GameWebSocketHandler(MessageDispatcher dispatcher, LobbyService lobbyService, GameService gameService,
-            GameManagerService gameManagerService) {
+            GameManagerService gameManagerService, DisconnectBufferService disconnectBufferService) {
         this.dispatcher = dispatcher;
         this.lobbyService = lobbyService;
         this.gameService = gameService;
         this.gameManagerService = gameManagerService;
+        this.disconnectBufferService = disconnectBufferService;
     }
 
     @Override
@@ -42,11 +45,20 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
-        lobbyService.removeUser(session);
+        // Try to get username and lobby code from the session attributes.
+        String username = (String) session.getAttributes().get("username");
+        String lobbyCode = (String) session.getAttributes().get("lobbyCode");
 
-        // Check if the user was in a game
-        for (String lobbyCode : gameManagerService.getAllGameCodes()) {
-            gameService.handlePlayerDisconnect(session, lobbyCode);
+        System.out.println("Disconnect: username=" + username + ", lobbyCode=" + lobbyCode);
+
+        if (username != null && lobbyCode != null) {
+            // Schedule removal instead of immediate removal.
+            disconnectBufferService.scheduleRemoval(username, session, lobbyCode);
+        } else {
+            // If we don't have the information, fallback to immediate removal.
+            for (String code : gameManagerService.getAllGameCodes()) {
+                gameService.handlePlayerDisconnect(session, code);
+            }
         }
     }
 }

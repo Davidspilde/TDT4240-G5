@@ -53,6 +53,10 @@ public class LobbyService {
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.put(lobbyCode, newLobby);
 
+        // Set session attributes for reconnect support
+        session.getAttributes().put("username", username);
+        session.getAttributes().put("lobbyCode", lobbyCode);
+
         messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
 
         return lobbyCode;
@@ -79,18 +83,28 @@ public class LobbyService {
             return false;
         }
 
-        // Check if player is already in the lobby
-        Player existingPlayer = lobby.getPlayerBySession(session);
-
+        // Check if a player with the same username already exists
+        Player existingPlayer = lobby.getPlayer(username);
         if (existingPlayer != null) {
-            messagingService.sendMessage(session, messageFactory.error("You are already in the lobby!"));
-            return false;
+            // Cancel pending removal and update the session for the existing player
+            // disconnectBufferService.cancelRemoval(username);
+            existingPlayer.setSession(session);
+            messagingService.broadcastMessage(lobby, messageFactory.reconnected(lobbyCode, username));
+
+            // Also update session attributes for reconnect
+            session.getAttributes().put("username", username);
+            session.getAttributes().put("lobbyCode", lobbyCode);
+            return true;
         }
 
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
         }
+
+        // Set session attributes for reconnect support
+        session.getAttributes().put("username", username);
+        session.getAttributes().put("lobbyCode", lobbyCode);
 
         broadcastPlayerList(lobbyCode);
         return true;
@@ -145,6 +159,18 @@ public class LobbyService {
                 lobbies.remove(targetLobby.getLobbyCode());
             }
         }
+
+        messagingService.broadcastMessage(targetLobby,
+                messageFactory.disconnected(targetLobby.getLobbyCode(), targetPlayer.getUsername()));
+    }
+
+    /**
+     * Removes a lobby from active lobbies
+     * 
+     * @param lobbyCode
+     */
+    public void removeLobby(String lobbyCode) {
+        lobbies.remove(lobbyCode);
     }
 
     /**
