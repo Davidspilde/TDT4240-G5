@@ -1,6 +1,7 @@
 package io.github.Spyfall.controller;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuController {
@@ -18,23 +19,35 @@ public class MainMenuController {
     }
     
     public void onCreateGame() {
+        AudioService.getInstance().playSound("click");
         gameModel.setCurrentState(GameState.CREATE_GAME);
     }
     
     public void onJoinLobby(String username, String lobbyCode) {
+        AudioService.getInstance().playSound("click");
+
+        // validate username, lobbycode
+        if (username == null || username.trim().isEmpty() || 
+            lobbyCode == null || lobbyCode.trim().isEmpty()) {
+            System.out.println("Username or lobby code is empty");
+            return;
+        }
+        
         gameModel.setUsername(username);
         gameModel.setLobbyCode(lobbyCode);
         
-        // Send join request to server
+        // request join
         boolean success = sendMessageService.joinLobby(username, lobbyCode);
-        if (success) {
-            // TODO:
-            // wait for server response in ReceiveMessageService
-            // update the model when we get a lobbyJoined response
+        if (!success) {
+            System.out.println("Failed to send join lobby request");
+            // error
         }
+        // todo: response from server
     }
     
     public void onHowToPlay() {
-        // Show how to play dialog or screen
+        // TODO:
+        AudioService.getInstance().playSound("click");
+        System.out.println("How to play requested");
     }
 }

@@ -1,7 +1,6 @@
 package io.github.Spyfall.services;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.badlogic.gdx.utils.Json;
@@ -9,20 +8,22 @@ import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
 import io.github.Spyfall.controller.MainController;
+import io.github.Spyfall.handlers.MessageHandler;
 import io.github.Spyfall.message.response.*;
-import io.github.Spyfall.model.GameModel;
-import io.github.Spyfall.model.GameState;
+
 
 public class RecieveMessageService {
     private static RecieveMessageService instance;
     private final JsonReader jsonReader;
     private final Json json;
-    private final MainController mainController;
+    private MessageHandler messageHandler;
+
+    // Queue to store messages before handler is available
+    private List<ResponseMessage> messageQueue = new ArrayList<>();
 
     private RecieveMessageService() {
         jsonReader = new JsonReader();
         json = new Json();
-        mainController = MainController.getInstance();
     }
 
     public static RecieveMessageService GetInstance() {
@@ -32,138 +33,108 @@ public class RecieveMessageService {
         return instance;
     }
 
-    public void handleMessage(String message) {
-        JsonValue root = jsonReader.parse(message);
-        String type = root.getString("event", "");
-
-        // ADd new case to get new messagetype, connect with a handler to assign logic
-        switch (type) {
-
-            case "gameComplete":
-                GameCompleteMessage gameComplete = json.fromJson(GameCompleteMessage.class, message);
-                handleGameComplete(gameComplete);
-                break;
-
-            case "gameNewRound":
-                GameNewRoundMessage newRound = json.fromJson(GameNewRoundMessage.class, message);
-                handleNewRound(newRound);
-                break;
-
-            case "gameRoundEnded":
-                GameRoundEndedMessage roundEnded = json.fromJson(GameRoundEndedMessage.class, message);
-                handleRoundEnded(roundEnded);
-                break;
-
-            case "gameSpyCaught":
-                GameSpyCaughtMessage spyCaught = json.fromJson(GameSpyCaughtMessage.class, message);
-                handleSpyCaught(spyCaught);
-                break;
-
-            case "gameSpyGuess":
-                GameSpyGuessMessage spyGuess = json.fromJson(GameSpyGuessMessage.class, message);
-                handleSpyGuess(spyGuess);
-                break;
-
-            case "gameVote":
-                GameVoteMessage vote = json.fromJson(GameVoteMessage.class, message);
-                handleVote(vote);
-                break;
-
-            case "lobbyCreated":
-                LobbyCreatedMessage created = json.fromJson(LobbyCreatedMessage.class, message);
-                handleLobbyCreated(created);
-                break;
-
-            case "lobbyJoined":
-                LobbyJoinedMessage joined = json.fromJson(LobbyJoinedMessage.class, message);
-                handleLobbyJoined(joined);
-                break;
-
-            case "lobbyNewHost":
-                LobbyNewHostMessage newHost = json.fromJson(LobbyNewHostMessage.class, message);
-                handleLobbyNewHost(newHost);
-                break;
-
-            case "lobbyPlayers":
-                LobbyPlayersMessage players = json.fromJson(LobbyPlayersMessage.class, message);
-                handleLobbyPlayers(players);
-                break;
-
-            default:
-                System.out.println("Unknown message type: " + type);
-                break;
+    public void setMessageHandler(MessageHandler handler) {
+        this.messageHandler = handler;
+        
+        // queue for incoming messages
+        if (!messageQueue.isEmpty()) {
+            System.out.println("Processing " + messageQueue.size() + " queued messages");
+            List<ResponseMessage> queueCopy = new ArrayList<>(messageQueue);
+            messageQueue.clear();
+            
+            for (ResponseMessage message : queueCopy) {
+                messageHandler.handleMessage(message);
+            }
         }
     }
 
-    // Handlers for each message type
-    private void handleGameComplete(GameCompleteMessage msg) {
-        System.out.println("Handling game complete: " + msg);
+    public void handleMessage(String message) {
+        try {
+            JsonValue root = jsonReader.parse(message);
+            String type = root.getString("event", "");
 
-        System.out.println("Game complete received: " + msg.getScoreboard());
+            System.out.println("Received message of type: " + type);
+            
+            // parse message based on type
+            ResponseMessage parsedMessage = parseMessage(type, message);
+            
+            if (parsedMessage == null) {
+                System.err.println("Failed to parse message of type: " + type);
+                return;
+            }
+            
+            if (messageHandler == null) {
+                // later processing
+                messageQueue.add(parsedMessage);
+                System.out.println("Message queued for later processing: " + type);
+            } else {
+                // process message immediately
+                messageHandler.handleMessage(parsedMessage);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Error processing message: " + e.getMessage());
+            e.printStackTrace();
+        }
         
-        // return to lobby?
-        //gameModel.setCurrentState(GameState.LOBBY);
     }
 
-    private void handleNewRound(GameNewRoundMessage msg) {
-        System.out.println("Handling new round: " + msg);
-
-        System.out.println("New round received: Round " + msg.getRoundNumber());
-
+    private ResponseMessage parseMessage(String type, String message) {
+        try {
+            switch (type) {
+                case "gameComplete":
+                    return json.fromJson(GameCompleteMessage.class, message);
+                    
+                case "gameNewRound":
+                    return json.fromJson(GameNewRoundMessage.class, message);
+                    
+                case "gameRoundEnded":
+                    return json.fromJson(GameRoundEndedMessage.class, message);
+                    
+                case "gameSpyCaught":
+                    return json.fromJson(GameSpyCaughtMessage.class, message);
+                    
+                case "gameSpyGuess":
+                    return json.fromJson(GameSpyGuessMessage.class, message);
+                    
+                case "gameVote":
+                    return json.fromJson(GameVoteMessage.class, message);
+                    
+                case "lobbyCreated":
+                    return json.fromJson(LobbyCreatedMessage.class, message);
+                    
+                case "lobbyJoined":
+                    return json.fromJson(LobbyJoinedMessage.class, message);
+                    
+                case "lobbyNewHost":
+                    return json.fromJson(LobbyNewHostMessage.class, message);
+                    
+                case "lobbyPlayers":
+                    return json.fromJson(LobbyPlayersMessage.class, message);
+                    
+                default:
+                    System.out.println("Unknown message type: " + type);
+                    return null;
+            }
+        } catch (Exception e) {
+            System.err.println("Error parsing message of type " + type + ": " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    private void handleRoundEnded(GameRoundEndedMessage msg) {
-        System.out.println("Handling round ended: " + msg);
-        // TODO:
-        // Update scoreboard if needed
-        // Wait for the next round to start
+    // After MainController is initialized, call this method to set up proper message handling
+    public void setupMessageHandling() {
+        // Check if MainController is available
+        try {
+            MainController mainController = MainController.getInstance();
+            System.out.println("Message handling is now set up");
+            // Now we can process any queued messages
+        } catch (RuntimeException e) {
+            // MainController not ready yet
+            System.out.println("MainController not ready yet, will try again later");
+        }
     }
 
-    private void handleSpyCaught(GameSpyCaughtMessage msg) {
-        System.out.println("Handling spy caught: " + msg);
-
-        // TODO: Show spy
-    }
-
-    private void handleSpyGuess(GameSpyGuessMessage msg) {
-        System.out.println("Handling spy guess: " + msg);
-
-        // TODO: Show guess
-    }
-
-    private void handleVote(GameVoteMessage msg) {
-        System.out.println("Handling vote: " + msg);
-
-        // TODO: Show votes? vote counter?
-    }
-
-    private void handleLobbyCreated(LobbyCreatedMessage msg) {
-        System.out.println("Handling lobby created: " + msg.getLobbyCode());
-
-        // update the model with lobby info
-
-    }
-
-    private void handleLobbyJoined(LobbyJoinedMessage msg) {
-        System.out.println("Handling lobby joined: " + msg);
-
-        // update model
-
-    }
-
-    private void handleLobbyNewHost(LobbyNewHostMessage msg) {
-        System.out.println("Handling new lobby host: " + msg);
-
-
-    }
-
-    private void handleLobbyPlayers(LobbyPlayersMessage msg) {
-        System.out.println("Handling lobby players: " + msg);
-
-        // update the model with player list
-    }
-
-    private void handleResponse(ResponseMessage msg) {
-        System.out.println("Handling generic response: " + msg);
-    }
+    
 }

@@ -1,7 +1,13 @@
 package io.github.Spyfall.controller;
 
+import io.github.Spyfall.message.response.LobbyCreatedMessage;
+import io.github.Spyfall.message.response.LobbyJoinedMessage;
+import io.github.Spyfall.message.response.LobbyNewHostMessage;
+import io.github.Spyfall.message.response.LobbyPlayersMessage;
+import io.github.Spyfall.message.response.ResponseMessage;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
 
 public class LobbyController {
@@ -17,8 +23,49 @@ public class LobbyController {
     public static LobbyController getInstance(){
         return (instance == null) ? (instance = new LobbyController()) : instance;
     }
+
+    public void handleServerMessage(ResponseMessage message) {
+    if (message instanceof LobbyCreatedMessage) {
+        handleLobbyCreated((LobbyCreatedMessage) message);
+    } else if (message instanceof LobbyJoinedMessage) {
+        handleLobbyJoined((LobbyJoinedMessage) message);
+    } else if (message instanceof LobbyNewHostMessage) {
+        handleLobbyNewHost((LobbyNewHostMessage) message);
+    } else if (message instanceof LobbyPlayersMessage) {
+        handleLobbyPlayers((LobbyPlayersMessage) message);
+    } else {
+        System.out.println("LobbyController: Unexpected message type: " + message.getClass().getName());
+    }
+}
     
+    private void handleLobbyPlayers(LobbyPlayersMessage message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyPlayers'");
+    }
+
+    private void handleLobbyNewHost(LobbyNewHostMessage message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyNewHost'");
+    }
+
+    private void handleLobbyJoined(LobbyJoinedMessage message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyJoined'");
+    }
+
+    private void handleLobbyCreated(LobbyCreatedMessage message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyCreated'");
+    }
+
     public void createLobby(String username) {
+        AudioService.getInstance().playSound("click");
+        
+        // validate username
+        if (username == null || username.trim().isEmpty()) {
+            System.out.println("Username is empty");
+            return;
+        }
         gameModel.setUsername(username);
         
         boolean success = sendMessageService.createLobby(username);
@@ -29,6 +76,7 @@ public class LobbyController {
     }
     
     public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound) {
+        AudioService.getInstance().playSound("click");
         boolean success = sendMessageService.updateLobbyOptions(
             gameModel.getUsername(),
             gameModel.getLobbyCode(),
@@ -44,18 +92,33 @@ public class LobbyController {
             gameModel.getLobbyData().setLocationCount(locationNumber);
             gameModel.getLobbyData().setMaxPlayers(maxPlayers);
             gameModel.getLobbyData().setTimePerRound(timePerRound);
+        } else {
+            System.out.println("Failed to send update lobby options request");
         }
     }
     
     public void startGame() {
+        AudioService.getInstance().playSound("click");
+
+        // only the host can start the game
+        if (!gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer())) {
+            System.out.println("Only the host can start the game");
+            return;
+        }
+        
         boolean success = sendMessageService.startGame(
-        gameModel.getUsername(),
-        gameModel.getLobbyCode()
+            gameModel.getUsername(),
+            gameModel.getLobbyCode()
         );
-        // transition happens when server responds with ok
+        
+        if (!success) {
+            System.out.println("Failed to send start game request");
+        }
+        // do stuff here
     }
     
     public void leaveLobby() {
+        AudioService.getInstance().playSound("click");
         // Send leave lobby request to server
         gameModel.setCurrentState(GameState.MAIN_MENU);
     }

@@ -1,6 +1,6 @@
 package io.github.Spyfall.message.response;
 
-public class GameSpyCaughtMessage {
+public class GameSpyCaughtMessage extends ResponseMessage {
     private String spy;
     private int votes;
 

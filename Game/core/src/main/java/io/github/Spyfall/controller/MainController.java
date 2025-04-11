@@ -2,15 +2,28 @@ package io.github.Spyfall.controller;
 
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.Spyfall.handlers.MessageHandler;
+import io.github.Spyfall.message.response.GameCompleteMessage;
+import io.github.Spyfall.message.response.GameNewRoundMessage;
+import io.github.Spyfall.message.response.GameRoundEndedMessage;
+import io.github.Spyfall.message.response.GameSpyCaughtMessage;
+import io.github.Spyfall.message.response.GameSpyGuessMessage;
+import io.github.Spyfall.message.response.GameVoteMessage;
+import io.github.Spyfall.message.response.LobbyCreatedMessage;
+import io.github.Spyfall.message.response.LobbyJoinedMessage;
+import io.github.Spyfall.message.response.LobbyNewHostMessage;
+import io.github.Spyfall.message.response.LobbyPlayersMessage;
+import io.github.Spyfall.message.response.ResponseMessage;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
+import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.view.CreateGameStage;
 import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.MainMenuStage;
 import io.github.Spyfall.view.StageView;
 
-public class MainController implements GameStateObserver{
+public class MainController implements GameStateObserver, MessageHandler {
     private static MainController instance;
     private StageManager stageManager;
     private GameModel gameModel;
@@ -33,6 +46,8 @@ public class MainController implements GameStateObserver{
         this.mainMenuController = MainMenuController.getInstance();
         this.lobbyController = LobbyController.getInstance();
         this.gameplayController = GameplayController.getInstance();
+
+        RecieveMessageService.GetInstance().setMessageHandler(this);
         
         // Initial state is main menu
         setMainMenuStage();
@@ -98,6 +113,33 @@ public class MainController implements GameStateObserver{
                 break;
         }
     }
+
+    @Override
+    public void handleMessage(ResponseMessage message) {
+        String eventType = message.getEvent();
+        System.out.println("Handling message of type: " + eventType);
+        
+        // route to sub-controller based on message class
+        if (message instanceof LobbyCreatedMessage || 
+            message instanceof LobbyJoinedMessage ||
+            message instanceof LobbyNewHostMessage ||
+            message instanceof LobbyPlayersMessage) {
+            
+            lobbyController.handleServerMessage(message);
+            
+        } else if (message instanceof GameCompleteMessage ||
+                   message instanceof GameNewRoundMessage ||
+                   message instanceof GameRoundEndedMessage ||
+                   message instanceof GameSpyCaughtMessage ||
+                   message instanceof GameSpyGuessMessage ||
+                   message instanceof GameVoteMessage) {
+            
+            gameplayController.handleServerMessage(message);
+            
+        } else {
+            System.out.println("Unknown message class: " + message.getClass().getName());
+        }
+    }
     
     public GameModel getGameModel() {
         return gameModel;
@@ -121,5 +163,8 @@ public class MainController implements GameStateObserver{
             currentStage.resize(width, height);
         }
     }
+
+
+    
 
 }
