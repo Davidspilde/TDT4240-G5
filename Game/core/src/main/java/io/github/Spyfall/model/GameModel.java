@@ -36,7 +36,9 @@ public class GameModel {
     }
     
     private void notifyObservers() {
-        for (GameStateObserver observer : observers) {
+        // Create a copy of the observers list to avoid concurrent modification
+        List<GameStateObserver> observersCopy = new ArrayList<>(observers);
+        for (GameStateObserver observer : observersCopy) {
             observer.onGameStateChanged(this);
         }
     }
