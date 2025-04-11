@@ -11,6 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.model.GameState;
 
 public class GameSettingsDialog extends Dialog {
     private TextField roundTimeField;
@@ -20,10 +22,12 @@ public class GameSettingsDialog extends Dialog {
     private SendMessageService sendMessageService;
     private String username;
     private String lobbyCode;
+    private GameModel gameModel;
 
     public GameSettingsDialog(String title, Skin skin, String username, String lobbyCode) {
         super(title, skin);
         this.sendMessageService = SendMessageService.getInstance();
+        this.gameModel = GameModel.getInstance();
         this.username = username;
         this.lobbyCode = lobbyCode;
         initDialog();
@@ -62,6 +66,7 @@ public class GameSettingsDialog extends Dialog {
         // Add buttons
         TextButton saveButton = new TextButton("Save", getSkin());
         TextButton cancelButton = new TextButton("Cancel", getSkin());
+        TextButton startGameButton = new TextButton("Start Game", getSkin());
 
         saveButton.addListener(new ClickListener() {
             @Override
@@ -77,8 +82,16 @@ public class GameSettingsDialog extends Dialog {
             }
         });
 
+        startGameButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                startGame();
+            }
+        });
+
         button(saveButton);
         button(cancelButton);
+        button(startGameButton);
     }
 
     private void saveSettings() {
@@ -94,11 +107,25 @@ public class GameSettingsDialog extends Dialog {
             roundLimit = Math.max(1, Math.min(10, roundLimit));
             maxPlayers = Math.max(4, Math.min(10, maxPlayers));
 
-            sendMessageService.updateLobbyOptions(username, lobbyCode, roundLimit, 1, spyCount, maxPlayers, roundTime * 60);
+            sendMessageService.updateLobbyOptions(username, lobbyCode, roundLimit, spyCount, maxPlayers, roundTime * 60);
             hide();
         } catch (NumberFormatException e) {
             // Handle invalid input
             System.out.println("Invalid input: Please enter valid numbers");
         }
+    }
+
+    private void startGame() {
+        // First save the settings
+        saveSettings();
+        
+        // Send start game message
+        sendMessageService.startGame(username, lobbyCode);
+        
+        // Update game state
+        gameModel.setCurrentState(GameState.IN_GAME);
+        
+        // Hide the dialog
+        hide();
     }
 } 

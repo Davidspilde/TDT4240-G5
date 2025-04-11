@@ -14,7 +14,7 @@ public class SendMessageService {
         this.wsClient = LocalWebSocketClient.getInstance();
     }
 
-    public static SendMessageService getInstace() {
+    public static SendMessageService getInstance() {
         if (instance == null) {
             instance = new SendMessageService();
         }

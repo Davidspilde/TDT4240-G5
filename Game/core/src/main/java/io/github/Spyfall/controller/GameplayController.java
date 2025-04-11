@@ -12,7 +12,7 @@ public class GameplayController {
     public GameplayController(MainController mainController) {
         this.mainController = mainController;
         this.gameModel = GameModel.getInstance();
-        this.sendMessageService = SendMessageService.getInstace();
+        this.sendMessageService = SendMessageService.getInstance();
     }
     
     public void votePlayer(String targetPlayer) {

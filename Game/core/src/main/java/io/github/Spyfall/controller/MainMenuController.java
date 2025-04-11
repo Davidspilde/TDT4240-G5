@@ -12,7 +12,7 @@ public class MainMenuController {
     public MainMenuController(MainController mainController) {
         this.mainController = mainController;
         this.gameModel = GameModel.getInstance();
-        this.sendMessageService = SendMessageService.getInstace();
+        this.sendMessageService = SendMessageService.getInstance();
     }
     
     public void onCreateGame() {
