@@ -162,6 +162,7 @@ public class LobbyService {
 
         messagingService.broadcastMessage(targetLobby,
                 messageFactory.disconnected(targetLobby.getLobbyCode(), targetPlayer.getUsername()));
+        broadcastPlayerList(targetLobby.getLobbyCode());
     }
 
     /**
