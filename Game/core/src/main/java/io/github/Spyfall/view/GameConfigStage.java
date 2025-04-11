@@ -21,6 +21,8 @@ import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.controller.MainMenuController;
+import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.model.GameState;
 
 public class GameConfigStage extends StageView {
     private SendMessageService sendMsgService;
@@ -30,6 +32,7 @@ public class GameConfigStage extends StageView {
     private VerticalGroup playersGroup;
     private Skin skin;
     private MainController mainController;
+    private GameModel gameModel;
 
     public GameConfigStage(ScreenViewport viewport, String lobbyCode, String host, MainController mainController) {
         super(viewport);
@@ -38,6 +41,7 @@ public class GameConfigStage extends StageView {
         this.host = host;
         this.mainController = mainController;
         this.sendMsgService = SendMessageService.getInstance();
+        this.gameModel = GameModel.getInstance();
         initGameConfig();
         System.out.println("GameConfigStage initialized");
     }
@@ -51,6 +55,14 @@ public class GameConfigStage extends StageView {
         TextButton settingsButton = new TextButton("Game Settings", skin);
         TextButton locationsButton = new TextButton("Edit Locations", skin);
         TextButton backButton = new TextButton("Back", skin);
+        TextButton startGameButton = new TextButton("Start Game", skin);
+        
+        // Reduce text size by 30%
+        settingsButton.getLabel().setFontScale(0.7f);
+        locationsButton.getLabel().setFontScale(0.7f);
+        backButton.getLabel().setFontScale(0.7f);
+        startGameButton.getLabel().setFontScale(0.7f);
+        
         System.out.println("GameConfigStage UI elements created");
         
         // Create lobby code label
@@ -63,7 +75,11 @@ public class GameConfigStage extends StageView {
         playersGroup.align(Align.center);
         
         // Add host as first player
-        Label hostLabel = new Label("Host: " + host, skin);
+        Label.LabelStyle style = new Label.LabelStyle();
+        style.font = skin.getFont("commodore-64");
+        style.fontColor = skin.getColor("light_blue");
+        style.background = null;
+        Label hostLabel = new Label("Host: " + host, style);
         hostLabel.setAlignment(Align.center);
         playersGroup.addActor(hostLabel);
         
@@ -102,6 +118,17 @@ public class GameConfigStage extends StageView {
             }
         });
 
+        startGameButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                // Send start game message
+                sendMsgService.startGame(host, lobbyCode);
+                
+                // Update game state
+                gameModel.setCurrentState(GameState.IN_GAME);
+            }
+        });
+
         // Layout
         mainTable.setFillParent(true);
         mainTable.setBackground(texture);
@@ -111,10 +138,14 @@ public class GameConfigStage extends StageView {
         topTable.add(logo).padBottom(20).row();
         topTable.add(lobbyCodeLabel).padBottom(20);
         
-        // Buttons table
+        // Buttons table - only show host controls to host
         Table buttonsTable = new Table();
-        buttonsTable.add(settingsButton).padRight(10);
-        buttonsTable.add(locationsButton).padLeft(10);
+        boolean isHost = gameModel.getUsername().equals(host);
+        if (isHost) {
+            buttonsTable.add(settingsButton).width(200).padBottom(10).row();
+            buttonsTable.add(locationsButton).width(200).padBottom(10).row();
+            buttonsTable.add(startGameButton).width(200).padBottom(10).row();
+        }
         
         // Main layout
         mainTable.add(topTable).expandX().center().padTop(20).row();
@@ -139,7 +170,11 @@ public class GameConfigStage extends StageView {
     }
     
     public void addPlayer(String playerName) {
-        Label playerLabel = new Label(playerName, skin);
+        Label.LabelStyle style = new Label.LabelStyle();
+        style.font = skin.getFont("commodore-64");
+        style.fontColor = skin.getColor("light_blue");
+        style.background = null;
+        Label playerLabel = new Label(playerName, style);
         playerLabel.setAlignment(Align.center);
         playersGroup.addActor(playerLabel);
     }
