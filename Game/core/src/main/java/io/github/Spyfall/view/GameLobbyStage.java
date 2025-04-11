@@ -19,7 +19,7 @@ import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 
-public class GameLobbyStage extends StageView implements GameStateObserver{
+public class GameLobbyStage extends StageView {
 
     private Skin skin;
     private GameplayController controller;
@@ -37,12 +37,12 @@ public class GameLobbyStage extends StageView implements GameStateObserver{
     // The background texture
     private Texture bgTexture;
 
-    public GameLobbyStage(boolean isSpy, String locationName, String roleName, ScreenViewport viewport, GameplayController controller) {
+    public GameLobbyStage(boolean isSpy, String locationName, String roleName, ScreenViewport viewport) {
         super(viewport);
-        this.controller = controller;
+        this.controller = GameplayController.getInstance();
         this.gameModel = GameModel.getInstance();
         // add observer
-        gameModel.addObserver(this);
+        // gameModel.addObserver(this);
         initStage(isSpy, locationName, roleName);
     }
 
@@ -220,10 +220,10 @@ public class GameLobbyStage extends StageView implements GameStateObserver{
         updateLocationsList();
     }
 
-    @Override
-    public void onGameStateChanged(GameModel model) {
-        updateFromModel();
-    }
+    // @Override
+    // public void onGameStateChanged(GameModel model) {
+    //     updateFromModel();
+    // }
 
     @Override
     public void update() {
@@ -245,7 +245,7 @@ public class GameLobbyStage extends StageView implements GameStateObserver{
             bgTexture.dispose();
         }
         // remove observer
-        gameModel.removeObserver(this);
+        // gameModel.removeObserver(this);
 
         stage.dispose();
     }

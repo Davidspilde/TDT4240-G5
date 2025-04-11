@@ -32,15 +32,14 @@ public class LobbyController {
     } else if (message instanceof LobbyNewHostMessage) {
         handleLobbyNewHost((LobbyNewHostMessage) message);
     } else if (message instanceof LobbyPlayersMessage) {
-        handleLobbyPlayers((LobbyPlayersMessage) message);
+        handleLobbyUpdate((LobbyPlayersMessage) message);
     } else {
         System.out.println("LobbyController: Unexpected message type: " + message.getClass().getName());
     }
 }
     
-    private void handleLobbyPlayers(LobbyPlayersMessage message) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyPlayers'");
+    private void handleLobbyUpdate(LobbyPlayersMessage message) {
+        gameModel.getLobbyData().setPlayers(message.getPlayers());
     }
 
     private void handleLobbyNewHost(LobbyNewHostMessage message) {
@@ -49,8 +48,7 @@ public class LobbyController {
     }
 
     private void handleLobbyJoined(LobbyJoinedMessage message) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyJoined'");
+        gameModel.getLobbyData().setHostPlayer(message.getHost());
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage message) {
@@ -70,8 +68,10 @@ public class LobbyController {
         
         boolean success = sendMessageService.createLobby(username);
         if (success) {
-            // Wait for server response in ReceiveMessageService
-            // It will update the model when we get a lobbyCreated response
+            gameModel.setCurrentState(GameState.LOBBY);
+            System.out.println("State is: " + gameModel.getCurrentState());
+        } else {
+            System.out.println("something failed on the backend");
         }
     }
     

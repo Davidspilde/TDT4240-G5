@@ -17,7 +17,7 @@ import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 
-public class LobbyStage extends StageView implements GameStateObserver {
+public class LobbyStage extends StageView {
     private LobbyController controller;
     private GameModel gameModel;
     private Skin skin;
@@ -30,13 +30,13 @@ public class LobbyStage extends StageView implements GameStateObserver {
     private TextButton leaveLobbyButton;
     private Texture bgTexture;
 
-    public LobbyStage(ScreenViewport viewport, LobbyController controller) {
+    public LobbyStage(ScreenViewport viewport) {
         super(viewport);
-        this.controller = controller;
+        this.controller = LobbyController.getInstance();
         this.gameModel = GameModel.getInstance();
         
         // Register as observer to get model updates
-        gameModel.addObserver(this);
+        // gameModel.addObserver(this);
         
         initStage();
     }
@@ -144,17 +144,17 @@ public class LobbyStage extends StageView implements GameStateObserver {
         viewport.update(width, height, true);
     }
     
-    @Override
-    public void onGameStateChanged(GameModel model) {
-        // Update UI based on model changes
-        lobbyCodeLabel.setText("Lobby Code: " + model.getLobbyCode());
-        hostLabel.setText("Host: " + model.getLobbyData().getHostPlayer());
-        updatePlayersList();
+    // @Override
+    // public void onGameStateChanged(GameModel model) {
+    //     // Update UI based on model changes
+    //     lobbyCodeLabel.setText("Lobby Code: " + model.getLobbyCode());
+    //     hostLabel.setText("Host: " + model.getLobbyData().getHostPlayer());
+    //     updatePlayersList();
         
-        // Check if user is host and update UI
-        boolean isHost = model.getUsername().equals(model.getLobbyData().getHostPlayer());
-        startGameButton.setVisible(isHost);
-    }
+    //     // Check if user is host and update UI
+    //     boolean isHost = model.getUsername().equals(model.getLobbyData().getHostPlayer());
+    //     startGameButton.setVisible(isHost);
+    // }
     
     public void dispose() {
         if (bgTexture != null) {
@@ -162,7 +162,7 @@ public class LobbyStage extends StageView implements GameStateObserver {
         }
         
         // remove observer
-        gameModel.removeObserver(this);
+        // gameModel.removeObserver(this);
         
         stage.dispose();
     }

@@ -2,6 +2,7 @@ package io.github.Spyfall.controller;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
+import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuController {
@@ -21,6 +22,7 @@ public class MainMenuController {
     public void onCreateGame() {
         AudioService.getInstance().playSound("click");
         gameModel.setCurrentState(GameState.CREATE_GAME);
+        System.out.println("state:" + gameModel.getCurrentState());
     }
     
     public void onJoinLobby(String username, String lobbyCode) {
@@ -42,6 +44,9 @@ public class MainMenuController {
             System.out.println("Failed to send join lobby request");
             // error
         }
+        
+        gameModel.setCurrentState(GameState.LOBBY);
+        System.out.println("Joined lobby with code: " + gameModel.getLobbyCode() + ", current state: " + gameModel.getCurrentState());
         // todo: response from server
     }
     

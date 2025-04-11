@@ -76,7 +76,9 @@ public class MainController implements GameStateObserver, MessageHandler {
 
     public void setLobbyStage() {
         // lobby is where players join before game starts
-        LobbyStage lobbyStage = new LobbyStage(viewport, lobbyController);
+        System.out.println("We also get to setLobbStage");
+        LobbyStage lobbyStage = new LobbyStage(viewport);
+        System.out.println("We initialize lobbystage");
         stageManager.setStage(lobbyStage);
     }
     
@@ -85,9 +87,7 @@ public class MainController implements GameStateObserver, MessageHandler {
             gameModel.getGameData().isSpy(),
             gameModel.getGameData().getLocation(), 
             gameModel.getGameData().getRole(),
-            viewport,
-            gameplayController
-        );
+            viewport        );
         stageManager.setStage(gameLobbyStage);
     }
     
@@ -103,6 +103,7 @@ public class MainController implements GameStateObserver, MessageHandler {
                 setCreateGameStage();
                 break;
             case LOBBY:
+                System.out.println("WE ACTUALLY GET HERE");
                 setLobbyStage();
                 break;
             case IN_GAME:

@@ -71,19 +71,21 @@ private void handleNewRound(GameNewRoundMessage message) {
     gameModel.getGameData().setTimeRemaining(message.getRoundDuration());
     
     // For spy, populate possible locations
-    // if (message.isSpy()) {
-    //     // Use default locations list if needed
-    //     List<String> defaultLocations = Arrays.asList(
-    //         "Airplane", "Bank", "Beach", "Casino", "Hospital", 
-    //         "Hotel", "Military Base", "Movie Studio", "Ocean Liner", 
-    //         "Passenger Train", "Restaurant", "School", "Space Station", 
-    //         "Submarine", "Supermarket", "University"
-    //     );
-    //     gameModel.getGameData().setPossibleLocations(defaultLocations);
-    // }
+    if (message.getRole().equals("spy")) {
+        // Use default locations list if needed
+        List<String> defaultLocations = Arrays.asList(
+            "Airplane", "Bank", "Beach", "Casino", "Hospital", 
+            "Hotel", "Military Base", "Movie Studio", "Ocean Liner", 
+            "Passenger Train", "Restaurant", "School", "Space Station", 
+            "Submarine", "Supermarket", "University"
+        );
+        gameModel.getGameData().setPossibleLocations(defaultLocations);
+    }
     
     // Change game state if not already in game
+    System.out.println("do we get here?");
     if (gameModel.getCurrentState() != GameState.IN_GAME) {
+        System.out.println("WE DO");
         gameModel.setCurrentState(GameState.IN_GAME);
     }
 }

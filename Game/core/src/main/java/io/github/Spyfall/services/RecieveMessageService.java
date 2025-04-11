@@ -18,9 +18,6 @@ public class RecieveMessageService {
     private final Json json;
     private MessageHandler messageHandler;
 
-    // Queue to store messages before handler is available
-    private List<ResponseMessage> messageQueue = new ArrayList<>();
-
     private RecieveMessageService() {
         jsonReader = new JsonReader();
         json = new Json();
@@ -35,17 +32,7 @@ public class RecieveMessageService {
 
     public void setMessageHandler(MessageHandler handler) {
         this.messageHandler = handler;
-        
-        // queue for incoming messages
-        if (!messageQueue.isEmpty()) {
-            System.out.println("Processing " + messageQueue.size() + " queued messages");
-            List<ResponseMessage> queueCopy = new ArrayList<>(messageQueue);
-            messageQueue.clear();
-            
-            for (ResponseMessage message : queueCopy) {
-                messageHandler.handleMessage(message);
-            }
-        }
+    
     }
 
     public void handleMessage(String message) {
@@ -57,6 +44,7 @@ public class RecieveMessageService {
             
             // parse message based on type
             ResponseMessage parsedMessage = parseMessage(type, message);
+            System.out.println("HERE YU FUCK" + parsedMessage);
             
             if (parsedMessage == null) {
                 System.err.println("Failed to parse message of type: " + type);
@@ -65,8 +53,8 @@ public class RecieveMessageService {
             
             if (messageHandler == null) {
                 // later processing
-                messageQueue.add(parsedMessage);
-                System.out.println("Message queued for later processing: " + type);
+                // messageQueue.add(parsedMessage);
+                System.out.println("EL BRUH MOMENTO " + type);
             } else {
                 // process message immediately
                 messageHandler.handleMessage(parsedMessage);
@@ -85,7 +73,7 @@ public class RecieveMessageService {
                 case "gameComplete":
                     return json.fromJson(GameCompleteMessage.class, message);
                     
-                case "gameNewRound":
+                case "newRound":
                     return json.fromJson(GameNewRoundMessage.class, message);
                     
                 case "gameRoundEnded":
@@ -103,13 +91,13 @@ public class RecieveMessageService {
                 case "lobbyCreated":
                     return json.fromJson(LobbyCreatedMessage.class, message);
                     
-                case "lobbyJoined":
+                case "joinedLobby":
                     return json.fromJson(LobbyJoinedMessage.class, message);
                     
                 case "lobbyNewHost":
                     return json.fromJson(LobbyNewHostMessage.class, message);
                     
-                case "lobbyPlayers":
+                case "lobbyUpdate":
                     return json.fromJson(LobbyPlayersMessage.class, message);
                     
                 default:
@@ -123,9 +111,7 @@ public class RecieveMessageService {
         }
     }
 
-    // After MainController is initialized, call this method to set up proper message handling
     public void setupMessageHandling() {
-        // Check if MainController is available
         try {
             MainController mainController = MainController.getInstance();
             System.out.println("Message handling is now set up");
