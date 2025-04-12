@@ -1,13 +1,19 @@
-package com.interloperServer.interloperServer.model.messages;
+package com.interloperServer.interloperServer.model;
 
-public class LobbyOptionsMessage extends Message {
+public class LobbyOptions {
+
     private int roundLimit;
     private int locationNumber;
     private int spyCount;
     private int maxPlayerCount;
     private int timePerRound;
 
-    public LobbyOptionsMessage() {
+    public LobbyOptions(int roundLimit, int locationNumber, int spyCount, int maxPlayerCount, int timePerRound) {
+        this.roundLimit = roundLimit;
+        this.locationNumber = locationNumber;
+        this.spyCount = spyCount;
+        this.maxPlayerCount = maxPlayerCount;
+        this.timePerRound = timePerRound;
     }
 
     public int getRoundLimit() {
@@ -49,4 +55,5 @@ public class LobbyOptionsMessage extends Message {
     public void setTimePerRound(int timePerRound) {
         this.timePerRound = timePerRound;
     }
+
 }

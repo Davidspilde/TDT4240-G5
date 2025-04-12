@@ -1,21 +1,13 @@
-package com.interloperServer.interloperServer.service;
+package com.interloperServer.interloperServer.model.messages.incomming;
 
-import java.time.Duration;
-
-public class LobbyOptions {
-
+public class RecieveLobbyOptionsMessage extends RecieveMessage {
     private int roundLimit;
     private int locationNumber;
     private int spyCount;
     private int maxPlayerCount;
     private int timePerRound;
 
-    public LobbyOptions(int roundLimit, int locationNumber, int spyCount, int maxPlayerCount, int timePerRound) {
-        this.roundLimit = roundLimit;
-        this.locationNumber = locationNumber;
-        this.spyCount = spyCount;
-        this.maxPlayerCount = maxPlayerCount;
-        this.timePerRound = timePerRound;
+    public RecieveLobbyOptionsMessage() {
     }
 
     public int getRoundLimit() {
@@ -57,5 +49,4 @@ public class LobbyOptions {
     public void setTimePerRound(int timePerRound) {
         this.timePerRound = timePerRound;
     }
-
 }

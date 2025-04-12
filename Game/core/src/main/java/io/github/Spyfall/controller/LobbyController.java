@@ -12,7 +12,7 @@ public class LobbyController {
     public LobbyController(MainController mainController) {
         this.mainController = mainController;
         this.gameModel = GameModel.getInstance();
-        this.sendMessageService = SendMessageService.getInstace();
+        this.sendMessageService = SendMessageService.getInstance();
     }
     
     public void createLobby(String username) {
