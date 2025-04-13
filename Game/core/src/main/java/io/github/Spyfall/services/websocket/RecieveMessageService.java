@@ -30,24 +30,22 @@ import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 public class RecieveMessageService {
     private static RecieveMessageService instance;
     private final ObjectMapper objectMapper;
-    private final GameModel gameModel;
     private final Map<String, WebSocketMessageHandler<?>> handlers = new HashMap<>();
 
     private RecieveMessageService() {
-        gameModel = GameModel.getInstance();
         objectMapper = new ObjectMapper();
 
         // Dynamicly fetches all handler classes
-        Reflections reflections = new Reflections("com.interloperServer.interloperServer.websocket.handlers");
+        Reflections reflections = new Reflections("io.github.Spyfall.services.websocket.handlers");
 
         Set<Class<? extends WebSocketMessageHandler>> handlerClasses = reflections
                 .getSubTypesOf(WebSocketMessageHandler.class);
 
-        // Creates list of all handlers
-        List<WebSocketMessageHandler<?>> handlers = new ArrayList<>();
+        // Creates a map of all handlers
         try {
-            for (Class<? extends WebSocketMessageHandler> handler : handlerClasses) {
-                handlers.add(handler.getDeclaredConstructor().newInstance());
+            for (Class<? extends WebSocketMessageHandler> handlerClass : handlerClasses) {
+                WebSocketMessageHandler<?> handler = handlerClass.getDeclaredConstructor().newInstance();
+                handlers.put(handler.getEvent(), handler);
             }
         } catch (Exception e) {
             System.err.println(e);

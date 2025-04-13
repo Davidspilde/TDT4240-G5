@@ -16,6 +16,7 @@ public class ErrorHandler implements WebSocketMessageHandler<ErrorMessage> {
 
     @Override
     public void handle(ErrorMessage message) {
+        System.out.println(message.getMessage());
 
     }
 

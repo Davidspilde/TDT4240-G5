@@ -16,6 +16,7 @@ public class LobbyCreatedHandler implements WebSocketMessageHandler<LobbyCreated
 
     @Override
     public void handle(LobbyCreatedMessage message) {
+        System.out.println("Lobby created success");
 
     }
 
