@@ -9,12 +9,12 @@ import org.java_websocket.handshake.ServerHandshake;
 public class LocalWebSocketClient extends WebSocketClient {
 
     private static LocalWebSocketClient instance;
-    private RecieveMessageService reciever;
+    private MessageDispatcher dispatcher;
 
     private LocalWebSocketClient(String serverUrl) throws URISyntaxException {
         super(new URI(serverUrl));
 
-        reciever = RecieveMessageService.GetInstance();
+        dispatcher = MessageDispatcher.GetInstance();
     }
 
     public static LocalWebSocketClient getInstance(String serverUrl) {
@@ -42,7 +42,7 @@ public class LocalWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        reciever.handleMessage(message);
+        dispatcher.dispatch(message);
     }
 
     @Override

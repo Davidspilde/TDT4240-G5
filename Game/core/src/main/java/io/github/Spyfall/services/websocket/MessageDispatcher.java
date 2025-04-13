@@ -27,12 +27,12 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 
-public class RecieveMessageService {
-    private static RecieveMessageService instance;
+public class MessageDispatcher {
+    private static MessageDispatcher instance;
     private final ObjectMapper objectMapper;
     private final Map<String, WebSocketMessageHandler<?>> handlers = new HashMap<>();
 
-    private RecieveMessageService() {
+    private MessageDispatcher() {
         objectMapper = new ObjectMapper();
 
         // Dynamicly fetches all handler classes
@@ -53,14 +53,14 @@ public class RecieveMessageService {
 
     }
 
-    public static RecieveMessageService GetInstance() {
+    public static MessageDispatcher GetInstance() {
         if (instance == null) {
-            instance = new RecieveMessageService();
+            instance = new MessageDispatcher();
         }
         return instance;
     }
 
-    public void handleMessage(String msg) {
+    public void dispatch(String msg) {
 
         try {
             JsonNode json = objectMapper.readTree(msg);
