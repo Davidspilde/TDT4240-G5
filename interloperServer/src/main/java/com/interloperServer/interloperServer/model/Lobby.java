@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.web.socket.WebSocketSession;
+
 public class Lobby {
 
     private Player host;
@@ -62,6 +64,40 @@ public class Lobby {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    /**
+     * Retrieves a player from the lobby based on their username.
+     *
+     * @param username The username of the player to retrieve.
+     * @return The Player object if found, or null if no player with the given
+     *         username exists.
+     */
+    public Player getPlayer(String username) {
+        for (Player player : this.players) {
+            if (player.getUsername().equals(username)) {
+                return player;
+            }
+        }
+        // Return null if no player is found
+        return null;
+    }
+
+    /**
+     * Retrieves a player from the lobby based on their WebSocketSession.
+     *
+     * @param session The WebSocketSession of the player to retrieve.
+     * @return The Player object if found, or null if no player with the given
+     *         session exists.
+     */
+    public Player getPlayerBySession(WebSocketSession session) {
+        for (Player player : this.players) {
+            if (player.getSession().equals(session)) {
+                return player;
+            }
+        }
+        // Return null if no player is found
+        return null;
     }
 
     public void addPlayer(Player player) {

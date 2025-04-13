@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.*;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 import java.util.*;
 
@@ -16,7 +18,8 @@ public class GameService {
     private final VotingService votingService;
     private final RoundService roundService;
     private final MessagingService messagingService;
-    private final LobbyManagementService lobbyService;
+    private final GameMessageFactory messageFactory;
+    private final LobbyService lobbyService;
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
@@ -28,12 +31,14 @@ public class GameService {
      * @param roleService
      */
     public GameService(VotingService votingService, RoundService roundService,
-            MessagingService messagingService, GameManagerService gameManagerService,
+            MessagingService messagingService, GameMessageFactory messageFactory, GameManagerService gameManagerService,
+           
             LobbyManagementService lobbyService) {
         this.lobbyService = lobbyService;
         this.votingService = votingService;
         this.roundService = roundService;
         this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
         this.gameManagerService = gameManagerService;
     }
 
@@ -46,10 +51,20 @@ public class GameService {
     public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
         Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
 
+        if (lobby == null) {
+            messagingService.sendMessage(session, messageFactory.error("Lobby doesn't exist."));
+            return false;
+        }
+
+        // Prevent users other than host to begin the game
         if (!lobby.getHost().getUsername().equals(username)) {
-            messagingService.sendMessage(session, Map.of(
-                    "event", "error",
-                    "message", "Only the host can start the game."));
+            messagingService.sendMessage(session, messageFactory.error("Only the host can start the game"));
+            return false;
+        }
+
+        // Prevent game from starting with too few players
+        if (lobby.getPlayers().size() < 2) {
+            messagingService.sendMessage(session, messageFactory.error("Too few players to start the game."));
             return false;
         }
 
@@ -57,8 +72,7 @@ public class GameService {
         Game game = new Game(lobby);
         gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
-        messagingService.sendMessage(session, Map.of(
-                "event", "gameStarted"));
+        messagingService.broadcastMessage(lobby, messageFactory.gameStarted());
 
         roundService.advanceRound(lobbyCode);
 
@@ -97,18 +111,16 @@ public class GameService {
         if (game == null)
             return;
 
-        int roundDuration = game.getCurrentRound().getRoundDuration();
+        Round currentRound = game.getCurrentRound();
+        if (currentRound == null) {
+            return;
+        }
 
-        Timer timer = new Timer();
-        game.setRoundTimer(timer);
+        int roundDuration = currentRound.getRoundDuration();
 
-        timer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-                beginEndOfRound(lobbyCode);
-            }
-        }, roundDuration * 1000);
+        // Start timer and end the round due to timeout if the spy haven't guessed or
+        // the players haven't gotten a majority
+        game.startTimer(roundDuration, () -> endRoundDueToTimeout(lobbyCode));
     }
 
     /**
@@ -139,14 +151,6 @@ public class GameService {
             return;
 
         votingService.castSpyGuess(lobbyCode, spyUsername, location);
-
-        // Mark voting as complete
-        game.getCurrentRound().setVotingComplete();
-
-        // Notify users that the round has ended
-        messagingService.broadcastMessage(game.getLobby(), Map.of(
-                "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername()));
     }
 
     /**
@@ -165,43 +169,32 @@ public class GameService {
         roundService.advanceRound(lobbyCode);
 
         // Stop existing timer if there is one
-        Timer existing = game.getRoundTimer();
-        if (existing != null) {
-            existing.cancel();
-        }
+        game.stopTimer();
 
         // Start round countdown
         startRoundCountdown(lobbyCode);
     }
 
     /**
-     * Shows the scoreboard after the round is complete
+     * Ends the round, calls roundservice to award points and broadcast end round
+     * message
      * 
      * @param lobbyCode
      */
-    public void beginEndOfRound(String lobbyCode) {
+    public void endRoundDueToTimeout(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
 
-        // Mark voting as complete
-        game.getCurrentRound().setVotingComplete();
+        Round currentRound = game.getCurrentRound();
 
-        // Evaluate all votes, give and deduct points accordingly
-        votingService.evaluateVotes(lobbyCode);
-
-        // Stop timer here as well just to be sure
-        Timer timer = game.getRoundTimer();
-        if (timer != null) {
-            timer.cancel();
-            game.setRoundTimer(null);
+        if (currentRound == null) {
+            return;
         }
 
-        // Notify users that the round has ended
-        messagingService.broadcastMessage(game.getLobby(), Map.of(
-                "event", "roundEnded",
-                "spy", game.getCurrentRound().getSpy().getUsername(),
-                "scoreboard", game.getScoreboard()));
+        String spyName = currentRound.getSpy().getUsername();
+
+        roundService.endRoundDueToTimeout(lobbyCode, spyName);
     }
 
     /**
@@ -213,9 +206,7 @@ public class GameService {
             return;
 
         gameManagerService.removeGame(lobbyCode);
-        messagingService.broadcastMessage(game.getLobby(), Map.of(
-                "event", "gameEnded",
-                "message", "Game has ended."));
+        messagingService.broadcastMessage(game.getLobby(), messageFactory.gameEnded());
     }
 
 }

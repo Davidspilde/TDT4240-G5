@@ -1,19 +1,28 @@
 package io.github.Spyfall.services;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
 import io.github.Spyfall.message.response.*;
+import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.model.GameState;
 
 public class RecieveMessageService {
     private static RecieveMessageService instance;
     private final JsonReader jsonReader;
     private final Json json;
+    private final GameModel gameModel;
 
     private RecieveMessageService() {
         jsonReader = new JsonReader();
         json = new Json();
+        gameModel = GameModel.getInstance();
     }
 
     public static RecieveMessageService GetInstance() {
@@ -80,6 +89,21 @@ public class RecieveMessageService {
                 handleLobbyPlayers(players);
                 break;
 
+            case "joinedLobby":
+                LobbyJoinedMessage joinedLobby = json.fromJson(LobbyJoinedMessage.class, message);
+                handleLobbyJoined(joinedLobby);
+                break;
+
+            case "lobbyUpdate":
+                LobbyPlayersMessage lobbyUpdate = json.fromJson(LobbyPlayersMessage.class, message);
+                handleLobbyPlayers(lobbyUpdate);
+                break;
+
+            case "error":
+                ErrorMessage error = json.fromJson(ErrorMessage.class, message);
+                handleError(error);
+                break;
+
             default:
                 System.out.println("Unknown message type: " + type);
                 break;
@@ -89,14 +113,52 @@ public class RecieveMessageService {
     // Handlers for each message type
     private void handleGameComplete(GameCompleteMessage msg) {
         System.out.println("Handling game complete: " + msg);
+        System.out.println("Game complete received: " + msg.getScoreboard());
+        
+        Gdx.app.postRunnable(() -> {
+            gameModel.setCurrentState(GameState.LOBBY);
+        });
     }
 
     private void handleNewRound(GameNewRoundMessage msg) {
         System.out.println("Handling new round: " + msg);
+        System.out.println("New round received: Round " + msg.getRoundNumber());
+        
+        Gdx.app.postRunnable(() -> {
+            // update model with new data
+            gameModel.getGameData().setCurrentRound(msg.getRoundNumber());
+            gameModel.getGameData().setTimeRemaining(msg.getRoundDuration());
+            
+            // bruh
+            boolean isSpy = (msg.getRole() != null && msg.getRole().equalsIgnoreCase("spy"));
+            gameModel.getGameData().setSpy(isSpy);
+            
+            // set location and role
+            gameModel.getGameData().setLocation(msg.getLocation());
+            gameModel.getGameData().setRole(msg.getRole());
+            
+            // potential locations for spy
+            if (isSpy) {
+                // should fetch from backend
+                List<String> defaultLocations = new ArrayList<>(Arrays.asList(
+                    "Airplane", "Bank", "Beach", "Casino", "Hospital", 
+                    "Hotel", "Military Base", "Movie Studio", "Ocean Liner", 
+                    "Passenger Train", "Restaurant", "School", "Space Station", 
+                    "Submarine", "Supermarket", "University"
+                ));
+                gameModel.getGameData().setPossibleLocations(defaultLocations);
+            }
+            
+            // change game state if not there already
+            if (gameModel.getCurrentState() != GameState.IN_GAME) {
+                gameModel.setCurrentState(GameState.IN_GAME);
+            }
+        });
     }
 
     private void handleRoundEnded(GameRoundEndedMessage msg) {
         System.out.println("Handling round ended: " + msg);
+        // TODO: Update scoreboard if needed
     }
 
     private void handleSpyCaught(GameSpyCaughtMessage msg) {
@@ -105,29 +167,63 @@ public class RecieveMessageService {
 
     private void handleSpyGuess(GameSpyGuessMessage msg) {
         System.out.println("Handling spy guess: " + msg);
+        // TODO: Show guess
     }
 
     private void handleVote(GameVoteMessage msg) {
         System.out.println("Handling vote: " + msg);
+        // TODO: Show votes? vote counter?
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage msg) {
-        System.out.println("Handling lobby created: " + msg.getLobbyCode());
+        String lobbyCode = msg.getLobbyCode();
+        System.out.println("Handling lobby created: " + lobbyCode);
+        
+        Gdx.app.postRunnable(() -> {
+            gameModel.setLobbyCode(lobbyCode);
+            gameModel.getLobbyData().setHostPlayer(msg.getHost());
+            
+            // add player to the player list
+            gameModel.getLobbyData().getPlayers().clear();
+            gameModel.getLobbyData().addPlayer(gameModel.getUsername());
+            
+            // transition to game config state
+            gameModel.setCurrentState(GameState.GAME_CONFIG);
+        });
     }
 
     private void handleLobbyJoined(LobbyJoinedMessage msg) {
         System.out.println("Handling lobby joined: " + msg);
+        
+        Gdx.app.postRunnable(() -> {
+            // update model
+            gameModel.setLobbyCode(msg.getLobbyCode());
+            gameModel.getLobbyData().setHostPlayer(msg.getHost());
+            
+            // transition to game config state instead of lobby state
+            gameModel.setCurrentState(GameState.GAME_CONFIG);
+        });
     }
 
     private void handleLobbyNewHost(LobbyNewHostMessage msg) {
         System.out.println("Handling new lobby host: " + msg);
+        
+        Gdx.app.postRunnable(() -> {
+            // update model
+            gameModel.getLobbyData().setHostPlayer(msg.getHost());
+        });
     }
 
     private void handleLobbyPlayers(LobbyPlayersMessage msg) {
         System.out.println("Handling lobby players: " + msg);
+        
+        Gdx.app.postRunnable(() -> {
+            // update the model with player list
+            gameModel.getLobbyData().setPlayers(msg.getPlayers());
+        });
     }
 
-    private void handleResponse(ResponseMessage msg) {
-        System.out.println("Handling generic response: " + msg);
+    private void handleError(ErrorMessage msg) {
+        System.out.println("Error received: " + msg.getMessage());
     }
 }

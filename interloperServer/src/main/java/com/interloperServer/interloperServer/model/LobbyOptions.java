@@ -1,7 +1,5 @@
 package com.interloperServer.interloperServer.model;
 
-import java.time.Duration;
-
 public class LobbyOptions {
 
     private int roundLimit;

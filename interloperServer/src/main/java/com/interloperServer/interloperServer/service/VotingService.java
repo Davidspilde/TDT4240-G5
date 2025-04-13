@@ -4,22 +4,29 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.Round;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 @Service
 public class VotingService {
     private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
     private final GameManagerService gameManagerService;
+    private final RoundService roundService;
 
-    public VotingService(MessagingService messagingService, GameManagerService gameManagerService) {
+    public VotingService(MessagingService messagingService, GameMessageFactory messageFactory,
+            GameManagerService gameManagerService,
+            RoundService roundService) {
         this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
         this.gameManagerService = gameManagerService;
+        this.roundService = roundService;
     }
 
     /**
@@ -39,21 +46,20 @@ public class VotingService {
         if (currentRound.isVotingComplete())
             return;
 
-        List<Player> players = game.getPlayers();
-
-        Player voter = players.stream()
-                .filter(p -> p.getUsername().equals(voterUsername))
-                .findFirst()
-                .orElse(null);
+        Player voter = game.getPlayer(voterUsername);
 
         // Check for invalid target
-        if (players.stream().noneMatch(p -> p.getUsername().equals(targetUsername))) {
+        if (game.getPlayer(targetUsername) == null) {
             if (voter != null) {
-                messagingService.sendMessage(voter.getSession(), Map.of(
-                        "event", "invalidVote",
-                        "message", "Invalid vote. " + targetUsername + " is not in the game."));
+                messagingService.sendMessage(voter.getSession(),
+                        messageFactory.error("Invalid Vote: " + targetUsername + " is not in the game."));
             }
             return;
+        }
+
+        // Check for self vote
+        if (voter != null && voterUsername.equals(targetUsername)) {
+            messagingService.sendMessage(voter.getSession(), "Invalid Vote. Cannot vote for yourself.");
         }
 
         // Don't register vote if the voter doesn't exist
@@ -65,12 +71,48 @@ public class VotingService {
         currentRound.castVote(voterUsername, targetUsername);
 
         // Notify voter of successful vote
-        messagingService.sendMessage(voter.getSession(), Map.of(
-                "event", "voted",
-                "voter", voterUsername));
+        messagingService.sendMessage(voter.getSession(), messageFactory.voted());
 
         // Look for majority after every vote
         evaluateVotes(lobbyCode);
+    }
+
+    /**
+     * Calculates the most voted player
+     * 
+     * @param voteMap map of votes (username -> username)
+     * @return the name of the most voted player
+     */
+    private String getMostVotedPlayer(Map<String, String> voteMap) {
+        Map<String, Integer> voteCount = new HashMap<>();
+        for (String target : voteMap.values()) {
+            voteCount.put(target, voteCount.getOrDefault(target, 0) + 1);
+        }
+        return Collections.max(voteCount.entrySet(), Map.Entry.comparingByValue()).getKey();
+    }
+
+    /**
+     * Returns how many votes the given player received.
+     */
+    private int getVoteCountForPlayer(Map<String, String> voteMap, String username) {
+        int count = 0;
+        for (String voteTarget : voteMap.values()) {
+            if (voteTarget.equals(username)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Checks if a vote count has reached majority
+     * 
+     * @param highestVoteCount  the highest number of votes
+     * @param majorityThreshold the amount of votes needed to end the round
+     * @return true or false
+     */
+    private boolean hasMajority(int highestVoteCount, int majorityThreshold) {
+        return highestVoteCount >= majorityThreshold;
     }
 
     /**
@@ -84,88 +126,37 @@ public class VotingService {
             return;
 
         Round currentRound = game.getCurrentRound();
+        if (currentRound == null) {
+            return;
+        }
+
+        // If round is already complete, do nothing
+        if (currentRound.isVotingComplete())
+            return;
 
         Map<String, String> voteMap = currentRound.getVotes();
         List<Player> players = game.getPlayers();
 
         boolean votesWereCast = !voteMap.isEmpty();
+        // If no votes cast, do nothing (just keep waiting for votes)
+        if (!votesWereCast)
+            return;
 
-        String mostVoted = null;
-        int highestVoteCount = 0;
+        String mostVoted = getMostVotedPlayer(voteMap);
+        int highestVoteCount = getVoteCountForPlayer(voteMap, mostVoted);
         int majorityThreshold = (int) Math.ceil(players.size() / 2.0);
 
-        if (votesWereCast) {
-            // Count how many votes each target received
-            Map<String, Integer> voteCount = new HashMap<>();
-
-            for (String target : voteMap.values()) {
-                voteCount.put(target, voteCount.getOrDefault(target, 0) + 1);
-            }
-
-            // Find most voted
-            mostVoted = Collections.max(voteCount.entrySet(), Map.Entry.comparingByValue()).getKey();
-            highestVoteCount = voteCount.get(mostVoted);
-
-            // Continue round if majority is not found
-            if ((highestVoteCount < majorityThreshold) || !currentRound.isVotingComplete())
-                return;
+        // If no majority, do not end the round
+        if (!hasMajority(highestVoteCount, majorityThreshold)) {
+            return;
         }
 
-        currentRound.setVotingComplete();
+        // Otherwise we have a majority
+        String spyUsername = currentRound.getSpy().getUsername();
+        boolean spyCaught = mostVoted.equals(spyUsername);
 
-        // Stop timer if round is over or majority is reached
-        if ((highestVoteCount >= majorityThreshold) || currentRound.isVotingComplete()) {
-            // Cancel the countdown timer
-            Timer timer = game.getRoundTimer();
-            if (timer != null) {
-                timer.cancel();
-                game.setRoundTimer(null);
-            }
-
-            // Mark round as done
-            currentRound.setVotingComplete();
-        }
-
-        // Find real spy and check if the majority vote is for the spy
-        String spyName = currentRound.getSpy().getUsername();
-        boolean spyCaught = votesWereCast && mostVoted != null && mostVoted.equals(spyName);
-
-        // Broadcast if spy is caught or not
-        if (spyCaught && (highestVoteCount >= majorityThreshold)) {
-
-            messagingService.broadcastMessage(game.getLobby(), Map.of(
-                    "event", "spyCaught",
-                    "spy", spyName,
-                    "votes", highestVoteCount));
-
-            for (Map.Entry<String, String> vote : voteMap.entrySet()) {
-                String voter = vote.getKey();
-                String target = vote.getValue();
-
-                if (target.equals(spyName) && !voter.equals(spyName)) {
-                    // Award the players who voted correctly for the spy a point
-                    game.updateScore(voter, 1);
-                }
-            }
-        } else {
-            // Award a point to the spy if not caught
-            game.updateScore(currentRound.getSpy().getUsername(), 1);
-            messagingService.broadcastMessage(game.getLobby(), Map.of(
-                    "event", "spyNotCaught"));
-        }
-
-        // Only deduct points if the round is over
-        if (currentRound.isVotingComplete()) {
-            // Deduct points from players who did not vote
-            for (Player p : players) {
-                if (!voteMap.containsKey(p.getUsername()) && p.equals(currentRound.getSpy())) {
-                    game.updateScore(p.getUsername(), -1);
-                    messagingService.sendMessage(p.getSession(), Map.of(
-                            "event", "notVoted"));
-                }
-            }
-        }
-
+        // Delegate awarding points and broadcasting
+        roundService.endRoundDueToVotes(lobbyCode, spyCaught, spyUsername);
     }
 
     /**
@@ -181,49 +172,23 @@ public class VotingService {
             return;
 
         Round currentRound = game.getCurrentRound();
-        List<Player> players = game.getPlayers();
 
-        Player spy = game.getCurrentRound().getSpy();
-
-        // Stop if a player tries to guess location (not legal)
-        if (spy.getUsername() != spyUsername)
+        // Not legal to guess after round is over
+        if (currentRound.isVotingComplete()) {
             return;
-
-        // Not legal to try after the round is over
-        if (currentRound.isVotingComplete())
-            return;
-
-        // Stop timer
-        Timer timer = game.getRoundTimer();
-        if (timer != null) {
-            timer.cancel();
-            game.setRoundTimer(null);
         }
 
-        currentRound.setVotingComplete();
+        Player spy = currentRound.getSpy();
 
-        // Find spy and update points
-        if (currentRound.getLocation().equals(location)) {
-            // Spy is correct
-            messagingService.broadcastMessage(game.getLobby(), Map.of(
-                    "event", "spyGuessCorrect",
-                    "spy", spyUsername,
-                    "location", location));
-
-            game.updateScore(spyUsername, 1);
-        } else {
-            // Spy is incorrect
-            messagingService.broadcastMessage(game.getLobby(), Map.of(
-                    "event", "spyGuessIncorrect",
-                    "spy", spyUsername,
-                    "location", location));
-
-            for (Player player : players) {
-                if (!player.getUsername().equals(spyUsername)) {
-                    game.updateScore(player.getUsername(), 1);
-                }
-            }
+        // Not legal to guess location if the one guessing is not the spy
+        if (!spy.getUsername().equals(spyUsername)) {
+            return;
         }
 
+        // Check if guess is correct
+        boolean spyGuessedCorrectly = currentRound.getLocation().equals(location);
+
+        roundService.endRoundDueToSpyGuess(lobbyCode, spyUsername, spyGuessedCorrectly);
     }
+
 }
