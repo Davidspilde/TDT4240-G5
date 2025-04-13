@@ -6,7 +6,7 @@ public class Location {
     private String name;
     private List<String> roles;
 
-    public Location(String name, List<String> roles) {
+    public Location() {
         this.name = name;
         this.roles = roles;
 

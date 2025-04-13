@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Round {
     private final int roundNumber;
-    private final String location;
+    private Location location;
     private boolean isActive;
     private Player spy;
     private int roundDuration;
@@ -13,11 +13,11 @@ public class Round {
 
     private final Map<String, String> votes = new HashMap<>(); // voterUsername -> targetUsername
 
-    public Round(int roundNumber, int roundDuration, Player spy) {
+    public Round(int roundNumber, int roundDuration, Player spy, Location location) {
         this.spy = spy;
         this.roundNumber = roundNumber;
-        this.location = generateRandomLocation();
         this.isActive = true;
+        this.location = location;
         this.roundDuration = roundDuration;
         this.votingComplete = false;
     }
@@ -34,8 +34,13 @@ public class Round {
         this.spy = spy;
     }
 
-    public String getLocation() {
+    public Location getLocation() {
         return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+
     }
 
     public boolean isActive() {
@@ -65,12 +70,6 @@ public class Round {
 
     public boolean isVotingComplete() {
         return votingComplete;
-    }
-
-    // Create the location for this round
-    private String generateRandomLocation() {
-        String[] locations = { "Restaurant", "Museum", "Beach", "Space Station", "Jungle" };
-        return locations[new java.util.Random().nextInt(locations.length)];
     }
 
     public int getRoundDuration() {

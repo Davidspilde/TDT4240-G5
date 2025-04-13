@@ -4,15 +4,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.messages.incomming.RecieveMessage;
-import com.interloperServer.interloperServer.service.LobbyService;
+import com.interloperServer.interloperServer.service.LobbyManagerService;
 
 @Component
 public class JoinLobbyHandler implements WebSocketMessageHandler<RecieveMessage> {
 
-    private final LobbyService lobbyService;
+    private final LobbyManagerService lobbyManager;
 
-    public JoinLobbyHandler(LobbyService lobbyService) {
-        this.lobbyService = lobbyService;
+    public JoinLobbyHandler(LobbyManagerService lobbyManager) {
+        this.lobbyManager = lobbyManager;
     }
 
     @Override
@@ -27,6 +27,6 @@ public class JoinLobbyHandler implements WebSocketMessageHandler<RecieveMessage>
 
     @Override
     public void handle(RecieveMessage message, WebSocketSession session) {
-        lobbyService.joinLobby(session, message.getLobbyCode(), message.getUsername());
+        lobbyManager.joinLobby(session, message.getLobbyCode(), message.getUsername());
     }
 }

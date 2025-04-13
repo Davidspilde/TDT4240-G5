@@ -1,7 +1,5 @@
 package com.interloperServer.interloperServer.service;
 
-import com.interloperServer.interloperServer.model.messages.LobbyOptionsMessage;
-
 import java.io.InputStream;
 import java.util.List;
 
@@ -20,14 +18,15 @@ public class LobbyHostService {
     public LobbyHostService() {
     }
 
-    public void updateLobbyOptions(Lobby lobby, LobbyOptionsMessage newOptions) {
+    public void updateLobbyOptions(Lobby lobby, int roundLimit, int spyCount, int locationNumber, int TimePerRound,
+            int maxPlayerCount) {
         LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
-        lobbyOptions.setRoundLimit(newOptions.getRoundLimit());
-        lobbyOptions.setSpyCount(newOptions.getSpyCount());
-        lobbyOptions.setLocationNumber(newOptions.getRoundLimit());
-        lobbyOptions.setTimePerRound(newOptions.getTimePerRound());
-        lobbyOptions.setMaxPlayerCount(newOptions.getMaxPlayerCount());
+        lobbyOptions.setRoundLimit(roundLimit);
+        lobbyOptions.setSpyCount(spyCount);
+        lobbyOptions.setLocationNumber(locationNumber);
+        lobbyOptions.setTimePerRound(TimePerRound);
+        lobbyOptions.setMaxPlayerCount(maxPlayerCount);
     }
 
     public void setLocations(Lobby lobby, List<Location> locations) {
@@ -46,11 +45,16 @@ public class LobbyHostService {
             }
             baseLocations = mapper.readValue(inputStream, new TypeReference<List<Location>>() {
             });
+            if (baseLocations == null || baseLocations.isEmpty()) {
+                throw new IllegalStateException("No locations loaded!");
+            }
+            System.out.println(baseLocations.get(1).getRoles());
 
             lobby.setLocations(baseLocations);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 }

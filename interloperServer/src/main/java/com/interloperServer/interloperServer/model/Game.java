@@ -78,15 +78,20 @@ public class Game {
     }
 
     public void startNextRound() {
-        if (hasMoreRounds()) {
-            currentRoundIndex++;
-            Round newRound = new Round(currentRoundIndex, lobby.getLobbyOptions().getTimePerRound(),
-                    chooseRandomSpy(getPlayers()));
-            currentRound = newRound;
+        if (!hasMoreRounds()) {
+            isActive = false; // End the game after all rounds
             return;
         }
 
-        isActive = false; // End the game after all rounds
+        currentRoundIndex++;
+        Player newSpy = chooseRandomSpy(getPlayers());
+        Location newLocation = chooseRandomLocation(lobby.getLocations());// might change this to game if we decide to
+                                                                          // have locations here too
+        int timePerRound = lobby.getLobbyOptions().getTimePerRound();
+
+        Round newRound = new Round(currentRoundIndex, timePerRound, newSpy, newLocation);
+
+        currentRound = newRound;
 
     }
 
@@ -140,5 +145,12 @@ public class Game {
         int index = random.nextInt(0, players.size() - 1);
 
         return players.get(index);
+    }
+
+    private Location chooseRandomLocation(List<Location> locations) {
+        Random random = new Random();
+        int index = random.nextInt(0, locations.size() - 1);
+
+        return locations.get(index);
     }
 }

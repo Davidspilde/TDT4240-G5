@@ -1,5 +1,4 @@
-{
-  "locations": [
+[
     {
       "name": "School",
       "roles": [
@@ -319,5 +318,4 @@
       "name": "Stadium",
       "roles": ["Athlete", "Coach", "Fan", "Referee", "Security", "Announcer"]
     }
-  ]
-}
+]

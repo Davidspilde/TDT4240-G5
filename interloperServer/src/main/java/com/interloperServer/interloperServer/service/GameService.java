@@ -19,7 +19,7 @@ public class GameService {
     private final RoundService roundService;
     private final MessagingService messagingService;
     private final GameMessageFactory messageFactory;
-    private final LobbyService lobbyService;
+    private final LobbyManagerService lobbyManager;
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
@@ -32,9 +32,9 @@ public class GameService {
      */
     public GameService(VotingService votingService, RoundService roundService,
             MessagingService messagingService, GameMessageFactory messageFactory, GameManagerService gameManagerService,
-           
-            LobbyManagementService lobbyService) {
-        this.lobbyService = lobbyService;
+
+            LobbyManagerService lobbyManager) {
+        this.lobbyManager = lobbyManager;
         this.votingService = votingService;
         this.roundService = roundService;
         this.messagingService = messagingService;
@@ -49,7 +49,7 @@ public class GameService {
      * @return True if the host called the method, false if someone else did
      */
     public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
-        Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
+        Lobby lobby = lobbyManager.getLobbyFromLobbyCode(lobbyCode);
 
         if (lobby == null) {
             messagingService.sendMessage(session, messageFactory.error("Lobby doesn't exist."));
@@ -63,7 +63,7 @@ public class GameService {
         }
 
         // Prevent game from starting with too few players
-        if (lobby.getPlayers().size() < 2) {
+        if (lobby.getPlayers().size() < 3) {
             messagingService.sendMessage(session, messageFactory.error("Too few players to start the game."));
             return false;
         }
@@ -94,7 +94,7 @@ public class GameService {
             return;
         }
 
-        lobbyService.removeUser(session);
+        lobbyManager.removeUser(session);
         // If there is less than 2 left, end it
         if (game.getPlayers().size() < 2) {
             endGame(lobbyCode);

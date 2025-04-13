@@ -1,11 +1,15 @@
 package com.interloperServer.interloperServer.service;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
 import com.interloperServer.interloperServer.model.Game;
+import com.interloperServer.interloperServer.model.Location;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.Round;
 import com.interloperServer.interloperServer.model.RoundEndReason;
@@ -55,16 +59,20 @@ public class RoundService {
      */
     private void broadcastRoundStart(Game game) {
         Round newRound = game.getCurrentRound();
+        Location location = newRound.getLocation();
 
-        System.out.println("Starting braodcast");
+        List<String> roles = randomizeRoles(location.getRoles(), game.getPlayers().size() - 1);
+        int index = 0;
+
         for (Player player : game.getPlayers()) {
 
             if (!newRound.getSpy().equals(player)) {
                 messagingService.sendMessage(player.getSession(), messageFactory.newRound(
                         newRound.getRoundNumber(),
                         newRound.getRoundDuration(),
-                        "Player",
-                        newRound.getLocation()));
+                        roles.get(index),
+                        newRound.getLocation().getName()));
+                index++;
 
             } else {
                 messagingService.sendMessage(player.getSession(), messageFactory.newRound(
@@ -74,6 +82,24 @@ public class RoundService {
             }
 
         }
+    }
+
+    /*
+     *
+     * adds duplicates of roles if there are not enough for players, also shuffles
+     * the roles
+     */
+    private List<String> randomizeRoles(List<String> roles, int numPlayers) {
+        Random random = new Random();
+        List<String> newRoles = roles;
+
+        while (roles.size() < numPlayers) {
+            int randomIndex = random.nextInt(roles.size());
+            newRoles.add(roles.get(randomIndex));
+        }
+        Collections.shuffle(newRoles);
+
+        return newRoles;
     }
 
     /**
@@ -160,7 +186,7 @@ public class RoundService {
                 spyCaught,
                 spyGuessCorrect,
                 currentRound.getSpy().getUsername(),
-                currentRound.getLocation(),
+                currentRound.getLocation().getName(),
                 game.getScoreboard()));
     }
 
