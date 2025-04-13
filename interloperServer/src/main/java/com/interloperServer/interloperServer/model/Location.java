@@ -7,9 +7,12 @@ public class Location {
     private List<String> roles;
 
     public Location() {
+
+    }
+
+    public Location(String name, List<String> roles) {
         this.name = name;
         this.roles = roles;
-
     }
 
     public List<String> getRoles() {

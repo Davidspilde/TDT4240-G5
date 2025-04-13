@@ -44,9 +44,12 @@ class RoundServiceTest {
         game = mock(Game.class);
         round = mock(Round.class);
 
+        Location location = mock(Location.class);
+        when(location.getName()).thenReturn("Space Station");
+
         when(round.getSpy()).thenReturn(spyPlayer);
         when(round.getRoundNumber()).thenReturn(1);
-        when(round.getLocation()).thenReturn("Space Station");
+        when(round.getLocation()).thenReturn(location);
 
         when(game.getCurrentRound()).thenReturn(round);
         when(game.getPlayers()).thenReturn(List.of(spyPlayer, player1, player2));
@@ -75,9 +78,9 @@ class RoundServiceTest {
         when(game.getCurrentRound()).thenReturn(round);
         when(round.getRoundDuration()).thenReturn(90);
         when(round.getRoundNumber()).thenReturn(2);
-        when(round.getLocation()).thenReturn("Moon");
+        when(round.getLocation().getName()).thenReturn("Moon");
 
-        when(messageFactory.newRound(anyInt(), anyInt(), eq("Player"), anyString()))
+        when(messageFactory.newRound(anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(mock(NewRoundMessage.class));
         when(messageFactory.newRound(anyInt(), anyInt(), eq("Spy")))
                 .thenReturn(mock(NewRoundMessage.class));

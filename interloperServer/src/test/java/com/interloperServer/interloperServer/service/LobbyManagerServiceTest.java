@@ -15,12 +15,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@DisplayName("LobbyService Tests")
-public class LobbyServiceTest {
+@DisplayName("LobbyManagerService Tests")
+public class LobbyManagerServiceTest {
 
     private MessagingService messagingService;
     private GameMessageFactory messageFactory;
-    private LobbyService lobbyService;
+    private LobbyManagerService lobbyService;
+    private LobbyHostService lobbyHostservice;
     private WebSocketSession session;
 
     @BeforeEach
@@ -28,7 +29,8 @@ public class LobbyServiceTest {
         messagingService = mock(MessagingService.class);
         messageFactory = mock(GameMessageFactory.class);
         session = mock(WebSocketSession.class);
-        lobbyService = new LobbyService(messagingService, messageFactory);
+        lobbyHostservice = mock(LobbyHostService.class);
+        lobbyService = new LobbyManagerService(messagingService, messageFactory, lobbyHostservice);
     }
 
     @Test
@@ -92,10 +94,18 @@ public class LobbyServiceTest {
         optionsMsg.setSpyCount(2);
         optionsMsg.setLocationNumber(25);
         optionsMsg.setTimePerRound(150);
+
+        int roundLimit = optionsMsg.getRoundLimit();
+        int spyCount = optionsMsg.getSpyCount();
+        int locationNumber = optionsMsg.getLocationNumber();
+        int timePerRound = optionsMsg.getTimePerRound();
+        int maxPlayerCount = optionsMsg.getMaxPlayerCount();
+        Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
+
         optionsMsg.setMaxPlayerCount(6);
 
-        lobbyService.updateLobbyOptions(lobbyCode, optionsMsg);
-        LobbyOptions updatedOptions = lobbyService.getLobbyFromLobbyCode(lobbyCode).getLobbyOptions();
+        lobbyHostservice.updateLobbyOptions(lobby, roundLimit, spyCount, locationNumber, timePerRound, maxPlayerCount);
+        LobbyOptions updatedOptions = lobby.getLobbyOptions();
 
         assertEquals(5, updatedOptions.getRoundLimit());
         assertEquals(2, updatedOptions.getSpyCount());
@@ -114,4 +124,3 @@ public class LobbyServiceTest {
         assertFalse(lobbyService.isHost(lobbyCode, "notHost"));
     }
 }
-
