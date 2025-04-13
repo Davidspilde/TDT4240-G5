@@ -4,7 +4,7 @@ public interface WebSocketMessageHandler<T> {
 
     String getEvent(); // This needs to be unique
 
-    Class<T> GetMessageClass();
+    Class<T> getMessageClass();
 
     void handle(T message);
 }

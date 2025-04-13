@@ -4,9 +4,6 @@ import io.github.Spyfall.message.response.LobbyUpdateMessage;
 
 public class LobbyUpdateHandler implements WebSocketMessageHandler<LobbyUpdateMessage> {
 
-    public lobbyUpdateHandler() {
-    }
-
     @Override
     public String getEvent() {
         return "lobbyUpdate";
@@ -18,7 +15,8 @@ public class LobbyUpdateHandler implements WebSocketMessageHandler<LobbyUpdateMe
     }
 
     @Override
-    public void handle(RecieveMessage message, WebSocketSession session) {
+    public void handle(LobbyUpdateMessage message) {
 
     }
+
 }
