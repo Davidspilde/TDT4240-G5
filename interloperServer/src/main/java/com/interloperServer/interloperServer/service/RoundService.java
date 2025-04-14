@@ -100,6 +100,15 @@ public class RoundService {
         return newRoles;
     }
 
+    /**
+     * Initiates the spy's final chance to guess the location after being exposed.
+     * This method is called when the majority of players have voted and identified
+     * the spy.
+     * It performs the following actions:
+     *
+     * @param lobbyCode   the code of the lobby in which the game is taking place
+     * @param spyUsername the username of the player identified as the spy
+     */
     public void startSpyLastAttempt(String lobbyCode, String spyUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
@@ -184,7 +193,7 @@ public class RoundService {
         game.stopTimer();
 
         // Award points
-        awardPoints(game, spyGuessCorrect, spyUsername);
+        awardPoints(game, reason, spyGuessCorrect, spyUsername);
 
         // Broadcast end of round message
         messagingService.broadcastMessage(game.getLobby(), messageFactory.roundEnded(
@@ -206,9 +215,9 @@ public class RoundService {
      * @param spyGuessCorrect if the spy guessed the location
      * @param spyUsername     name of the spy
      */
-    private void awardPoints(Game game, boolean spyGuessCorrect, String spyUsername) {
-        if (spyGuessCorrect) {
-            // Spy guessed location correctly or didnt get caught
+    private void awardPoints(Game game, RoundEndReason reason, boolean spyGuessCorrect, String spyUsername) {
+        if (spyGuessCorrect || reason == RoundEndReason.TIMEOUT) {
+            // Spy guessed location correctly or there was a timeout
             game.updateScore(spyUsername, 1);
         }
 
