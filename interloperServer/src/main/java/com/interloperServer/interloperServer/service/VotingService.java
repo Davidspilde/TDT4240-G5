@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.interloperServer.interloperServer.model.Game;
 import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.Round;
+import com.interloperServer.interloperServer.model.RoundState;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
@@ -153,13 +154,16 @@ public class VotingService {
 
         // Otherwise we have a majority
         String spyUsername = currentRound.getSpy().getUsername();
-        boolean spyCaught = mostVoted.equals(spyUsername);
 
-        // Delegate awarding points and broadcasting
-        roundService.endRoundDueToVotes(lobbyCode, spyCaught, spyUsername);
+        // The spy gets on last attempt to guess the right location
+        roundService.startSpyLastAttempt(lobbyCode, spyUsername);
     }
 
     /**
+     * 
+     * 
+     * 
+     * /**
      * The spy guesses a location
      * 
      * @param lobbyCode   the lobby for the game
@@ -174,7 +178,7 @@ public class VotingService {
         Round currentRound = game.getCurrentRound();
 
         // Not legal to guess after round is over
-        if (currentRound.isVotingComplete()) {
+        if (!currentRound.isActive()) {
             return;
         }
 
@@ -188,7 +192,15 @@ public class VotingService {
         // Check if guess is correct
         boolean spyGuessedCorrectly = currentRound.getLocation().getName().equals(location);
 
-        roundService.endRoundDueToSpyGuess(lobbyCode, spyUsername, spyGuessedCorrectly);
+        // Checks if spy has been caught or not when voting
+        boolean caught;
+        if (currentRound.getRoundState() == RoundState.NORMAL) {
+            caught = false;
+        } else {
+            caught = true;
+        }
+
+        roundService.endRoundDueToGuess(lobbyCode, spyUsername, caught, spyGuessedCorrectly);
     }
 
 }

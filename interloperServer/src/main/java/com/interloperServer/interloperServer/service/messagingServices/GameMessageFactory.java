@@ -51,6 +51,11 @@ public class GameMessageFactory {
         return new GameCompleteMessage(scoreboard);
     }
 
+    public SpyLastAttemptMessage spyLastAttempt(String spyUsername, int duration) {
+        return new SpyLastAttemptMessage(spyUsername, duration);
+
+    }
+
     public GameMessage voted() {
         return new GameMessage("voted");
     }

@@ -100,6 +100,25 @@ public class RoundService {
         return newRoles;
     }
 
+    public void startSpyLastAttempt(String lobbyCode, String spyUsername) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null)
+            return;
+
+        int lastAttemtDuration = 30; // This could be a lobbyoption, so this is temporary
+        Round round = game.getCurrentRound();
+        round.setSpyLastAttempt();
+
+        // Sends message that the spy has been revealed and the lastAttempt timer has
+        // started
+        messagingService.broadcastMessage(game.getLobby(),
+                messageFactory.spyLastAttempt(spyUsername, lastAttemtDuration));
+
+        // Starts a new timer where the spy looses if there is a timeout
+        game.startTimer(lastAttemtDuration, () -> endRoundDueToGuess(lobbyCode, spyUsername, true, false));
+
+    }
+
     /**
      * Method called when the spy has guessed.
      * Ends the round, stops the timer
@@ -118,7 +137,8 @@ public class RoundService {
             return;
 
         RoundEndReason reason;
-        if (spyCaught && !spyGuessedCorrectly) {
+
+        if (spyGuessedCorrectly) {
             reason = RoundEndReason.SPY_GUESS;
         } else {
             reason = RoundEndReason.VOTES;
@@ -160,7 +180,7 @@ public class RoundService {
         if (currentRound == null) {
             return;
         }
-        currentRound.setVotingComplete();
+        currentRound.endRound();
         game.stopTimer();
 
         // Award points
