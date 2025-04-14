@@ -154,15 +154,18 @@ public class VotingService {
 
         // Otherwise we have a majority
         String spyUsername = currentRound.getSpy().getUsername();
+        boolean spyCaught = mostVoted.equals(spyUsername);
 
         // The spy gets on last attempt to guess the right location
-        roundService.startSpyLastAttempt(lobbyCode, spyUsername);
+        if (spyCaught) {
+            roundService.startSpyLastAttempt(lobbyCode, spyUsername);
+            return;
+        }
+        roundService.endRoundDueToWrongVote(lobbyCode, spyUsername);
+
     }
 
     /**
-     * 
-     * 
-     * 
      * /**
      * The spy guesses a location
      * 

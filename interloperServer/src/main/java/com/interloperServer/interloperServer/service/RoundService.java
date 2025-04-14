@@ -114,9 +114,9 @@ public class RoundService {
         if (game == null)
             return;
 
-        int lastAttemtDuration = 30; // This could be a lobbyoption, so this is temporary
         Round round = game.getCurrentRound();
         round.setSpyLastAttempt();
+        int lastAttemtDuration = game.getLobby().getLobbyOptions().getSpyLastAttemptTime();
 
         // Sends message that the spy has been revealed and the lastAttempt timer has
         // started
@@ -154,6 +154,15 @@ public class RoundService {
         }
 
         finalizeRound(game, reason, spyCaught, spyGuessedCorrectly, spyUsername);
+    }
+
+    public void endRoundDueToWrongVote(String lobbyCode, String spyUsername) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null)
+            return;
+
+        finalizeRound(game, RoundEndReason.WRONG_VOTE, false, false, spyUsername);
+
     }
 
     /**
@@ -216,7 +225,7 @@ public class RoundService {
      * @param spyUsername     name of the spy
      */
     private void awardPoints(Game game, RoundEndReason reason, boolean spyGuessCorrect, String spyUsername) {
-        if (spyGuessCorrect || reason == RoundEndReason.TIMEOUT) {
+        if (spyGuessCorrect || reason == RoundEndReason.TIMEOUT || reason == RoundEndReason.WRONG_VOTE) {
             // Spy guessed location correctly or there was a timeout
             game.updateScore(spyUsername, 1);
         }

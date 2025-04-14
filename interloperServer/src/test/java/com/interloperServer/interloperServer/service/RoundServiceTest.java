@@ -101,6 +101,13 @@ class RoundServiceTest {
         when(gameManagerService.getGame("ABC")).thenReturn(game);
         when(game.getCurrentRound()).thenReturn(round);
 
+        Lobby lobby = mock(Lobby.class);
+        LobbyOptions lobbyOptions = mock(LobbyOptions.class);
+
+        when(game.getLobby()).thenReturn(lobby);
+        when(lobby.getLobbyOptions()).thenReturn(lobbyOptions);
+        when(lobbyOptions.getSpyLastAttemptTime()).thenReturn(30);
+
         roundService.startSpyLastAttempt("ABC", "spy");
 
         verify(round).setSpyLastAttempt();
