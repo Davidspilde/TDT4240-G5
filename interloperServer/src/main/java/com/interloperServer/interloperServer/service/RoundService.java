@@ -184,7 +184,7 @@ public class RoundService {
         game.stopTimer();
 
         // Award points
-        awardPoints(game, spyCaught, spyGuessCorrect, spyUsername);
+        awardPoints(game, spyGuessCorrect, spyUsername);
 
         // Broadcast end of round message
         messagingService.broadcastMessage(game.getLobby(), messageFactory.roundEnded(
@@ -206,8 +206,8 @@ public class RoundService {
      * @param spyGuessCorrect if the spy guessed the location
      * @param spyUsername     name of the spy
      */
-    private void awardPoints(Game game, boolean spyCaught, boolean spyGuessCorrect, String spyUsername) {
-        if (spyGuessCorrect || !spyCaught) {
+    private void awardPoints(Game game, boolean spyGuessCorrect, String spyUsername) {
+        if (spyGuessCorrect) {
             // Spy guessed location correctly or didnt get caught
             game.updateScore(spyUsername, 1);
         }
