@@ -96,7 +96,7 @@ public class GameService {
 
         lobbyManager.removeUser(session);
         // If there is less than 2 left, end it
-        if (game.getPlayers().size() < 2) {
+        if (game.getPlayers().size() < 3) {
             endGame(lobbyCode);
         }
     }

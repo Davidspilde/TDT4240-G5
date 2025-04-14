@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,7 @@ class RoundServiceTest {
         when(game.getPlayers()).thenReturn(List.of(spyPlayer, player1, player2));
         when(game.getLobby()).thenReturn(mock(Lobby.class));
         when(game.getScoreboard()).thenReturn(Map.of("spy", 0, "p1", 0, "p2", 0));
+
     }
 
     @Test
@@ -79,6 +81,7 @@ class RoundServiceTest {
         when(round.getRoundDuration()).thenReturn(90);
         when(round.getRoundNumber()).thenReturn(2);
         when(round.getLocation().getName()).thenReturn("Moon");
+        when(round.getLocation().getRoles()).thenReturn(Arrays.asList("1", "2", "3"));
 
         when(messageFactory.newRound(anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(mock(NewRoundMessage.class));

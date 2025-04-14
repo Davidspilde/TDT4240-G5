@@ -89,7 +89,8 @@ class GameServiceTest {
         when(lobby.getHost()).thenReturn(new Player(null, "Alice"));
         when(lobby.getPlayers()).thenReturn(List.of(
                 new Player(null, "Alice"),
-                new Player(null, "Bob")));
+                new Player(null, "Bob"),
+                new Player(null, "John")));
         when(lobby.getLobbyCode()).thenReturn("XYZ");
         when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120));
         when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(lobby);
@@ -99,6 +100,8 @@ class GameServiceTest {
 
         GameMessage mockGameMessage = mock(GameMessage.class);
         when(messageFactory.gameStarted()).thenReturn(mockGameMessage);
+
+        gameService.startGame(lobby.getHost().getUsername(), lobby.getLobbyCode(), session);
 
         verify(gameManagerService).storeGame(eq("XYZ"), any(Game.class));
         verify(messagingService).broadcastMessage(eq(lobby), eq(mockGameMessage));

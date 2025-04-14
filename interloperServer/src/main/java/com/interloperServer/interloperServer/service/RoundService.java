@@ -89,11 +89,11 @@ public class RoundService {
      * adds duplicates of roles if there are not enough for players, also shuffles
      * the roles
      */
-    private List<String> randomizeRoles(List<String> roles, int numPlayers) {
+    protected List<String> randomizeRoles(List<String> roles, int numPlayers) {
         Random random = new Random();
         List<String> newRoles = roles;
 
-        while (roles.size() < numPlayers) {
+        while (newRoles.size() < numPlayers) {
             int randomIndex = random.nextInt(roles.size());
             newRoles.add(roles.get(randomIndex));
         }

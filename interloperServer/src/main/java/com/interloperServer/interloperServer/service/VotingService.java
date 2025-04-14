@@ -186,7 +186,7 @@ public class VotingService {
         }
 
         // Check if guess is correct
-        boolean spyGuessedCorrectly = currentRound.getLocation().equals(location);
+        boolean spyGuessedCorrectly = currentRound.getLocation().getName().equals(location);
 
         roundService.endRoundDueToSpyGuess(lobbyCode, spyUsername, spyGuessedCorrectly);
     }

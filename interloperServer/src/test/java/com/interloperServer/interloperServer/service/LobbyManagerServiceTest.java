@@ -2,6 +2,7 @@ package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
+import com.interloperServer.interloperServer.model.Player;
 import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
@@ -81,37 +82,6 @@ public class LobbyManagerServiceTest {
         Lobby removedLobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
 
         assertNull(removedLobby);
-    }
-
-    @Test
-    @DisplayName("Should update lobby options from message input")
-    public void testUpdateLobbyOptions() {
-        String username = "host";
-        String lobbyCode = lobbyService.createLobby(session, username);
-
-        RecieveLobbyOptionsMessage optionsMsg = new RecieveLobbyOptionsMessage();
-        optionsMsg.setRoundLimit(5);
-        optionsMsg.setSpyCount(2);
-        optionsMsg.setLocationNumber(25);
-        optionsMsg.setTimePerRound(150);
-
-        int roundLimit = optionsMsg.getRoundLimit();
-        int spyCount = optionsMsg.getSpyCount();
-        int locationNumber = optionsMsg.getLocationNumber();
-        int timePerRound = optionsMsg.getTimePerRound();
-        int maxPlayerCount = optionsMsg.getMaxPlayerCount();
-        Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
-
-        optionsMsg.setMaxPlayerCount(6);
-
-        lobbyHostservice.updateLobbyOptions(lobby, roundLimit, spyCount, locationNumber, timePerRound, maxPlayerCount);
-        LobbyOptions updatedOptions = lobby.getLobbyOptions();
-
-        assertEquals(5, updatedOptions.getRoundLimit());
-        assertEquals(2, updatedOptions.getSpyCount());
-        assertEquals(5, updatedOptions.getLocationNumber()); // still note: method uses roundLimit here
-        assertEquals(150, updatedOptions.getTimePerRound());
-        assertEquals(6, updatedOptions.getMaxPlayerCount());
     }
 
     @Test

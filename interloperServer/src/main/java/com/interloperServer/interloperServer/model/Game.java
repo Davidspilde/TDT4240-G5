@@ -142,14 +142,14 @@ public class Game {
 
     private Player chooseRandomSpy(List<Player> players) {
         Random random = new Random();
-        int index = random.nextInt(0, players.size() - 1);
+        int index = random.nextInt(0, players.size());
 
         return players.get(index);
     }
 
     private Location chooseRandomLocation(List<Location> locations) {
         Random random = new Random();
-        int index = random.nextInt(0, locations.size() - 1);
+        int index = random.nextInt(0, locations.size());
 
         return locations.get(index);
     }

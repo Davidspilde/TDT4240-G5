@@ -166,7 +166,8 @@ class VotingServiceTest {
     void testSpyGuess_CorrectGuess() {
         when(round.isVotingComplete()).thenReturn(false);
         when(round.getSpy()).thenReturn(spy);
-
+        when(round.getLocation()).thenReturn(mockLocation);
+        when(mockLocation.getName()).thenReturn("Airport");
         votingService.castSpyGuess("LOBBY", "spy", "Airport");
 
         verify(roundService).endRoundDueToSpyGuess(eq("LOBBY"), eq("spy"), eq(true));
