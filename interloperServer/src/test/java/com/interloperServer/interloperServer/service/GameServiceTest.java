@@ -1,5 +1,4 @@
 package com.interloperServer.interloperServer.service;
-
 import com.interloperServer.interloperServer.model.*;
 import com.interloperServer.interloperServer.model.messages.outgoing.GameMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
@@ -92,7 +91,7 @@ class GameServiceTest {
                 new Player(null, "Bob"),
                 new Player(null, "John")));
         when(lobby.getLobbyCode()).thenReturn("XYZ");
-        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120));
+        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120,45));
         when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(lobby);
         when(lobby.getLocations()).thenReturn(List.of(
                 new Location("Beach", List.of("Surfer", "Lifeguard")),

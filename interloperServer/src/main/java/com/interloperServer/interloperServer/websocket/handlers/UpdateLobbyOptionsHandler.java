@@ -36,9 +36,10 @@ public class UpdateLobbyOptionsHandler implements WebSocketMessageHandler<Reciev
         int spyCount = message.getSpyCount();
         int locationNumber = message.getLocationNumber();
         int timePerRound = message.getTimePerRound();
-        int maxPlayerCOunt = message.getMaxPlayerCount();
+        int maxPlayerCount = message.getMaxPlayerCount();
+        int spyLastAttemptTime = message.getSpyLastAttemptTime();
 
         hostService.updateLobbyOptions(lobby, roundLimit, spyCount, locationNumber, timePerRound,
-                maxPlayerCOunt);
+                maxPlayerCount, spyLastAttemptTime);
     }
 }

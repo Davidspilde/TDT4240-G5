@@ -6,8 +6,17 @@ public class RecieveLobbyOptionsMessage extends RecieveMessage {
     private int spyCount;
     private int maxPlayerCount;
     private int timePerRound;
+    private int spyLastAttemptTime;
 
     public RecieveLobbyOptionsMessage() {
+    }
+
+    public int getSpyLastAttemptTime() {
+        return spyLastAttemptTime;
+    }
+
+    public void setSpyLastAttemptTime(int spyLastAttemptTime) {
+        this.spyLastAttemptTime = spyLastAttemptTime;
     }
 
     public int getRoundLimit() {
