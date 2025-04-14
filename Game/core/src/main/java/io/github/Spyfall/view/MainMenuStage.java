@@ -135,7 +135,6 @@ public class MainMenuStage extends StageView {
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
-                    System.out.println("show");
                     showNoLobbyDialog(lobbyCode);
                 }
             }
@@ -165,7 +164,6 @@ public class MainMenuStage extends StageView {
     }
 
     private void showNoLobbyDialog(String lobbyCode) {
-        System.out.println("inside");
         Dialog dialog = new Dialog("No lobby with code "+lobbyCode+ " found",skin,"dialog") {
             @Override
             public void result(Object obj){
