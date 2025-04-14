@@ -135,7 +135,8 @@ public class MainMenuStage extends StageView {
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
-                    controller.onJoinLobby(usernameString, lobbyCode);
+                    System.out.println("show");
+                    showNoLobbyDialog(lobbyCode);
                 }
             }
         };
@@ -160,6 +161,25 @@ public class MainMenuStage extends StageView {
         dialog.show(stage);
         dialog.pack(); // for calculating layout libgdx stuff
 
+        dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+    }
+
+    private void showNoLobbyDialog(String lobbyCode) {
+        System.out.println("inside");
+        Dialog dialog = new Dialog("No lobby with code "+lobbyCode+ " found",skin,"dialog") {
+            @Override
+            public void result(Object obj){
+                audioService.playSound("click");
+            }
+        };
+
+        dialog.getTitleTable().padTop(20f);
+        dialog.getTitleTable().padBottom(5f);
+
+        dialog.button("Ok",true);
+        dialog.key(Input.Keys.ENTER, true);
+        dialog.show(stage);
+        dialog.pack();
         dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
     }
 
