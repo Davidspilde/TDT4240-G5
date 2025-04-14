@@ -1,9 +1,7 @@
 package com.interloperServer.interloperServer.service;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.springframework.stereotype.Service;
@@ -103,26 +101,6 @@ public class RoundService {
     }
 
     /**
-     * Method called when a majority of votes has been reachd.
-     * Ends the round, stops the timer
-     * Calling this means that a majority is reached, which may or may not be the
-     * spy
-     * Spy gets point if majority is not for spy
-     * Players get points if majority is for spy
-     * 
-     * @param lobbyCode
-     * @param spyCaught
-     * @param spyUsername
-     */
-    public void endRoundDueToVotes(String lobbyCode, boolean spyCaught, String spyUsername) {
-        Game game = gameManagerService.getGame(lobbyCode);
-        if (game == null)
-            return;
-
-        finalizeRound(game, RoundEndReason.VOTES, spyCaught, false, spyUsername);
-    }
-
-    /**
      * Method called when the spy has guessed.
      * Ends the round, stops the timer
      * Calling this means that the spy has guessed location
@@ -131,13 +109,22 @@ public class RoundService {
      * @param lobbyCode
      * @param spyUsername
      * @param spyGuessedCorrectly
+     * @param spyCaught
      */
-    public void endRoundDueToSpyGuess(String lobbyCode, String spyUsername, boolean spyGuessedCorrectly) {
+    public void endRoundDueToGuess(String lobbyCode, String spyUsername, boolean spyCaught,
+            boolean spyGuessedCorrectly) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
 
-        finalizeRound(game, RoundEndReason.SPY_GUESS, false, spyGuessedCorrectly, spyUsername);
+        RoundEndReason reason;
+        if (spyCaught && !spyGuessedCorrectly) {
+            reason = RoundEndReason.SPY_GUESS;
+        } else {
+            reason = RoundEndReason.VOTES;
+        }
+
+        finalizeRound(game, reason, spyCaught, spyGuessedCorrectly, spyUsername);
     }
 
     /**
@@ -200,12 +187,12 @@ public class RoundService {
      * @param spyUsername     name of the spy
      */
     private void awardPoints(Game game, boolean spyCaught, boolean spyGuessCorrect, String spyUsername) {
-        if (spyGuessCorrect) {
-            // Spy guessed location correctly
+        if (spyGuessCorrect || !spyCaught) {
+            // Spy guessed location correctly or didnt get caught
             game.updateScore(spyUsername, 1);
         }
 
-        if (spyCaught) {
+        else {
             // Everyone except spy gets 1 point
             for (Player p : game.getPlayers()) {
                 if (!p.getUsername().equals(spyUsername)) {
@@ -214,10 +201,6 @@ public class RoundService {
             }
         }
 
-        if (!spyCaught && !spyGuessCorrect) {
-            // If we get here, spy wasn't caught, spy didn't guess or guessed incorrectly
-            game.updateScore(spyUsername, 1);
-        }
     }
 
 }
