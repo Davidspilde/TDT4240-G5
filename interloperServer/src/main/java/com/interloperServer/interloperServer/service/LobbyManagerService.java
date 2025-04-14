@@ -6,7 +6,6 @@ import org.springframework.web.socket.WebSocketSession;
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.Player;
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
@@ -17,16 +16,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class for handling lobby-related logic.
  */
 @Service
-public class LobbyService {
+public class LobbyManagerService {
     private final MessagingService messagingService;
     private final GameMessageFactory messageFactory;
+    private final LobbyHostService lobbyHostService;
 
     // Stores lobbies by their unique code
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
-    public LobbyService(MessagingService messagingService, GameMessageFactory messageFactory) {
+    public LobbyManagerService(MessagingService messagingService, GameMessageFactory messageFactory,
+            LobbyHostService lobbyHostService) {
         this.messagingService = messagingService;
         this.messageFactory = messageFactory;
+        this.lobbyHostService = lobbyHostService;
     }
 
     /**
@@ -52,6 +54,8 @@ public class LobbyService {
 
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.put(lobbyCode, newLobby);
+
+        lobbyHostService.setInitialLocations(newLobby);
 
         messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
 
@@ -170,16 +174,6 @@ public class LobbyService {
     public List<Player> getPlayersInLobby(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
         return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
-    }
-
-    public void updateLobbyOptions(String lobbycode, RecieveLobbyOptionsMessage newOptions) {
-        LobbyOptions lobbyOptions = getLobbyFromLobbyCode(lobbycode).getLobbyOptions();
-
-        lobbyOptions.setRoundLimit(newOptions.getRoundLimit());
-        lobbyOptions.setSpyCount(newOptions.getSpyCount());
-        lobbyOptions.setLocationNumber(newOptions.getRoundLimit());
-        lobbyOptions.setTimePerRound(newOptions.getTimePerRound());
-        lobbyOptions.setMaxPlayerCount(newOptions.getMaxPlayerCount());
     }
 
     public Lobby getLobbyFromLobbyCode(String lobbyCode) {

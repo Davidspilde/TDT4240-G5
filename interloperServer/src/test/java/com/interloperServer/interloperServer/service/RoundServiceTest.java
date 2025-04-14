@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -44,14 +45,18 @@ class RoundServiceTest {
         game = mock(Game.class);
         round = mock(Round.class);
 
+        Location location = mock(Location.class);
+        when(location.getName()).thenReturn("Space Station");
+
         when(round.getSpy()).thenReturn(spyPlayer);
         when(round.getRoundNumber()).thenReturn(1);
-        when(round.getLocation()).thenReturn("Space Station");
+        when(round.getLocation()).thenReturn(location);
 
         when(game.getCurrentRound()).thenReturn(round);
         when(game.getPlayers()).thenReturn(List.of(spyPlayer, player1, player2));
         when(game.getLobby()).thenReturn(mock(Lobby.class));
         when(game.getScoreboard()).thenReturn(Map.of("spy", 0, "p1", 0, "p2", 0));
+
     }
 
     @Test
@@ -75,9 +80,10 @@ class RoundServiceTest {
         when(game.getCurrentRound()).thenReturn(round);
         when(round.getRoundDuration()).thenReturn(90);
         when(round.getRoundNumber()).thenReturn(2);
-        when(round.getLocation()).thenReturn("Moon");
+        when(round.getLocation().getName()).thenReturn("Moon");
+        when(round.getLocation().getRoles()).thenReturn(Arrays.asList("1", "2", "3"));
 
-        when(messageFactory.newRound(anyInt(), anyInt(), eq("Player"), anyString()))
+        when(messageFactory.newRound(anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(mock(NewRoundMessage.class));
         when(messageFactory.newRound(anyInt(), anyInt(), eq("Spy")))
                 .thenReturn(mock(NewRoundMessage.class));

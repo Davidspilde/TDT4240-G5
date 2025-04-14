@@ -3,7 +3,7 @@ package com.interloperServer.interloperServer.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
-import com.interloperServer.interloperServer.service.LobbyService;
+import com.interloperServer.interloperServer.service.LobbyManagerService;
 import com.interloperServer.interloperServer.websocket.handlers.WebSocketMessageHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ public class GameWebSocketHandlerTest {
     private MessageDispatcher dispatcher;
     private GameWebSocketHandler handler;
     private GameService gameService;
-    private LobbyService lobbyService;
+    private LobbyManagerService lobbyService;
     private GameManagerService gameManagerService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -34,7 +34,7 @@ public class GameWebSocketHandlerTest {
         mockHandler = mock(WebSocketMessageHandler.class);
         mockSession = mock(WebSocketSession.class);
         gameService = mock(GameService.class);
-        lobbyService = mock(LobbyService.class);
+        lobbyService = mock(LobbyManagerService.class);
         gameManagerService = mock(GameManagerService.class);
 
         when(mockHandler.getType()).thenReturn("testEvent");

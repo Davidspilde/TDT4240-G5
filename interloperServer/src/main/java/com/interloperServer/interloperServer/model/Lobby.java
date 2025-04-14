@@ -13,6 +13,7 @@ public class Lobby {
     private LobbyOptions lobbyOptions;
     private String lobbyCode;
     private List<Player> players;
+    private List<Location> locations;
 
     public Lobby(String lobbyCode, Player host, LobbyOptions lobbyOptions) {
         this.lobbyCode = lobbyCode;
@@ -35,6 +36,22 @@ public class Lobby {
 
     public synchronized void setHost(Player host) {
         this.host = host;
+    }
+
+    public List<Location> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
+    }
+
+    public void addLocation(Location location) {
+        locations.add(location);
+    }
+
+    public void removeLocation(Location location) {
+        locations.remove(location);
     }
 
     public LobbyOptions getLobbyOptions() {
