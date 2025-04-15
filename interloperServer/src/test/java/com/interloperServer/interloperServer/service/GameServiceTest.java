@@ -1,4 +1,5 @@
 package com.interloperServer.interloperServer.service;
+
 import com.interloperServer.interloperServer.model.*;
 import com.interloperServer.interloperServer.model.messages.outgoing.GameMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
@@ -11,7 +12,6 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @DisplayName("GameService Tests")
@@ -91,7 +91,7 @@ class GameServiceTest {
                 new Player(null, "Bob"),
                 new Player(null, "John")));
         when(lobby.getLobbyCode()).thenReturn("XYZ");
-        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120,45));
+        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120, 45));
         when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(lobby);
         when(lobby.getLocations()).thenReturn(List.of(
                 new Location("Beach", List.of("Surfer", "Lifeguard")),
@@ -112,6 +112,7 @@ class GameServiceTest {
     void handlePlayerDisconnect_ShouldEndGame_IfTooFewPlayers() {
         Game game = mock(Game.class);
         when(game.getPlayers()).thenReturn(Collections.singletonList(mock(Player.class)));
+        when(game.getLobby()).thenReturn(mock(Lobby.class));
         when(gameManagerService.getGame("XYZ")).thenReturn(game);
 
         gameService.handlePlayerDisconnect(mock(WebSocketSession.class), "XYZ");

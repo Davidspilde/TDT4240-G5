@@ -3,21 +3,21 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.interloperServer.interloperServer.service.GameService;
+import com.interloperServer.interloperServer.service.LobbyManagerService;
 import com.interloperServer.interloperServer.model.messages.incomming.RecieveMessage;
 
 @Component
-public class hostEndGameHandler implements WebSocketMessageHandler<RecieveMessage> {
+public class LeaveLobbyHandler implements WebSocketMessageHandler<RecieveMessage> {
 
-    private final GameService gameService;
+    private final LobbyManagerService lobbyManager;
 
-    public hostEndGameHandler(GameService gameService) {
-        this.gameService = gameService;
+    public LeaveLobbyHandler(LobbyManagerService lobbyManager) {
+        this.lobbyManager = lobbyManager;
     }
 
     @Override
     public String getType() {
-        return "endGame";
+        return "leaveLobby";
     }
 
     @Override
@@ -27,6 +27,6 @@ public class hostEndGameHandler implements WebSocketMessageHandler<RecieveMessag
 
     @Override
     public void handle(RecieveMessage message, WebSocketSession session) {
-        gameService.hostEndOngoingGame(message.getLobbyCode(), message.getUsername(), session);
+        lobbyManager.leaveLobby(session, message.getLobbyCode(), message.getUsername());
     }
 }

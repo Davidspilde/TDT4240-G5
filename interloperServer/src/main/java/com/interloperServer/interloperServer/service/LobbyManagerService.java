@@ -102,6 +102,25 @@ public class LobbyManagerService {
         return true;
     }
 
+    public boolean leaveLobby(WebSocketSession session, String lobbyCode, String username) {
+        Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
+
+        // Check for non-existent lobby
+        if (lobby == null) {
+            messagingService.sendMessage(session, messageFactory.error("Lobby not found!"));
+            return false;
+        }
+        if (lobby.getGameActive()) {
+            messagingService.sendMessage(session, messageFactory.error("Cannot leave while game is active"));
+            return false;
+        }
+
+        removeUser(session);
+
+        return true;
+
+    }
+
     /**
      * Checks if the user is the host of the lobby.
      */
@@ -151,6 +170,9 @@ public class LobbyManagerService {
                 lobbies.remove(targetLobby.getLobbyCode());
             }
         }
+
+        // Broadcasts changes in the lobby
+        broadcastPlayerList(targetLobby.getLobbyCode());
     }
 
     /**

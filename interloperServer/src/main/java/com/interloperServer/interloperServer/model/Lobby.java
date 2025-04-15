@@ -10,6 +10,8 @@ import org.springframework.web.socket.WebSocketSession;
 public class Lobby {
 
     private Player host;
+    private Boolean gameActive;
+
     private LobbyOptions lobbyOptions;
     private String lobbyCode;
     private List<Player> players;
@@ -20,6 +22,7 @@ public class Lobby {
         this.host = host;
         this.lobbyOptions = lobbyOptions;
         this.players = Collections.synchronizedList(new ArrayList<Player>(Arrays.asList(host)));
+        this.gameActive = false;
     }
 
     public String getLobbyCode() {
@@ -42,16 +45,24 @@ public class Lobby {
         return locations;
     }
 
-    public void setLocations(List<Location> locations) {
+    public synchronized void setLocations(List<Location> locations) {
         this.locations = locations;
     }
 
-    public void addLocation(Location location) {
+    public synchronized void addLocation(Location location) {
         locations.add(location);
     }
 
     public void removeLocation(Location location) {
         locations.remove(location);
+    }
+
+    public Boolean getGameActive() {
+        return gameActive;
+    }
+
+    public void setGameActive(Boolean gameActive) {
+        this.gameActive = gameActive;
     }
 
     public LobbyOptions getLobbyOptions() {
