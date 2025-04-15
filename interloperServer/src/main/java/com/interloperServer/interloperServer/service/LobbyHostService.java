@@ -11,7 +11,11 @@ import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.Location;
 
-/*Contains all Host-only related logiContains all Host-only related logicc*/
+/*Contains all Host-only related logic
+ *
+ * Might rename this so to be host generally rather than only lobby, since host should be able to end game.
+ * */
+
 @Service
 public class LobbyHostService {
 
