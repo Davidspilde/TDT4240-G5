@@ -19,7 +19,7 @@ public class LobbyHostService {
     }
 
     public void updateLobbyOptions(Lobby lobby, int roundLimit, int spyCount, int locationNumber, int TimePerRound,
-            int maxPlayerCount) {
+            int maxPlayerCount, int spyLastAttemptTime) {
         LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
         lobbyOptions.setRoundLimit(roundLimit);
@@ -27,6 +27,7 @@ public class LobbyHostService {
         lobbyOptions.setLocationNumber(locationNumber);
         lobbyOptions.setTimePerRound(TimePerRound);
         lobbyOptions.setMaxPlayerCount(maxPlayerCount);
+        lobbyOptions.setSpyLastAttemptTime(spyLastAttemptTime);
     }
 
     public void setLocations(Lobby lobby, List<Location> locations) {

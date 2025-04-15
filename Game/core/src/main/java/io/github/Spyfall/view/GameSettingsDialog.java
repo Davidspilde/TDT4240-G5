@@ -101,13 +101,17 @@ public class GameSettingsDialog extends Dialog {
             int roundLimit = Integer.parseInt(roundLimitField.getText());
             int maxPlayers = Integer.parseInt(maxPlayersField.getText());
 
+            // Need to make setting for spylastAttemptTime
+            int spyLastAttemptTime = 60;
+
             // Validate input ranges
             roundTime = Math.max(1, Math.min(10, roundTime));
             spyCount = Math.max(1, Math.min(5, spyCount));
             roundLimit = Math.max(1, Math.min(10, roundLimit));
             maxPlayers = Math.max(4, Math.min(10, maxPlayers));
 
-            sendMessageService.updateLobbyOptions(username, lobbyCode, roundLimit, spyCount, maxPlayers, roundTime * 60);
+            sendMessageService.updateLobbyOptions(username, lobbyCode, roundLimit, spyCount, maxPlayers, roundTime * 60,
+                    spyLastAttemptTime);
             hide();
         } catch (NumberFormatException e) {
             // Handle invalid input
@@ -118,14 +122,14 @@ public class GameSettingsDialog extends Dialog {
     private void startGame() {
         // First save the settings
         saveSettings();
-        
+
         // Send start game message
         sendMessageService.startGame(username, lobbyCode);
-        
+
         // Update game state
         gameModel.setCurrentState(GameState.IN_GAME);
-        
+
         // Hide the dialog
         hide();
     }
-} 
+}

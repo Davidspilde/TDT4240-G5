@@ -1,9 +1,7 @@
 package com.interloperServer.interloperServer.service;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.springframework.stereotype.Service;
@@ -103,23 +101,31 @@ public class RoundService {
     }
 
     /**
-     * Method called when a majority of votes has been reachd.
-     * Ends the round, stops the timer
-     * Calling this means that a majority is reached, which may or may not be the
-     * spy
-     * Spy gets point if majority is not for spy
-     * Players get points if majority is for spy
-     * 
-     * @param lobbyCode
-     * @param spyCaught
-     * @param spyUsername
+     * Initiates the spy's final chance to guess the location after being exposed.
+     * This method is called when the majority of players have voted and identified
+     * the spy.
+     * It performs the following actions:
+     *
+     * @param lobbyCode   the code of the lobby in which the game is taking place
+     * @param spyUsername the username of the player identified as the spy
      */
-    public void endRoundDueToVotes(String lobbyCode, boolean spyCaught, String spyUsername) {
+    public void startSpyLastAttempt(String lobbyCode, String spyUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
 
-        finalizeRound(game, RoundEndReason.VOTES, spyCaught, false, spyUsername);
+        Round round = game.getCurrentRound();
+        round.setSpyLastAttempt();
+        int lastAttemtDuration = game.getLobby().getLobbyOptions().getSpyLastAttemptTime();
+
+        // Sends message that the spy has been revealed and the lastAttempt timer has
+        // started
+        messagingService.broadcastMessage(game.getLobby(),
+                messageFactory.spyLastAttempt(spyUsername, lastAttemtDuration));
+
+        // Starts a new timer where the spy looses if there is a timeout
+        game.startTimer(lastAttemtDuration, () -> endRoundDueToGuess(lobbyCode, spyUsername, true, false));
+
     }
 
     /**
@@ -131,13 +137,32 @@ public class RoundService {
      * @param lobbyCode
      * @param spyUsername
      * @param spyGuessedCorrectly
+     * @param spyCaught
      */
-    public void endRoundDueToSpyGuess(String lobbyCode, String spyUsername, boolean spyGuessedCorrectly) {
+    public void endRoundDueToGuess(String lobbyCode, String spyUsername, boolean spyCaught,
+            boolean spyGuessedCorrectly) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
 
-        finalizeRound(game, RoundEndReason.SPY_GUESS, false, spyGuessedCorrectly, spyUsername);
+        RoundEndReason reason;
+
+        if (spyGuessedCorrectly) {
+            reason = RoundEndReason.SPY_GUESS;
+        } else {
+            reason = RoundEndReason.VOTES;
+        }
+
+        finalizeRound(game, reason, spyCaught, spyGuessedCorrectly, spyUsername);
+    }
+
+    public void endRoundDueToWrongVote(String lobbyCode, String spyUsername) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null)
+            return;
+
+        finalizeRound(game, RoundEndReason.WRONG_VOTE, false, false, spyUsername);
+
     }
 
     /**
@@ -173,11 +198,11 @@ public class RoundService {
         if (currentRound == null) {
             return;
         }
-        currentRound.setVotingComplete();
+        currentRound.endRound();
         game.stopTimer();
 
         // Award points
-        awardPoints(game, spyCaught, spyGuessCorrect, spyUsername);
+        awardPoints(game, reason, spyGuessCorrect, spyUsername);
 
         // Broadcast end of round message
         messagingService.broadcastMessage(game.getLobby(), messageFactory.roundEnded(
@@ -199,13 +224,13 @@ public class RoundService {
      * @param spyGuessCorrect if the spy guessed the location
      * @param spyUsername     name of the spy
      */
-    private void awardPoints(Game game, boolean spyCaught, boolean spyGuessCorrect, String spyUsername) {
-        if (spyGuessCorrect) {
-            // Spy guessed location correctly
+    private void awardPoints(Game game, RoundEndReason reason, boolean spyGuessCorrect, String spyUsername) {
+        if (spyGuessCorrect || reason == RoundEndReason.TIMEOUT || reason == RoundEndReason.WRONG_VOTE) {
+            // Spy guessed location correctly or there was a timeout
             game.updateScore(spyUsername, 1);
         }
 
-        if (spyCaught) {
+        else {
             // Everyone except spy gets 1 point
             for (Player p : game.getPlayers()) {
                 if (!p.getUsername().equals(spyUsername)) {
@@ -214,10 +239,6 @@ public class RoundService {
             }
         }
 
-        if (!spyCaught && !spyGuessCorrect) {
-            // If we get here, spy wasn't caught, spy didn't guess or guessed incorrectly
-            game.updateScore(spyUsername, 1);
-        }
     }
 
 }

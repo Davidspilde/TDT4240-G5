@@ -8,33 +8,34 @@ public class LobbyController {
     private MainController mainController;
     private SendMessageService sendMessageService;
     private GameModel gameModel;
-    
+
     public LobbyController(MainController mainController) {
         this.mainController = mainController;
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstance();
     }
-    
+
     public void createLobby(String username) {
         gameModel.setUsername(username);
-        
+
         boolean success = sendMessageService.createLobby(username);
         if (success) {
             // Wait for server response in ReceiveMessageService
             // It will update the model when we get a lobbyCreated response
         }
     }
-    
-    public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound) {
+
+    public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
+            int spyLastAttemptTime) {
         boolean success = sendMessageService.updateLobbyOptions(
-            gameModel.getUsername(),
-            gameModel.getLobbyCode(),
-            roundLimit,
-            locationNumber,
-            maxPlayers,
-            timePerRound
-        );
-        
+                gameModel.getUsername(),
+                gameModel.getLobbyCode(),
+                roundLimit,
+                locationNumber,
+                maxPlayers,
+                timePerRound,
+                spyLastAttemptTime);
+
         if (success) {
             // Update local model immediately, it will be confirmed by server response
             gameModel.getLobbyData().setRoundLimit(roundLimit);
@@ -43,15 +44,14 @@ public class LobbyController {
             gameModel.getLobbyData().setTimePerRound(timePerRound);
         }
     }
-    
+
     public void startGame() {
         boolean success = sendMessageService.startGame(
-        gameModel.getUsername(),
-        gameModel.getLobbyCode()
-        );
+                gameModel.getUsername(),
+                gameModel.getLobbyCode());
         // transition happens when server responds with ok
     }
-    
+
     public void leaveLobby() {
         // Send leave lobby request to server
         gameModel.setCurrentState(GameState.MAIN_MENU);
