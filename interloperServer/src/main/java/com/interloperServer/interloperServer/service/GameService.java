@@ -203,7 +203,9 @@ public class GameService {
         if (game == null)
             return;
 
+        game.getLobby().setGameActive(false);
         gameManagerService.removeGame(lobbyCode);
+
         messagingService.broadcastMessage(game.getLobby(), messageFactory.gameEnded());
     }
 

@@ -16,6 +16,8 @@ public class Game {
 
     public Game(Lobby lobby) {
         this.lobby = lobby;
+        this.lobby.setGameActive(true);
+
         this.scoreboard = new HashMap<>();
         this.isActive = true;
         this.currentRoundIndex = 0;
