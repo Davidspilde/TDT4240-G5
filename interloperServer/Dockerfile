@@ -6,4 +6,4 @@ COPY . .
 RUN ./gradlew build
 
 # Use the generated JAR (adjust path if needed)
-CMD ["java", "-jar", "build/libs/interloperServer-0.0.1-SNAPSHOT.jar "]
+CMD ["java", "-jar", "build/libs/app.jar"]
