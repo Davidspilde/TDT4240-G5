@@ -207,4 +207,19 @@ public class GameService {
         messagingService.broadcastMessage(game.getLobby(), messageFactory.gameEnded());
     }
 
+    // Host can end game prematurly
+    public void hostEndOngoingGame(String lobbyCode, String username, WebSocketSession session) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null) {
+            return;
+        }
+
+        if (!game.getLobby().getHost().getUsername().equals(username)) {
+            messagingService.sendMessage(session, messageFactory.error("Only the host is allowed to end the game"));
+            return;
+        }
+
+        endGame(lobbyCode);
+    }
+
 }
