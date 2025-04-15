@@ -76,6 +76,12 @@ public class LobbyManagerService {
             return false;
         }
 
+        // check if game is running
+        if (lobby.getGameActive()) {
+            messagingService.sendMessage(session, messageFactory.error("Cannot join lobby when game started"));
+            return false;
+        }
+
         LobbyOptions options = lobby.getLobbyOptions();
         List<Player> players = lobby.getPlayers();
 
