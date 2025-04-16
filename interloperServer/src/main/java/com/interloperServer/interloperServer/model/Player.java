@@ -70,7 +70,7 @@ public class Player {
     }
 
     /**
-     * Cancel an already begun desiconnect timer
+     * Cancel an already begun disconnect timer
      */
     public synchronized void cancelDisconnectRemoval() {
         this.disconnected = false;
