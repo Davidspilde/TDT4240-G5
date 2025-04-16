@@ -81,22 +81,36 @@ public class GameService {
     }
 
     /**
-     * Removes a player from a game when they disconnect
-     * Ends the game if the player to disconnect is the only one left
+     * Removes a player from a lobby and game when they disconnect
+     * Ends the game if there are too few players left after disconnect
      */
     public void handlePlayerDisconnect(WebSocketSession session, String lobbyCode) {
-
-        Game game = gameManagerService.getGame(lobbyCode);
-
-        if (game == null) {
+        Lobby lobby = lobbyManager.getLobbyFromLobbyCode(lobbyCode);
+        if (lobby == null) {
             return;
         }
 
-        lobbyManager.removeUser(session);
-        // If there is less than 2 left, end it
-        if (game.getPlayers().size() < 3) {
-            endGame(lobbyCode);
-        }
+        Player player = lobby.getPlayerBySession(session);
+        if (player == null)
+            return;
+
+        // Schedule them to be removed if they do not come back in 30 seconds
+        final int DISCONNECT_BUFFER_SECONDS = 30;
+        player.scheduleDisconnectRemoval(() -> {
+            // This code runs only after the buffer if the player is still disconnected
+            if (player.isDisconnected()) {
+                // Now remove them from the lobby
+                lobbyManager.removeUser(session);
+
+                // If the game is left with fewer than 3 players, end the game
+                if (gameManagerService.hasGame(lobbyCode)) {
+                    Game game = gameManagerService.getGame(lobbyCode);
+                    if (game != null && game.getPlayers().size() < 3) {
+                        endGame(lobbyCode);
+                    }
+                }
+            }
+        }, DISCONNECT_BUFFER_SECONDS);
     }
 
     /**
