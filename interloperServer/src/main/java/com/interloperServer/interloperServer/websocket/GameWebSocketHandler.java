@@ -9,6 +9,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.interloperServer.interloperServer.model.Game;
 import com.interloperServer.interloperServer.service.GameManagerService;
 import com.interloperServer.interloperServer.service.GameService;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
@@ -18,22 +19,19 @@ import com.interloperServer.interloperServer.service.messagingServices.Messaging
 @Component
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
+    private final GameConnectionService connectionService;
     private final MessageDispatcher dispatcher;
-    private final LobbyManagerService lobbyManager;
-    private final GameService gameService;
-    private final GameManagerService gameManagerService;
     private final MessagingService messagingService;
     private final GameMessageFactory messageFactory;
 
-    public GameWebSocketHandler(MessageDispatcher dispatcher, LobbyManagerService lobbyManager, GameService gameService,
-            GameManagerService gameManagerService, MessagingService messagingService,
-            GameMessageFactory messageFactory) {
+    public GameWebSocketHandler(MessageDispatcher dispatcher,
+            MessagingService messagingService,
+            GameMessageFactory messageFactory, GameConnectionService connectionService) {
         this.dispatcher = dispatcher;
-        this.lobbyManager = lobbyManager;
-        this.gameService = gameService;
-        this.gameManagerService = gameManagerService;
         this.messagingService = messagingService;
         this.messageFactory = messageFactory;
+
+        this.connectionService = connectionService;
     }
 
     @Override
@@ -51,16 +49,12 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
-        System.out.println("WebSocket connected: " + session.getId());
+        connectionService.onConnect(session);
     }
 
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
-        lobbyManager.removeUser(session);
+        connectionService.onDisconnect(session);
 
-        // Check if the user was in a game
-        for (String lobbyCode : gameManagerService.getAllGameCodes()) {
-            gameService.handlePlayerDisconnect(session, lobbyCode);
-        }
     }
 }
