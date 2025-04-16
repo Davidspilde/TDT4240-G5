@@ -5,14 +5,9 @@ import org.springframework.web.socket.WebSocketSession;
 
 @Service
 public class GameConnectionService {
-    private LobbyManagerService lobbyManager;
-    private GameManagerService gameManager;
     private GameService gameService;
 
-    public GameConnectionService(LobbyManagerService lobbyManager, GameManagerService gameManager,
-            GameService gameService) {
-        this.lobbyManager = lobbyManager;
-        this.gameManager = gameManager;
+    public GameConnectionService(GameService gameService) {
         this.gameService = gameService;
     }
 
@@ -21,12 +16,15 @@ public class GameConnectionService {
     }
 
     public void onDisconnect(WebSocketSession session) {
+        // Try to get username and lobby code from the session attributes
+        String username = (String) session.getAttributes().get("username");
+        String lobbyCode = (String) session.getAttributes().get("lobbyCode");
+
+        System.out.println("Disconnect: username=" + username + ", lobbyCode=" + lobbyCode);
 
         // Check if the user was in a game
-        for (String lobbyCode : gameManager.getAllGameCodes()) {
+        if (lobbyCode != null) {
             gameService.handlePlayerDisconnect(session, lobbyCode);
         }
-        lobbyManager.removeUser(session);
-
     }
 }

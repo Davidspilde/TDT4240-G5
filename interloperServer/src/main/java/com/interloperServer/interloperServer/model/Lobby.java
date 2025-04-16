@@ -103,7 +103,9 @@ public class Lobby {
      */
     public Player getPlayerBySession(WebSocketSession session) {
         for (Player player : this.players) {
-            if (player.getSession().equals(session)) {
+            WebSocketSession playerSession = player.getSession();
+            // Skip this player if their session is null
+            if (playerSession != null && playerSession.equals(session)) {
                 return player;
             }
         }
