@@ -1,10 +1,10 @@
 package com.interloperServer.interloperServer.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.service.GameManagerService;
-import com.interloperServer.interloperServer.service.GameService;
-import com.interloperServer.interloperServer.service.LobbyManagerService;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import com.interloperServer.interloperServer.websocket.handlers.WebSocketMessageHandler;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,25 +23,27 @@ public class GameWebSocketHandlerTest {
     private WebSocketSession mockSession;
     private MessageDispatcher dispatcher;
     private GameWebSocketHandler handler;
-    private GameService gameService;
-    private LobbyManagerService lobbyService;
-    private GameManagerService gameManagerService;
+    private MessagingService messagingService;
+    private GameMessageFactory messageFactory;
+    private GameConnectionService connectionService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setup() {
         mockHandler = mock(WebSocketMessageHandler.class);
         mockSession = mock(WebSocketSession.class);
-        gameService = mock(GameService.class);
-        lobbyService = mock(LobbyManagerService.class);
-        gameManagerService = mock(GameManagerService.class);
+        messagingService = mock(MessagingService.class);
+        messageFactory = mock(GameMessageFactory.class);
+        connectionService = mock(GameConnectionService.class);
 
         when(mockHandler.getType()).thenReturn("testEvent");
         when(mockHandler.getMessageClass()).thenReturn(TestMessage.class);
 
         dispatcher = new MessageDispatcher(List.of(mockHandler), objectMapper);
-        handler = new GameWebSocketHandler(dispatcher, lobbyService, gameService, gameManagerService);
+        handler = new GameWebSocketHandler(dispatcher, messagingService,
+                messageFactory, connectionService);
     }
 
     @Test
