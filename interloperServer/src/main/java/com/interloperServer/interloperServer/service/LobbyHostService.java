@@ -35,20 +35,27 @@ public class LobbyHostService {
         if (!checkIfHost(lobby, username))
             return;
 
-        LobbyOptions lobbyOptions = lobby.getLobbyOptions();
+        synchronized (lobby) {
+            LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
-        lobbyOptions.setRoundLimit(roundLimit);
-        lobbyOptions.setSpyCount(spyCount);
-        lobbyOptions.setLocationNumber(locationNumber);
-        lobbyOptions.setTimePerRound(TimePerRound);
-        lobbyOptions.setMaxPlayerCount(maxPlayerCount);
-        lobbyOptions.setSpyLastAttemptTime(spyLastAttemptTime);
+            lobbyOptions.setRoundLimit(roundLimit);
+            lobbyOptions.setSpyCount(spyCount);
+            lobbyOptions.setLocationNumber(locationNumber);
+            lobbyOptions.setTimePerRound(TimePerRound);
+            lobbyOptions.setMaxPlayerCount(maxPlayerCount);
+            lobbyOptions.setSpyLastAttemptTime(spyLastAttemptTime);
+        }
     }
 
+    // Sets new locations for a lobby
     public void setLocations(Lobby lobby, List<Location> locations, String username) {
         if (!checkIfHost(lobby, username))
             return;
-        lobby.setLocations(locations);
+        synchronized (lobby) {
+            lobby.setLocations(locations);
+
+            // Add broadcast locationchanges message here when it has been made
+        }
     }
 
     public void setInitialLocations(Lobby lobby) {
