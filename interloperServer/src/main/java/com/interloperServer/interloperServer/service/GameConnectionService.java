@@ -1,11 +1,7 @@
-package com.interloperServer.interloperServer.websocket;
+package com.interloperServer.interloperServer.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
-
-import com.interloperServer.interloperServer.service.GameManagerService;
-import com.interloperServer.interloperServer.service.GameService;
-import com.interloperServer.interloperServer.service.LobbyManagerService;
 
 @Service
 public class GameConnectionService {
