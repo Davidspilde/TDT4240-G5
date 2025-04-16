@@ -43,7 +43,7 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
             JsonNode root = new ObjectMapper().readTree(payload);
             dispatcher.dispatch(root, session);
         } catch (Exception e) {
-            messagingService.sendMessage(session, messageFactory.error("There was an error parsing you message"));
+            messagingService.sendMessage(session, messageFactory.error("There was an error parsing your message"));
         }
     }
 
