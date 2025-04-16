@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.Location;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 /*Contains all Host-only related logic
  *
@@ -18,12 +20,21 @@ import com.interloperServer.interloperServer.model.Location;
 
 @Service
 public class LobbyHostService {
+    private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
 
-    public LobbyHostService() {
+    public LobbyHostService(MessagingService messagingService, GameMessageFactory messageFactory) {
+        this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
     }
 
-    public void updateLobbyOptions(Lobby lobby, int roundLimit, int spyCount, int locationNumber, int TimePerRound,
+    public void updateLobbyOptions(Lobby lobby, String username, int roundLimit, int spyCount, int locationNumber,
+            int TimePerRound,
             int maxPlayerCount, int spyLastAttemptTime) {
+
+        if (!checkIfHost(lobby, username))
+            return;
+
         LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
         lobbyOptions.setRoundLimit(roundLimit);
@@ -34,7 +45,9 @@ public class LobbyHostService {
         lobbyOptions.setSpyLastAttemptTime(spyLastAttemptTime);
     }
 
-    public void setLocations(Lobby lobby, List<Location> locations) {
+    public void setLocations(Lobby lobby, List<Location> locations, String username) {
+        if (!checkIfHost(lobby, username))
+            return;
         lobby.setLocations(locations);
     }
 
@@ -61,5 +74,17 @@ public class LobbyHostService {
             e.printStackTrace();
         }
 
+    }
+
+    // checks if user is host, sends error if not
+    private boolean checkIfHost(Lobby lobby, String username) {
+        if (lobby.getHost().getUsername().equals(username)) {
+            return true;
+        }
+
+        messagingService.sendMessage(lobby.getPlayer(username).getSession(),
+                messageFactory.error("Only host is allowed to change lobby settings"));
+
+        return false;
     }
 }
