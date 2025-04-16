@@ -3,6 +3,8 @@ package io.github.Spyfall.controller;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.view.GameRulesStage;
+import io.github.Spyfall.controller.StageManager;
 
 public class MainMenuController {
     private MainController mainController;
@@ -34,6 +36,7 @@ public class MainMenuController {
     }
 
     public void onHowToPlay() {
-        // Show how to play dialog or screen
+        GameRulesStage rulesStage = new GameRulesStage(this);
+        StageManager.getInstance().setStage(rulesStage);
     }
 }
