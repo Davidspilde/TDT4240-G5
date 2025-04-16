@@ -1,9 +1,6 @@
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.Lobby;
-import com.interloperServer.interloperServer.model.LobbyOptions;
-import com.interloperServer.interloperServer.model.Player;
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import org.junit.jupiter.api.BeforeEach;
