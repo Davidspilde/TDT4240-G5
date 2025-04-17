@@ -53,6 +53,11 @@ public class GameService {
             messagingService.sendMessage(session, messageFactory.error("Lobby doesn't exist."));
             return false;
         }
+        // Prevents game to get started when there already is an active game in place
+        if (lobby.getGameActive()) {
+            messagingService.sendMessage(session, messageFactory.error("Active game is already in session"));
+            return false;
+        }
 
         // Prevent users other than host to begin the game
         if (!lobby.getHost().getUsername().equals(username)) {
