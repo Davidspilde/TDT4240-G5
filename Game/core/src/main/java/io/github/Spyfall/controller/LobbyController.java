@@ -9,6 +9,8 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.view.LobbyStage;
+import io.github.Spyfall.view.StageView;
 
 public class LobbyController {
     private static LobbyController instance;
@@ -40,6 +42,9 @@ public class LobbyController {
     
     private void handleLobbyUpdate(LobbyPlayersMessage message) {
         gameModel.getLobbyData().setPlayers(message.getPlayers());
+        System.out.println("PLAYERS: " + gameModel.getLobbyData().getPlayers());
+
+        updateCurrentLobbyStage();
     }
 
     private void handleLobbyNewHost(LobbyNewHostMessage message) {
@@ -94,6 +99,13 @@ public class LobbyController {
             gameModel.getLobbyData().setTimePerRound(timePerRound);
         } else {
             System.out.println("Failed to send update lobby options request");
+        }
+    }
+
+    private void updateCurrentLobbyStage() {
+        StageView currentStage = StageManager.getInstance().getStage();
+        if (currentStage instanceof LobbyStage) {
+            ((LobbyStage) currentStage).updateFromModel();
         }
     }
     

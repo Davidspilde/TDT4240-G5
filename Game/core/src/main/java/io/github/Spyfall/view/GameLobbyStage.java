@@ -220,19 +220,13 @@ public class GameLobbyStage extends StageView {
         updateLocationsList();
     }
 
-    // @Override
-    // public void onGameStateChanged(GameModel model) {
-    //     updateFromModel();
-    // }
-
     @Override
     public void update() {
         // update the stage normally
+        updateFromModel();
         stage.act();
         stage.draw();
         
-        // check for model updates that need to be shown in the UI
-        updateFromModel();
     }
 
     @Override
@@ -244,8 +238,6 @@ public class GameLobbyStage extends StageView {
         if (bgTexture != null) {
             bgTexture.dispose();
         }
-        // remove observer
-        // gameModel.removeObserver(this);
 
         stage.dispose();
     }

@@ -132,6 +132,21 @@ public class LobbyStage extends StageView {
             playersTable.add(playerLabel).padBottom(5).row();
         }
     }
+
+    public void updateFromModel() {
+        // Update lobby code
+        lobbyCodeLabel.setText("Lobby Code: " + gameModel.getLobbyCode());
+        
+        // Update host
+        hostLabel.setText("Host: " + gameModel.getLobbyData().getHostPlayer());
+        
+        // Update players list
+        updatePlayersList();
+        
+        // Update start button visibility based on host status
+        boolean isHost = gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer());
+        startGameButton.setVisible(isHost);
+    }
     
     @Override
     public void update() {
@@ -143,26 +158,13 @@ public class LobbyStage extends StageView {
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
-    
-    // @Override
-    // public void onGameStateChanged(GameModel model) {
-    //     // Update UI based on model changes
-    //     lobbyCodeLabel.setText("Lobby Code: " + model.getLobbyCode());
-    //     hostLabel.setText("Host: " + model.getLobbyData().getHostPlayer());
-    //     updatePlayersList();
-        
-    //     // Check if user is host and update UI
-    //     boolean isHost = model.getUsername().equals(model.getLobbyData().getHostPlayer());
-    //     startGameButton.setVisible(isHost);
-    // }
+
     
     public void dispose() {
         if (bgTexture != null) {
             bgTexture.dispose();
         }
         
-        // remove observer
-        // gameModel.removeObserver(this);
         
         stage.dispose();
     }
