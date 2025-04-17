@@ -64,7 +64,7 @@ public class RoundService {
 
         // Choose a random player to be the first to ask a question
         Player firstQuestioner = chooseRandomPlayer(game.getPlayers());
-        String firstQuestionerUsername = "The player with the earliest name in the alphabet";
+        String firstQuestionerUsername = null;
 
         if (firstQuestioner != null) {
             firstQuestionerUsername = firstQuestioner.getUsername();
