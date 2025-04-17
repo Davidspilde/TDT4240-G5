@@ -21,7 +21,7 @@ public class UpdateLocationsHandler implements WebSocketMessageHandler<RecieveLo
 
     @Override
     public String getType() {
-        return "updateOptions";
+        return "updateLocations";
     }
 
     @Override

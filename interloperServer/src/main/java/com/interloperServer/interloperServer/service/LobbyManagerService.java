@@ -47,7 +47,6 @@ public class LobbyManagerService {
         LobbyOptions options = new LobbyOptions(
                 10, // roundNumber
                 30, // locationNumber
-                1, // spyCount
                 8, // maxPlayers
                 120, // roundDuration (seconds)
                 45 // SpyLastAttemptDuration (seconds)

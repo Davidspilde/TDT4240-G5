@@ -28,7 +28,7 @@ public class LobbyHostService {
         this.messageFactory = messageFactory;
     }
 
-    public void updateLobbyOptions(Lobby lobby, String username, int roundLimit, int spyCount, int locationNumber,
+    public void updateLobbyOptions(Lobby lobby, String username, int roundLimit, int locationNumber,
             int TimePerRound,
             int maxPlayerCount, int spyLastAttemptTime) {
 
@@ -39,7 +39,6 @@ public class LobbyHostService {
             LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
             lobbyOptions.setRoundLimit(roundLimit);
-            lobbyOptions.setSpyCount(spyCount);
             lobbyOptions.setLocationNumber(locationNumber);
             lobbyOptions.setTimePerRound(TimePerRound);
             lobbyOptions.setMaxPlayerCount(maxPlayerCount);

@@ -32,14 +32,14 @@ public class UpdateLobbyOptionsHandler implements WebSocketMessageHandler<Reciev
     @Override
     public void handle(RecieveLobbyOptionsMessage message, WebSocketSession session) {
         Lobby lobby = lobbyManager.getLobbyFromLobbyCode(message.getLobbyCode());
+        String username = message.getUsername();
         int roundLimit = message.getRoundLimit();
-        int spyCount = message.getSpyCount();
         int locationNumber = message.getLocationNumber();
         int timePerRound = message.getTimePerRound();
         int maxPlayerCount = message.getMaxPlayerCount();
         int spyLastAttemptTime = message.getSpyLastAttemptTime();
 
-        hostService.updateLobbyOptions(lobby, roundLimit, spyCount, locationNumber, timePerRound,
+        hostService.updateLobbyOptions(lobby, username, roundLimit, locationNumber, timePerRound,
                 maxPlayerCount, spyLastAttemptTime);
     }
 }
