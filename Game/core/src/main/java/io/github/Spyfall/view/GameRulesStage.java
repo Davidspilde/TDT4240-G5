@@ -17,7 +17,7 @@ public class GameRulesStage extends StageView {
     private final Skin skin;
     private final Table rootTable;
     private int currentPage = 0;
-    private final int totalPages = 4;
+    private final int totalPages = 8; // Increased to 8 pages
     private final Label pageLabel;
     private final Label titleLabel;
     private final Label contentLabel;
@@ -102,6 +102,9 @@ public class GameRulesStage extends StageView {
     }
 
     private void updateContent() {
+        // Reset font scale to default
+        contentLabel.setFontScale(1.0f);
+        
         switch (currentPage) {
             case 0:
                 titleLabel.setText("Background");
@@ -112,21 +115,39 @@ public class GameRulesStage extends StageView {
                 contentLabel.setText("As a spy, you must identify the location of the secret meeting.\n\nAs a regular player, you must identify the spy.");
                 break;
             case 2:
-                titleLabel.setText("Game Flow");
+                titleLabel.setText("Game Flow - Setup");
                 contentLabel.setText("1. Each player receives a location card, except the spy who gets a 'SPY' card\n\n" +
                         "2. Players take turns asking questions about the location\n\n" +
-                        "3. All players must answer truthfully, except the spy who can lie\n\n" +
-                        "4. After discussion, players vote on who they think is the spy\n\n" +
-                        "5. If the spy is caught, regular players win. If the spy correctly guesses the location, the spy wins");
+                        "3. All players must answer truthfully, except the spy who can lie");
                 break;
             case 3:
-                titleLabel.setText("Scoring");
-                contentLabel.setText("Regular Players:\n" +
-                        "- Correctly identifying the spy: +1 point\n" +
-                        "- Being incorrectly accused: -1 point\n\n" +
-                        "Spy:\n" +
-                        "- Correctly guessing the location: +2 points\n" +
-                        "- Avoiding detection: +1 point");
+                titleLabel.setText("Game Flow - Actions (1/2)");
+                contentLabel.setText("During the game:\n\n" +
+                        "1. At any time, regular players can vote on who they think is the spy\n\n" +
+                        "2. At any time, the spy can guess the location");
+                break;
+            case 4:
+                titleLabel.setText("Game Flow - Actions (2/2)");
+                contentLabel.setText("3. If the spy is caught, they get one final chance to guess the location\n\n" +
+                        "The game ends when:\n" +
+                        "- The spy is correctly identified (regular players win)\n" +
+                        "- The spy correctly guesses the location (spy wins)");
+                break;
+            case 5:
+                titleLabel.setText("Scoring - Regular Players (1/2)");
+                contentLabel.setText("As a regular player, you can earn points by:\n\n" +
+                        "✓ Correctly identifying the spy: +1 point");
+                break;
+            case 6:
+                titleLabel.setText("Scoring - Regular Players (2/2)");
+                contentLabel.setText("You can lose points if:\n\n" +
+                        "✗ You are incorrectly accused of being the spy: -1 point");
+                break;
+            case 7:
+                titleLabel.setText("Scoring - Spy");
+                contentLabel.setText("As the spy, you can earn points by:\n\n" +
+                        "✓ Correctly guessing the location: +2 points\n\n" +
+                        "✓ Successfully avoiding detection: +1 point");
                 break;
         }
         pageLabel.setText(String.format("Page %d of %d", currentPage + 1, totalPages));
