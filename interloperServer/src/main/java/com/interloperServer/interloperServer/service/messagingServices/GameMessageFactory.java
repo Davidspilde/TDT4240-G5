@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.interloperServer.interloperServer.model.Location;
 import com.interloperServer.interloperServer.model.messages.outgoing.*;
 
 @Component
@@ -58,6 +59,10 @@ public class GameMessageFactory {
 
     public GameMessage voted() {
         return new GameMessage("voted");
+    }
+
+    public LobbyLocationsUpdateMessage locationsUpdate(List<Location> locations) {
+        return new LobbyLocationsUpdateMessage(locations);
     }
 
     public RoundEndedMessage roundEnded(

@@ -32,6 +32,7 @@ public class LobbyHostService {
             int TimePerRound,
             int maxPlayerCount, int spyLastAttemptTime) {
 
+        // Check if user is host
         if (!checkIfHost(lobby, username))
             return;
 
@@ -48,12 +49,20 @@ public class LobbyHostService {
 
     // Sets new locations for a lobby
     public void setLocations(Lobby lobby, List<Location> locations, String username) {
+        // Check if user is host
         if (!checkIfHost(lobby, username))
             return;
+
+        // check if there is at least 1 location
+        if (locations.size() <= 0) {
+            messagingService.sendMessage(lobby.getHost().getSession(),
+                    messageFactory.error("Need to have at least on location"));
+        }
         synchronized (lobby) {
             lobby.setLocations(locations);
 
-            // Add broadcast locationchanges message here when it has been made
+            // broadcasts the changes to all players
+            messagingService.broadcastMessage(lobby, messageFactory.locationsUpdate(locations));
         }
     }
 

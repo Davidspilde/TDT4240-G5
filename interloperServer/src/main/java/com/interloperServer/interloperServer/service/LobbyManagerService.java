@@ -60,6 +60,9 @@ public class LobbyManagerService {
 
         messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
 
+        // sends the locations for the lobby
+        messagingService.sendMessage(session, messageFactory.locationsUpdate(newLobby.getLocations()));
+
         return lobbyCode;
     }
 
@@ -101,6 +104,8 @@ public class LobbyManagerService {
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
+            // sends the locations for the lobby
+            messagingService.sendMessage(session, messageFactory.locationsUpdate(lobby.getLocations()));
         }
 
         broadcastPlayerList(lobbyCode);
