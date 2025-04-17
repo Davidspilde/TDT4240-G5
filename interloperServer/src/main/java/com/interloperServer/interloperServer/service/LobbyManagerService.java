@@ -44,6 +44,10 @@ public class LobbyManagerService {
 
         Player host = new Player(session, username);
 
+        // Set session attributes for reconnection purposes
+        session.getAttributes().put("username", username);
+        session.getAttributes().put("lobbyCode", lobbyCode);
+
         LobbyOptions options = new LobbyOptions(
                 10, // roundNumber
                 30, // locationNumber
@@ -76,6 +80,22 @@ public class LobbyManagerService {
             return false;
         }
 
+        // Look for a player with the same username who is disconnected
+        Player existingPlayer = lobby.getPlayer(username);
+        if (existingPlayer != null && existingPlayer.isDisconnected()) {
+            // This is a reconnect
+            existingPlayer.cancelDisconnectRemoval();
+            existingPlayer.setSession(session);
+
+            // Set session attributes for reconnection purposes
+            session.getAttributes().put("username", username);
+            session.getAttributes().put("lobbyCode", lobbyCode);
+
+            messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
+            broadcastPlayerList(lobbyCode);
+            return true;
+        }
+
         // check if game is running
         if (lobby.getGameActive()) {
             messagingService.sendMessage(session, messageFactory.error("Cannot join lobby when game started"));
@@ -91,18 +111,21 @@ public class LobbyManagerService {
             return false;
         }
 
-        // Check if player is already in the lobby
-        Player existingPlayer = lobby.getPlayerBySession(session);
-
-        if (existingPlayer != null) {
-            messagingService.sendMessage(session, messageFactory.error("You are already in the lobby!"));
+        // Player username exists in the lobby but the player is not disconnected
+        if (existingPlayer != null && !existingPlayer.isDisconnected()) {
+            messagingService.sendMessage(session, messageFactory.error("Username is taken!"));
             return false;
         }
 
+        // Otherwise, add player to lobby
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
         }
+
+        // Set session attributes for reconnection purposes
+        session.getAttributes().put("username", username);
+        session.getAttributes().put("lobbyCode", lobbyCode);
 
         broadcastPlayerList(lobbyCode);
         return true;
@@ -168,7 +191,6 @@ public class LobbyManagerService {
                 targetLobby.setHost(newHost);
 
                 messagingService.broadcastMessage(targetLobby, messageFactory.newHost(newHost.getUsername()));
-
             }
 
             // Remove empty lobby

@@ -3,8 +3,8 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.interloperServer.interloperServer.model.messages.incoming.RecieveMessage;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveMessage;
 
 @Component
 public class LeaveLobbyHandler implements WebSocketMessageHandler<RecieveMessage> {
