@@ -1,6 +1,8 @@
 package com.interloperServer.interloperServer.service;
 
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -58,6 +60,7 @@ public class LobbyHostService {
             messagingService.sendMessage(lobby.getHost().getSession(),
                     messageFactory.error("Need to have at least on location"));
         }
+
         synchronized (lobby) {
             lobby.setLocations(locations);
 
