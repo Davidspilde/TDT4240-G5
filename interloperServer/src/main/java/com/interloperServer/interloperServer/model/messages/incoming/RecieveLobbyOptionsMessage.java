@@ -3,7 +3,6 @@ package com.interloperServer.interloperServer.model.messages.incoming;
 public class RecieveLobbyOptionsMessage extends RecieveMessage {
     private int roundLimit;
     private int locationNumber;
-    private int spyCount;
     private int maxPlayerCount;
     private int timePerRound;
     private int spyLastAttemptTime;
@@ -33,14 +32,6 @@ public class RecieveLobbyOptionsMessage extends RecieveMessage {
 
     public void setLocationNumber(int locationNumber) {
         this.locationNumber = locationNumber;
-    }
-
-    public int getSpyCount() {
-        return spyCount;
-    }
-
-    public void setSpyCount(int spyCount) {
-        this.spyCount = spyCount;
     }
 
     public int getMaxPlayerCount() {

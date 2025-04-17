@@ -51,7 +51,6 @@ public class LobbyManagerService {
         LobbyOptions options = new LobbyOptions(
                 10, // roundNumber
                 30, // locationNumber
-                1, // spyCount
                 8, // maxPlayers
                 120, // roundDuration (seconds)
                 45 // SpyLastAttemptDuration (seconds)
@@ -64,6 +63,9 @@ public class LobbyManagerService {
         lobbyHostService.setInitialLocations(newLobby);
 
         messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
+
+        // sends the locations for the lobby
+        messagingService.sendMessage(session, messageFactory.locationsUpdate(newLobby.getLocations()));
 
         return lobbyCode;
     }
@@ -121,6 +123,8 @@ public class LobbyManagerService {
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
+            // sends the locations for the lobby
+            messagingService.sendMessage(session, messageFactory.locationsUpdate(lobby.getLocations()));
         }
 
         // Set session attributes for reconnection purposes

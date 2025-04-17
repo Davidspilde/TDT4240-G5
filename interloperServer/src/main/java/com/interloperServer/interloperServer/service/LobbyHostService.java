@@ -1,6 +1,8 @@
 package com.interloperServer.interloperServer.service;
 
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.Location;
+import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
+import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 /*Contains all Host-only related logic
  *
@@ -18,24 +22,51 @@ import com.interloperServer.interloperServer.model.Location;
 
 @Service
 public class LobbyHostService {
+    private final MessagingService messagingService;
+    private final GameMessageFactory messageFactory;
 
-    public LobbyHostService() {
+    public LobbyHostService(MessagingService messagingService, GameMessageFactory messageFactory) {
+        this.messagingService = messagingService;
+        this.messageFactory = messageFactory;
     }
 
-    public void updateLobbyOptions(Lobby lobby, int roundLimit, int spyCount, int locationNumber, int TimePerRound,
+    public void updateLobbyOptions(Lobby lobby, String username, int roundLimit, int locationNumber,
+            int TimePerRound,
             int maxPlayerCount, int spyLastAttemptTime) {
-        LobbyOptions lobbyOptions = lobby.getLobbyOptions();
 
-        lobbyOptions.setRoundLimit(roundLimit);
-        lobbyOptions.setSpyCount(spyCount);
-        lobbyOptions.setLocationNumber(locationNumber);
-        lobbyOptions.setTimePerRound(TimePerRound);
-        lobbyOptions.setMaxPlayerCount(maxPlayerCount);
-        lobbyOptions.setSpyLastAttemptTime(spyLastAttemptTime);
+        // Check if user is host
+        if (!checkIfHost(lobby, username))
+            return;
+
+        synchronized (lobby) {
+            LobbyOptions lobbyOptions = lobby.getLobbyOptions();
+
+            lobbyOptions.setRoundLimit(roundLimit);
+            lobbyOptions.setLocationNumber(locationNumber);
+            lobbyOptions.setTimePerRound(TimePerRound);
+            lobbyOptions.setMaxPlayerCount(maxPlayerCount);
+            lobbyOptions.setSpyLastAttemptTime(spyLastAttemptTime);
+        }
     }
 
-    public void setLocations(Lobby lobby, List<Location> locations) {
-        lobby.setLocations(locations);
+    // Sets new locations for a lobby
+    public void setLocations(Lobby lobby, List<Location> locations, String username) {
+        // Check if user is host
+        if (!checkIfHost(lobby, username))
+            return;
+
+        // check if there is at least 1 location
+        if (locations.size() <= 0) {
+            messagingService.sendMessage(lobby.getHost().getSession(),
+                    messageFactory.error("Need to have at least on location"));
+        }
+
+        synchronized (lobby) {
+            lobby.setLocations(locations);
+
+            // broadcasts the changes to all players
+            messagingService.broadcastMessage(lobby, messageFactory.locationsUpdate(locations));
+        }
     }
 
     public void setInitialLocations(Lobby lobby) {
@@ -61,5 +92,17 @@ public class LobbyHostService {
             e.printStackTrace();
         }
 
+    }
+
+    // checks if user is host, sends error if not
+    private boolean checkIfHost(Lobby lobby, String username) {
+        if (lobby.getHost().getUsername().equals(username)) {
+            return true;
+        }
+
+        messagingService.sendMessage(lobby.getPlayer(username).getSession(),
+                messageFactory.error("Only host is allowed to change lobby settings"));
+
+        return false;
     }
 }

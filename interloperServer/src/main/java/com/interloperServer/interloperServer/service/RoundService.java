@@ -91,6 +91,12 @@ public class RoundService {
         Random random = new Random();
         List<String> newRoles = roles;
 
+        // if a location has no roles every other player than the spy will get role
+        // Player
+        if (newRoles.size() <= 0) {
+            newRoles.add("Player");
+        }
+
         while (newRoles.size() < numPlayers) {
             int randomIndex = random.nextInt(roles.size());
             newRoles.add(roles.get(randomIndex));
