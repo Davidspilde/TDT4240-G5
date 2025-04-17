@@ -8,7 +8,7 @@ public class LobbyLocationsUpdateMessage extends GameMessage {
 	private final List<Location> locations;
 
 	public LobbyLocationsUpdateMessage(List<Location> locations) {
-		super("LocationsUpdate");
+		super("locationsUpdate");
 		this.locations = locations;
 	}
 
