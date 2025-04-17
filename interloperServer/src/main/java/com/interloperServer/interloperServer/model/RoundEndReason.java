@@ -4,5 +4,6 @@ public enum RoundEndReason {
     VOTES,
     SPY_GUESS,
     WRONG_VOTE,
-    TIMEOUT
+    TIMEOUT,
+    SPY_DISCONNECT
 }

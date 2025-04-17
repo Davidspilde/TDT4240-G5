@@ -113,6 +113,16 @@ public class GameService {
                     if (game != null && game.getPlayers().size() < 3) {
                         endGame(lobbyCode);
                     }
+
+                    else if (game != null && game.getCurrentRound() != null) {
+                        Player spy = game.getCurrentRound().getSpy();
+                        if (spy != null && spy.getUsername().equals(player.getUsername())) {
+                            // Spy disconnected –> end round early
+                            roundService.endRoundDueToSpyDisconnect(lobbyCode);
+                            return;
+                        }
+                    }
+
                 }
             }
         }, DISCONNECT_BUFFER_SECONDS);
