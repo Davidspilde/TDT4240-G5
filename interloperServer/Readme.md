@@ -5,6 +5,7 @@ This is the backend server for **Interloper**, a multiplayer Spyfall-inspired ga
 ---
 
 ## 📁 Project Structure
+
 ```
 src/
 ├── main/
@@ -16,7 +17,6 @@ src/
 │   │       ├── model/                   # Game domain models and message classes
 │   │       ├── service/                 # Core business logic
 │   │       └── websocket/               # WebSocket infrastructure
-│   │           ├── GameConnectionService.java
 │   │           ├── GameWebSocketHandler.java
 │   │           ├── MessageDispatcher.java
 │   │           └── handlers/            # Individual WebSocket message handlers
@@ -31,14 +31,13 @@ src/
             └── websocket/              # WebSocket-related tests
 ```
 
-
 ---
 
 ## 🚀 Running the Server
 
 ### Prerequisites
 
-- Java 17+
+- Java 17
 - Gradle 7+
 - Recommended: IntelliJ IDEA or VS Code
 
@@ -92,7 +91,7 @@ build/reports/tests/test/index.html
 
 ## 🔌 WebSocket Endpoint
 
-- URL: `ws://<host>:8080/ws`
+- URL: `ws://<host>:8080/ws/game`
 - All messages are serialized/deserialized as JSON.
 
 ---
