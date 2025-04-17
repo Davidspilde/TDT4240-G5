@@ -114,6 +114,8 @@ public class GameService {
                         endGame(lobbyCode);
                     }
 
+                    // If the disconnected player is the spy -> end the round without awarding any
+                    // points
                     else if (game != null && game.getCurrentRound() != null) {
                         Player spy = game.getCurrentRound().getSpy();
                         if (spy != null && spy.getUsername().equals(player.getUsername())) {
