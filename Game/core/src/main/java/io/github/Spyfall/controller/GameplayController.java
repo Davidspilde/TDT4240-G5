@@ -3,6 +3,8 @@ package io.github.Spyfall.controller;
 import java.util.Arrays;
 import java.util.List;
 
+import com.badlogic.gdx.Gdx;
+
 import io.github.Spyfall.message.response.GameCompleteMessage;
 import io.github.Spyfall.message.response.GameNewRoundMessage;
 import io.github.Spyfall.message.response.GameRoundEndedMessage;
@@ -61,6 +63,7 @@ public class GameplayController {
 }
 
 private void handleNewRound(GameNewRoundMessage message) {
+    
     System.out.println("New round received: Round " + message.getRoundNumber());
     
     // Update game data
@@ -81,13 +84,14 @@ private void handleNewRound(GameNewRoundMessage message) {
         );
         gameModel.getGameData().setPossibleLocations(defaultLocations);
     }
-    
-    // Change game state if not already in game
-    System.out.println("do we get here?");
-    if (gameModel.getCurrentState() != GameState.IN_GAME) {
-        System.out.println("WE DO");
-        gameModel.setCurrentState(GameState.IN_GAME);
-    }
+    Gdx.app.postRunnable(() -> {
+        // Change game state if not already in game
+        System.out.println("do we get here?");
+        if (gameModel.getCurrentState() != GameState.IN_GAME) {
+            System.out.println("WE DO");
+            gameModel.setCurrentState(GameState.IN_GAME);
+        }
+    });
 }
 
 private void handleRoundEnded(GameRoundEndedMessage message) {
