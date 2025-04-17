@@ -86,7 +86,7 @@ class RoundServiceTest {
 
         when(messageFactory.newRound(anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(mock(NewRoundMessage.class));
-        when(messageFactory.newRound(anyInt(), anyInt(), eq("Spy")))
+        when(messageFactory.newRound(anyInt(), anyInt(), eq("Spy"), anyString()))
                 .thenReturn(mock(NewRoundMessage.class));
 
         roundService.advanceRound("ABC");

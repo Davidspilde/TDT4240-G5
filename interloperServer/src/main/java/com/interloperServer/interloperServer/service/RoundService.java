@@ -62,29 +62,38 @@ public class RoundService {
         List<String> roles = randomizeRoles(location.getRoles(), game.getPlayers().size() - 1);
         int index = 0;
 
-        for (Player player : game.getPlayers()) {
+        // Choose a random player to be the first to ask a question
+        Player firstQuestioner = chooseRandomPlayer(game.getPlayers());
+        String firstQuestionerUsername = "The player with the earliest name in the alphabet";
 
+        if (firstQuestioner != null) {
+            firstQuestionerUsername = firstQuestioner.getUsername();
+        }
+
+        for (Player player : game.getPlayers()) {
             if (!newRound.getSpy().equals(player)) {
                 messagingService.sendMessage(player.getSession(), messageFactory.newRound(
                         newRound.getRoundNumber(),
                         newRound.getRoundDuration(),
                         roles.get(index),
+                        firstQuestionerUsername,
                         newRound.getLocation().getName()));
                 index++;
-
             } else {
                 messagingService.sendMessage(player.getSession(), messageFactory.newRound(
                         newRound.getRoundNumber(),
                         newRound.getRoundDuration(),
-                        "Spy"));
+                        "Spy",
+                        firstQuestionerUsername));
             }
 
         }
     }
 
     /*
-     *
-     * adds duplicates of roles if there are not enough for players, also shuffles
+     * Creates a list of roles that the players are assigned at the beginning of a
+     * round
+     * Adds duplicates of roles if there are not enough for players, also shuffles
      * the roles
      */
     protected List<String> randomizeRoles(List<String> roles, int numPlayers) {
@@ -98,6 +107,22 @@ public class RoundService {
         Collections.shuffle(newRoles);
 
         return newRoles;
+    }
+
+    /**
+     * Chooses a random player from the list of players.
+     *
+     * @param players The list of players to choose from.
+     * @return A randomly selected player.
+     */
+    private Player chooseRandomPlayer(List<Player> players) {
+        if (players == null || players.isEmpty()) {
+            return null;
+        }
+
+        Random random = new Random();
+        int randomIndex = random.nextInt(players.size()); // Generate a random index
+        return players.get(randomIndex); // Return the player at the random index
     }
 
     /**

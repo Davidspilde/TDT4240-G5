@@ -22,13 +22,13 @@ public class GameMessageFactory {
         return new GameMessage("gameEnded");
     }
 
-    public NewRoundMessage newRound(int number, int duration, String role, String location) {
-        return new NewRoundMessage(number, duration, role, location);
+    public NewRoundMessage newRound(int number, int duration, String role, String firstQuestioner, String location) {
+        return new NewRoundMessage(number, duration, role, firstQuestioner, location);
     }
 
-    public NewRoundMessage newRound(int number, int duration, String role) {
+    public NewRoundMessage newRound(int number, int duration, String role, String firstQuestioner) {
 
-        return new NewRoundMessage(number, duration, role);
+        return new NewRoundMessage(number, duration, role, firstQuestioner);
     }
 
     public LobbyCreatedMessage lobbyCreated(String lobbyCode, String host) {
