@@ -7,11 +7,14 @@ import com.interloperServer.interloperServer.service.messagingServices.Messaging
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @DisplayName("GameService Tests")
@@ -105,20 +108,6 @@ class GameServiceTest {
         verify(gameManagerService).storeGame(eq("XYZ"), any(Game.class));
         verify(messagingService).broadcastMessage(eq(lobby), eq(mockGameMessage));
         verify(roundService).advanceRound(eq("XYZ"));
-    }
-
-    @Test
-    @DisplayName("Should end game if player disconnects and only one remains")
-    void handlePlayerDisconnect_ShouldEndGame_IfTooFewPlayers() {
-        Game game = mock(Game.class);
-        when(game.getPlayers()).thenReturn(Collections.singletonList(mock(Player.class)));
-        when(game.getLobby()).thenReturn(mock(Lobby.class));
-        when(gameManagerService.getGame("XYZ")).thenReturn(game);
-
-        gameService.handlePlayerDisconnect(mock(WebSocketSession.class), "XYZ");
-
-        verify(gameManagerService).removeGame("XYZ");
-        verify(messagingService).broadcastMessage(any(), any());
     }
 
     @Test

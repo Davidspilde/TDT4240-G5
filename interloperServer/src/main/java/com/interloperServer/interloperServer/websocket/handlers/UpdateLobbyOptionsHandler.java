@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.Lobby;
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
+import com.interloperServer.interloperServer.model.messages.incoming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.LobbyHostService;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
 

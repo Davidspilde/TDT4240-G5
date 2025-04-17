@@ -9,10 +9,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.interloperServer.interloperServer.model.Game;
-import com.interloperServer.interloperServer.service.GameManagerService;
-import com.interloperServer.interloperServer.service.GameService;
-import com.interloperServer.interloperServer.service.LobbyManagerService;
+import com.interloperServer.interloperServer.service.GameConnectionService;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
@@ -55,6 +52,5 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         connectionService.onDisconnect(session);
-
     }
 }
