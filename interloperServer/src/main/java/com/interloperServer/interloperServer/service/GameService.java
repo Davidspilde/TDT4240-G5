@@ -103,28 +103,30 @@ public class GameService {
         final int DISCONNECT_BUFFER_SECONDS = 30;
         player.scheduleDisconnectRemoval(() -> {
             // This code runs only after the buffer if the player is still disconnected
-            if (player.isDisconnected()) {
-                // Now remove them from the lobby
-                lobbyManager.removeUser(session);
+            if (!player.isDisconnected()) {
+                return;
+            }
 
-                // If the game is left with fewer than 3 players, end the game
-                if (gameManagerService.hasGame(lobbyCode)) {
-                    Game game = gameManagerService.getGame(lobbyCode);
-                    if (game != null && game.getPlayers().size() < 3) {
-                        endGame(lobbyCode);
-                    }
+            // Remove them from the lobby
+            lobbyManager.removeUser(session);
 
-                    // If the disconnected player is the spy -> end the round without awarding any
-                    // points
-                    else if (game != null && game.getCurrentRound() != null) {
-                        Player spy = game.getCurrentRound().getSpy();
-                        if (spy != null && spy.getUsername().equals(player.getUsername())) {
-                            // Spy disconnected –> end round early
-                            roundService.endRoundDueToSpyDisconnect(lobbyCode);
-                            return;
-                        }
-                    }
+            if (!gameManagerService.hasGame(lobbyCode)) {
+                return;
+            }
 
+            // If the game is left with fewer than 3 players, end the game
+            Game game = gameManagerService.getGame(lobbyCode);
+            if (game != null && game.getPlayers().size() < 3) {
+                endGame(lobbyCode);
+            }
+            // If the disconnected player is the spy -> end the round without awarding any
+            // points
+            else if (game != null && game.getCurrentRound() != null) {
+                Player spy = game.getCurrentRound().getSpy();
+                if (spy != null && spy.getUsername().equals(player.getUsername())) {
+                    // Spy disconnected –> end round early
+                    roundService.endRoundDueToSpyDisconnect(lobbyCode);
+                    return;
                 }
             }
         }, DISCONNECT_BUFFER_SECONDS);
