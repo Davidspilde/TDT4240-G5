@@ -14,6 +14,12 @@ import com.interloperServer.interloperServer.model.RoundEndReason;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
+/**
+ * Service for managing round-related logic in the game.
+ * <p>
+ * This service handles actions such as advancing rounds, broadcasting round
+ * details, managing spy's last attempt, and ending rounds for various reasons.
+ */
 @Service
 public class RoundService {
     private final MessagingService messagingService;
@@ -29,47 +35,56 @@ public class RoundService {
 
     /**
      * Advances the round for a specific game.
+     * <p>
+     * Ends the current round, starts the next round if available, or ends the game
+     * if no more rounds are left.
+     *
+     * @param lobbyCode The lobby code of the game.
      */
     public void advanceRound(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
 
         Round currentRound = game.getCurrentRound();
 
+        // End the current round if it exists
         if (currentRound != null) {
-            game.getCurrentRound().endRound();
+            currentRound.endRound();
         }
 
-        // Check if there are more rounds
+        // Check if there are not more rounds
         if (!game.hasMoreRounds()) {
-            // Send game completion message with scores
+            // Broadcast game completion message with scores
             messagingService.broadcastMessage(game.getLobby(), messageFactory.gameComplete(game.getScoreboard()));
 
             return; // The game ends here
         }
 
+        // Start the next round and broadcast its details
         game.startNextRound();
         broadcastRoundStart(game);
     }
 
-    /*
-     * Broadcast new-round data
-     * Send message to players about which round it is and details about the round
+    /**
+     * Broadcasts the start of a new round to all players.
+     * <p>
+     * Sends round details, including roles and the first questioner, to each
+     * player.
+     *
+     * @param game The current game.
      */
     private void broadcastRoundStart(Game game) {
         Round newRound = game.getCurrentRound();
         Location location = newRound.getLocation();
 
+        // Randomize roles for players
         List<String> roles = randomizeRoles(location.getRoles(), game.getPlayers().size() - 1);
         int index = 0;
 
         // Choose a random player to be the first to ask a question
         Player firstQuestioner = chooseRandomPlayer(game.getPlayers());
-        String firstQuestionerUsername = null;
+        String firstQuestionerUsername = firstQuestioner != null ? firstQuestioner.getUsername() : null;
 
-        if (firstQuestioner != null) {
-            firstQuestionerUsername = firstQuestioner.getUsername();
-        }
-
+        // Send round details to each player
         for (Player player : game.getPlayers()) {
             if (!newRound.getSpy().equals(player)) {
                 messagingService.sendMessage(player.getSession(), messageFactory.newRound(
@@ -90,26 +105,32 @@ public class RoundService {
         }
     }
 
-    /*
-     * Creates a list of roles that the players are assigned at the beginning of a
-     * round
-     * Adds duplicates of roles if there are not enough for players, also shuffles
-     * the roles
+    /**
+     * Randomizes roles for players at the start of a round.
+     * <p>
+     * Ensures there are enough roles for all players by duplicating and shuffling
+     * roles.
+     *
+     * @param roles      The list of roles available for the location.
+     * @param numPlayers The number of players in the game.
+     * @return A randomized list of roles.
      */
     protected List<String> randomizeRoles(List<String> roles, int numPlayers) {
         Random random = new Random();
         List<String> newRoles = roles;
 
-        // if a location has no roles every other player than the spy will get role
-        // Player
+        // If no roles are defined, assign "Player" as the default role
         if (newRoles.size() <= 0) {
             newRoles.add("Player");
         }
 
+        // Duplicate roles until there are enough for all players
         while (newRoles.size() < numPlayers) {
             int randomIndex = random.nextInt(roles.size());
             newRoles.add(roles.get(randomIndex));
         }
+
+        // Shuffle the roles
         Collections.shuffle(newRoles);
 
         return newRoles;
@@ -119,7 +140,7 @@ public class RoundService {
      * Chooses a random player from the list of players.
      *
      * @param players The list of players to choose from.
-     * @return A randomly selected player.
+     * @return A randomly selected player, or {@code null} if the list is empty.
      */
     private Player chooseRandomPlayer(List<Player> players) {
         if (players == null || players.isEmpty()) {
@@ -127,18 +148,20 @@ public class RoundService {
         }
 
         Random random = new Random();
-        int randomIndex = random.nextInt(players.size()); // Generate a random index
-        return players.get(randomIndex); // Return the player at the random index
+        int randomIndex = random.nextInt(players.size());
+        return players.get(randomIndex);
     }
 
     /**
      * Initiates the spy's final chance to guess the location after being exposed.
      * This method is called when the majority of players have voted and identified
      * the spy.
-     * It performs the following actions:
+     * 
+     * Broadcasts a message to all players and starts a timer for the spy's last
+     * attempt.
      *
-     * @param lobbyCode   the code of the lobby in which the game is taking place
-     * @param spyUsername the username of the player identified as the spy
+     * @param lobbyCode   The lobby code of the game.
+     * @param spyUsername The username of the player identified as the spy.
      */
     public void startSpyLastAttempt(String lobbyCode, String spyUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -149,26 +172,25 @@ public class RoundService {
         round.setSpyLastAttempt();
         int lastAttemtDuration = game.getLobby().getLobbyOptions().getSpyLastAttemptTime();
 
-        // Sends message that the spy has been revealed and the lastAttempt timer has
-        // started
+        // Broadcast the start of the spy's last attempt
         messagingService.broadcastMessage(game.getLobby(),
                 messageFactory.spyLastAttempt(spyUsername, lastAttemtDuration));
 
-        // Starts a new timer where the spy looses if there is a timeout
+        // Start a timer for the spy's last attempt
         game.startTimer(lastAttemtDuration, () -> endRoundDueToGuess(lobbyCode, spyUsername, true, false));
 
     }
 
     /**
-     * Method called when the spy has guessed.
-     * Ends the round, stops the timer
-     * Calling this means that the spy has guessed location
-     * Spy gets a point if guessing correctly
-     * 
-     * @param lobbyCode
-     * @param spyUsername
-     * @param spyGuessedCorrectly
-     * @param spyCaught
+     * Ends the round due to the spy's guess.
+     * <p>
+     * Determines the outcome of the round based on whether the spy guessed
+     * correctly or not.
+     *
+     * @param lobbyCode           The lobby code of the game.
+     * @param spyUsername         The username of the spy.
+     * @param spyCaught           Whether the spy was caught.
+     * @param spyGuessedCorrectly Whether the spy guessed the location correctly.
      */
     public void endRoundDueToGuess(String lobbyCode, String spyUsername, boolean spyCaught,
             boolean spyGuessedCorrectly) {
@@ -176,17 +198,16 @@ public class RoundService {
         if (game == null)
             return;
 
-        RoundEndReason reason;
-
-        if (spyGuessedCorrectly) {
-            reason = RoundEndReason.SPY_GUESS;
-        } else {
-            reason = RoundEndReason.VOTES;
-        }
-
+        RoundEndReason reason = spyGuessedCorrectly ? RoundEndReason.SPY_GUESS : RoundEndReason.VOTES;
         finalizeRound(game, reason, spyCaught, spyGuessedCorrectly, spyUsername);
     }
 
+    /**
+     * Ends the round due to a wrong vote majority.
+     *
+     * @param lobbyCode   The lobby code of the game.
+     * @param spyUsername The username of the spy.
+     */
     public void endRoundDueToWrongVote(String lobbyCode, String spyUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
@@ -214,7 +235,7 @@ public class RoundService {
     }
 
     /**
-     * Method called when the spy is disconnected during a round
+     * Ends the round due to the spy disconnecting.
      * Ends the round without awarding any points
      * 
      * @param lobbyCode
@@ -243,13 +264,14 @@ public class RoundService {
     }
 
     /**
-     * Calls award points and then broadcast the end round message
-     * 
-     * @param game            the current game
-     * @param reason          the reason for the round to end
-     * @param spyCaught       if the spy was caught or not
-     * @param spyGuessCorrect if the spy guessed the location
-     * @param spyUsername     name of the spy
+     * Finalizes the round by awarding points and broadcasting the end-round
+     * message.
+     *
+     * @param game            The current game.
+     * @param reason          The reason for the round ending.
+     * @param spyCaught       Whether the spy was caught.
+     * @param spyGuessCorrect Whether the spy guessed the location correctly.
+     * @param spyUsername     The username of the spy.
      */
     private void finalizeRound(Game game, RoundEndReason reason, boolean spyCaught, boolean spyGuessCorrect,
             String spyUsername) {
@@ -261,7 +283,7 @@ public class RoundService {
         currentRound.endRound();
         game.stopTimer();
 
-        // Award points
+        // Award points based on the round outcome
         awardPoints(game, reason, spyGuessCorrect, spyUsername);
 
         // Broadcast end of round message
@@ -276,22 +298,22 @@ public class RoundService {
     }
 
     /**
-     * Award points to the correct users based on if the spy was caught or not and
-     * if the spy guessed corectly
-     * 
-     * @param game            the current game
-     * @param spyCaught       if the spy was caught or not
-     * @param spyGuessCorrect if the spy guessed the location
-     * @param spyUsername     name of the spy
+     * Awards points to players based on the round outcome.
+     *
+     * @param game            The current game.
+     * @param reason          The reason for the round ending.
+     * @param spyGuessCorrect Whether the spy guessed the location correctly.
+     * @param spyUsername     The username of the spy.
      */
     private void awardPoints(Game game, RoundEndReason reason, boolean spyGuessCorrect, String spyUsername) {
         if (spyGuessCorrect || reason == RoundEndReason.TIMEOUT || reason == RoundEndReason.WRONG_VOTE) {
-            // Spy guessed location correctly or there was a timeout
+            // Spy guessed the location correctly or the round ended due to timeout/wrong
+            // vote
             game.updateScore(spyUsername, 1);
         }
 
         else {
-            // Everyone except spy gets 1 point
+            // Award points to all players except the spy
             for (Player p : game.getPlayers()) {
                 if (!p.getUsername().equals(spyUsername)) {
                     game.updateScore(p.getUsername(), 1);

@@ -14,6 +14,15 @@ import com.interloperServer.interloperServer.model.RoundState;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
+/**
+ * Service for managing voting logic in the game.
+ * <p>
+ * This service handles voting-related actions, such as casting votes,
+ * evaluating votes,
+ * and processing the spy's guess. It interacts with other services to manage
+ * game state
+ * and send messages to players.
+ */
 @Service
 public class VotingService {
     private final MessagingService messagingService;
@@ -31,11 +40,11 @@ public class VotingService {
     }
 
     /**
-     * Casts a vote for the spy from a user to another user for the current round
-     * 
-     * @param lobbyCode the lobby for the game
-     * @param voter     the username of the player voting
-     * @param target    the username of the player being voted for
+     * Casts a vote for the spy from one player to another during the current round.
+     *
+     * @param lobbyCode      The lobby code of the game.
+     * @param voterUsername  The username of the player casting the vote.
+     * @param targetUsername The username of the player being voted for.
      */
     public void castVote(String lobbyCode, String voterUsername, String targetUsername) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -44,12 +53,13 @@ public class VotingService {
 
         Round currentRound = game.getCurrentRound();
 
+        // If voting is already complete, do nothing
         if (currentRound.isVotingComplete())
             return;
 
         Player voter = game.getPlayer(voterUsername);
 
-        // Check for invalid target
+        // Check if the target player exists
         if (game.getPlayer(targetUsername) == null) {
             if (voter != null) {
                 messagingService.sendMessage(voter.getSession(),
@@ -58,31 +68,31 @@ public class VotingService {
             return;
         }
 
-        // Check for self vote
+        // Prevent self-voting
         if (voter != null && voterUsername.equals(targetUsername)) {
             messagingService.sendMessage(voter.getSession(), "Invalid Vote. Cannot vote for yourself.");
         }
 
-        // Don't register vote if the voter doesn't exist
+        // If the voter does not exist, do nothing
         if (voter == null) {
             return;
         }
 
-        // Register vote
+        // Register the vote
         currentRound.castVote(voterUsername, targetUsername);
 
-        // Notify voter of successful vote
+        // Notify the voter of a successful vote
         messagingService.sendMessage(voter.getSession(), messageFactory.voted());
 
-        // Look for majority after every vote
+        // Evaluate votes after every new vote
         evaluateVotes(lobbyCode);
     }
 
     /**
-     * Calculates the most voted player
-     * 
-     * @param voteMap map of votes (username -> username)
-     * @return the name of the most voted player
+     * Determines the player with the most votes.
+     *
+     * @param voteMap A map of votes (voter -> target).
+     * @return The username of the most voted player.
      */
     private String getMostVotedPlayer(Map<String, String> voteMap) {
         Map<String, Integer> voteCount = new HashMap<>();
@@ -93,7 +103,11 @@ public class VotingService {
     }
 
     /**
-     * Returns how many votes the given player received.
+     * Counts the number of votes a specific player received.
+     *
+     * @param voteMap  A map of votes (voter -> target).
+     * @param username The username of the player to count votes for.
+     * @return The number of votes the player received.
      */
     private int getVoteCountForPlayer(Map<String, String> voteMap, String username) {
         int count = 0;
@@ -106,20 +120,25 @@ public class VotingService {
     }
 
     /**
-     * Checks if a vote count has reached majority
-     * 
-     * @param highestVoteCount  the highest number of votes
-     * @param majorityThreshold the amount of votes needed to end the round
-     * @return true or false
+     * Checks if a vote count has reached the majority threshold.
+     *
+     * @param highestVoteCount  The highest number of votes received by a player.
+     * @param majorityThreshold The number of votes needed for a majority.
+     * @return {@code true} if the majority threshold is reached, {@code false}
+     *         otherwise.
      */
     private boolean hasMajority(int highestVoteCount, int majorityThreshold) {
         return highestVoteCount >= majorityThreshold;
     }
 
     /**
-     * Checks if the players have managed to vote out the spy
-     * 
-     * @param lobbyCode the lobby having the vote
+     * Evaluates the votes to determine if the spy has been caught.
+     * <p>
+     * If a majority is reached, the round ends, and the spy either gets a last
+     * attempt
+     * to guess the location or the round ends due to a wrong vote.
+     *
+     * @param lobbyCode The lobby code of the game.
      */
     public void evaluateVotes(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -131,7 +150,7 @@ public class VotingService {
             return;
         }
 
-        // If round is already complete, do nothing
+        // If voting is already complete, do nothing
         if (currentRound.isVotingComplete())
             return;
 
@@ -152,26 +171,28 @@ public class VotingService {
             return;
         }
 
-        // Otherwise we have a majority
+        // Determine if the spy was caught
         String spyUsername = currentRound.getSpy().getUsername();
         boolean spyCaught = mostVoted.equals(spyUsername);
 
-        // The spy gets on last attempt to guess the right location
+        // The spy gets one last attempt to guess the right location if caught
         if (spyCaught) {
+            // Start the spy's last attempt to guess the location
             roundService.startSpyLastAttempt(lobbyCode, spyUsername);
             return;
+        } else {
+            // End the round due to a wrong vote
+            roundService.endRoundDueToWrongVote(lobbyCode, spyUsername);
         }
-        roundService.endRoundDueToWrongVote(lobbyCode, spyUsername);
 
     }
 
     /**
-     * /**
-     * The spy guesses a location
-     * 
-     * @param lobbyCode   the lobby for the game
-     * @param spyUsername the username of the spy
-     * @param location    the location being guessed
+     * Processes the spy's guess of the location.
+     *
+     * @param lobbyCode   The lobby code of the game.
+     * @param spyUsername The username of the spy making the guess.
+     * @param location    The location being guessed.
      */
     public void castSpyGuess(String lobbyCode, String spyUsername, String location) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -180,29 +201,25 @@ public class VotingService {
 
         Round currentRound = game.getCurrentRound();
 
-        // Not legal to guess after round is over
+        // If the round is not active, the spy cannot guess
         if (!currentRound.isActive()) {
             return;
         }
 
         Player spy = currentRound.getSpy();
 
-        // Not legal to guess location if the one guessing is not the spy
+        // If the player guessing is not the spy, do nothing
         if (!spy.getUsername().equals(spyUsername)) {
             return;
         }
 
-        // Check if guess is correct
+        // Check if the spy's guess is correct
         boolean spyGuessedCorrectly = currentRound.getLocation().getName().equals(location);
 
-        // Checks if spy has been caught or not when voting
-        boolean caught;
-        if (currentRound.getRoundState() == RoundState.NORMAL) {
-            caught = false;
-        } else {
-            caught = true;
-        }
+        // Determine if the spy was caught during voting
+        boolean caught = currentRound.getRoundState() != RoundState.NORMAL;
 
+        // End the round based on the spy's guess
         roundService.endRoundDueToGuess(lobbyCode, spyUsername, caught, spyGuessedCorrectly);
     }
 

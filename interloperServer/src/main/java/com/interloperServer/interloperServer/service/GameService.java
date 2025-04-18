@@ -8,7 +8,12 @@ import com.interloperServer.interloperServer.service.messagingServices.GameMessa
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
 /**
- * Service for handling game related logic
+ * Service for handling game-related logic.
+ * <p>
+ * This service manages the lifecycle of a game, including starting games,
+ * handling player disconnections,
+ * advancing rounds, and ending games. It interacts with other services to
+ * manage game state and send messages.
  */
 @Service
 public class GameService {
@@ -19,15 +24,6 @@ public class GameService {
     private final GameMessageFactory messageFactory;
     private final LobbyManagerService lobbyManager;
 
-    // All active games
-    // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
-    /**
-     * Initializes the game service with its dependent services
-     * 
-     * @param votingService
-     * @param roundService
-     * @param roleService
-     */
     public GameService(VotingService votingService, RoundService roundService,
             MessagingService messagingService, GameMessageFactory messageFactory, GameManagerService gameManagerService,
 
@@ -41,10 +37,15 @@ public class GameService {
     }
 
     /**
-     * Assigns roles (one Spy, rest Players) to all players in the lobby.
-     * Example message: {"content": "startGame:a9b7f9", "username": "Alice"}
-     * 
-     * @return True if the host called the method, false if someone else did
+     * Starts a new game in the specified lobby.
+     * <p>
+     * Assigns roles to players, initializes the game, and starts the first round.
+     *
+     * @param username  The username of the player attempting to start the game.
+     * @param lobbyCode The code of the lobby where the game is being started.
+     * @param session   The WebSocket session of the player.
+     * @return {@code true} if the game was successfully started, {@code false}
+     *         otherwise.
      */
     public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
         Lobby lobby = lobbyManager.getLobbyFromLobbyCode(lobbyCode);
@@ -53,19 +54,19 @@ public class GameService {
             messagingService.sendMessage(session, messageFactory.error("Lobby doesn't exist."));
             return false;
         }
-        // Prevents game to get started when there already is an active game in place
+        // Prevent starting a game if one is already active
         if (lobby.getGameActive()) {
             messagingService.sendMessage(session, messageFactory.error("Active game is already in session"));
             return false;
         }
 
-        // Prevent users other than host to begin the game
+        // Only the host can start the game
         if (!lobby.getHost().getUsername().equals(username)) {
             messagingService.sendMessage(session, messageFactory.error("Only the host can start the game"));
             return false;
         }
 
-        // Prevent game from starting with too few players
+        // Ensure there are enough players to start the game
         if (lobby.getPlayers().size() < 3) {
             messagingService.sendMessage(session, messageFactory.error("Too few players to start the game."));
             return false;
@@ -75,19 +76,28 @@ public class GameService {
         Game game = new Game(lobby);
         gameManagerService.storeGame(lobby.getLobbyCode(), game);
 
+        // Notify players that the game has started
         messagingService.broadcastMessage(lobby, messageFactory.gameStarted());
 
+        // Start the first round
         roundService.advanceRound(lobbyCode);
 
-        // Start voting countdown for the first round
+        // Start the countdown for the first round
         startRoundCountdown(lobby.getLobbyCode());
 
         return true;
     }
 
     /**
-     * Removes a player from a lobby and game when they disconnect
-     * Ends the game if there are too few players left after disconnect
+     * Handles a player's disconnection from the game.
+     * <p>
+     * Schedules the player for removal if they do not reconnect within a buffer
+     * period.
+     * Ends the game if there are too few players left.
+     * Ends the round if the spy disconnects.
+     *
+     * @param session   The WebSocket session of the disconnected player.
+     * @param lobbyCode The code of the lobby the player was in.
      */
     public void handlePlayerDisconnect(WebSocketSession session, String lobbyCode) {
         Lobby lobby = lobbyManager.getLobbyFromLobbyCode(lobbyCode);
@@ -99,28 +109,28 @@ public class GameService {
         if (player == null)
             return;
 
-        // Schedule them to be removed if they do not come back in 30 seconds
+        // Schedule the player for removal if they do not reconnect within 30 seconds
         final int DISCONNECT_BUFFER_SECONDS = 30;
         player.scheduleDisconnectRemoval(() -> {
-            // This code runs only after the buffer if the player is still disconnected
             if (!player.isDisconnected()) {
                 return;
             }
 
-            // Remove them from the lobby
+            // Remove the player from the lobby
             lobbyManager.removeUser(session);
 
             if (!gameManagerService.hasGame(lobbyCode)) {
                 return;
             }
 
-            // If the game is left with fewer than 3 players, end the game
             Game game = gameManagerService.getGame(lobbyCode);
+
+            // End the game if fewer than 3 players remain
             if (game != null && game.getPlayers().size() < 3) {
                 endGame(lobbyCode);
             }
-            // If the disconnected player is the spy -> end the round without awarding any
-            // points
+
+            // End the round early if the disconnected player was the spy
             else if (game != null && game.getCurrentRound() != null) {
                 Player spy = game.getCurrentRound().getSpy();
                 if (spy != null && spy.getUsername().equals(player.getUsername())) {
@@ -133,9 +143,11 @@ public class GameService {
     }
 
     /**
-     * Start counting down the round
-     * 
-     * @param lobbyCode
+     * Starts the countdown for the current round.
+     * <p>
+     * Ends the round due to timeout if the countdown completes.
+     *
+     * @param lobbyCode The code of the lobby where the round is taking place.
      */
     public void startRoundCountdown(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -149,17 +161,16 @@ public class GameService {
 
         int roundDuration = currentRound.getRoundDuration();
 
-        // Start timer and end the round due to timeout if the spy haven't guessed or
-        // the players haven't gotten a majority
+        // Start the timer and end the round due to timeout if necessary
         game.startTimer(roundDuration, () -> endRoundDueToTimeout(lobbyCode));
     }
 
     /**
-     * Casts a vote for the spy from a user to another user for the current round
-     * 
-     * @param lobbyCode the lobby for the game
-     * @param voter     the username of the player voting
-     * @param target    the username of the player being voted for
+     * Casts a vote for the spy during the current round.
+     *
+     * @param lobbyCode The code of the lobby where the game is taking place.
+     * @param voter     The username of the player casting the vote.
+     * @param target    The username of the player being voted for.
      */
     public void castVote(String lobbyCode, String voter, String target) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -170,11 +181,11 @@ public class GameService {
     }
 
     /**
-     * The spy guesses a location
-     * 
-     * @param lobbyCode   the lobby for the game
-     * @param spyUsername the username of the spy
-     * @param location    the location being guessed
+     * Processes the spy's guess of the location.
+     *
+     * @param lobbyCode   The code of the lobby where the game is taking place.
+     * @param spyUsername The username of the spy making the guess.
+     * @param location    The location being guessed.
      */
     public void castSpyGuess(String lobbyCode, String spyUsername, String location) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -185,32 +196,33 @@ public class GameService {
     }
 
     /**
-     * Advances the game to the next round
+     * Advances the game to the next round.
+     *
+     * @param lobbyCode The code of the lobby where the game is taking place.
      */
     public void advanceRound(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null)
             return;
 
-        // Prevent premature advancing
+        // Prevent advancing if voting is not complete
         if (!game.getCurrentRound().isVotingComplete()) {
             return;
         }
 
         roundService.advanceRound(lobbyCode);
 
-        // Stop existing timer if there is one
+        // Stop the existing timer
         game.stopTimer();
 
-        // Start round countdown
+        // Start the countdown for the next round
         startRoundCountdown(lobbyCode);
     }
 
     /**
-     * Ends the round, calls roundservice to award points and broadcast end round
-     * message
-     * 
-     * @param lobbyCode
+     * Ends the current round due to a timeout.
+     *
+     * @param lobbyCode The code of the lobby where the game is taking place.
      */
     public void endRoundDueToTimeout(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -224,12 +236,13 @@ public class GameService {
         }
 
         String spyName = currentRound.getSpy().getUsername();
-
         roundService.endRoundDueToTimeout(lobbyCode, spyName);
     }
 
     /**
-     * Ends a game and removes it from active games.
+     * Ends the game and removes it from active games.
+     *
+     * @param lobbyCode The code of the lobby where the game is taking place.
      */
     public void endGame(String lobbyCode) {
         Game game = gameManagerService.getGame(lobbyCode);
@@ -239,16 +252,24 @@ public class GameService {
         game.getLobby().setGameActive(false);
         gameManagerService.removeGame(lobbyCode);
 
+        // Notify players that the game has ended
         messagingService.broadcastMessage(game.getLobby(), messageFactory.gameEnded());
     }
 
-    // Host can end game prematurly
+    /**
+     * Allows the host to end an ongoing game prematurely.
+     *
+     * @param lobbyCode The code of the lobby where the game is taking place.
+     * @param username  The username of the host attempting to end the game.
+     * @param session   The WebSocket session of the host.
+     */
     public void hostEndOngoingGame(String lobbyCode, String username, WebSocketSession session) {
         Game game = gameManagerService.getGame(lobbyCode);
         if (game == null) {
             return;
         }
 
+        // Only the host can end the game
         if (!game.getLobby().getHost().getUsername().equals(username)) {
             messagingService.sendMessage(session, messageFactory.error("Only the host is allowed to end the game"));
             return;
