@@ -3,7 +3,15 @@ package com.interloperServer.interloperServer.model;
 import java.util.*;
 import org.springframework.web.socket.WebSocketSession;
 
+/**
+ * Represents a game instance.
+ * <p>
+ * This class manages the state of a game, including players, rounds, scores,
+ * and timers.
+ * It interacts with the {@link Lobby} to manage players and game settings.
+ */
 public class Game {
+
     private final Map<String, Integer> scoreboard;
     private Lobby lobby;
     private boolean isActive;
@@ -56,28 +64,23 @@ public class Game {
         return lobby.getPlayers();
     }
 
-    /**
-     * Retrieves a player from the game based on their username.
-     *
-     * @param username The username of the player to retrieve.
-     * @return The Player object if found, or null if no player with the given
-     *         username exists.
-     */
     public Player getPlayer(String username) {
         return lobby.getPlayer(username);
     }
 
     /**
      * Retrieves a player from the game based on their WebSocketSession.
-     *
-     * @param session The WebSocketSession of the player to retrieve.
-     * @return The Player object if found, or null if no player with the given
-     *         session exists.
      */
     public Player getPlayerBySession(WebSocketSession session) {
         return lobby.getPlayerBySession(session);
     }
 
+    /**
+     * Starts the next round in the game.
+     * <p>
+     * Assigns a random spy and location for the new round.
+     * Ends the game if the round limit is reached.
+     */
     public void startNextRound() {
         if (!hasMoreRounds()) {
             isActive = false; // End the game after all rounds
@@ -86,14 +89,11 @@ public class Game {
 
         currentRoundIndex++;
         Player newSpy = chooseRandomSpy(getPlayers());
-        Location newLocation = chooseRandomLocation(lobby.getLocations());// might change this to game if we decide to
-                                                                          // have locations here too
+        Location newLocation = chooseRandomLocation(lobby.getLocations());
         int timePerRound = lobby.getLobbyOptions().getTimePerRound();
 
         Round newRound = new Round(currentRoundIndex, timePerRound, newSpy, newLocation);
-
         currentRound = newRound;
-
     }
 
     public Map<String, Integer> getScoreboard() {
@@ -112,7 +112,9 @@ public class Game {
         return this.roundTimer;
     }
 
-    // Stop existing timer if there is one
+    /**
+     * Stops the current round timer, if one exists.
+     */
     public void stopTimer() {
         if (roundTimer != null) {
             roundTimer.cancel();
@@ -141,6 +143,12 @@ public class Game {
         }, durationInSeconds * 1000);
     }
 
+    /**
+     * Chooses a random player to be the spy for the round.
+     *
+     * @param players The list of players in the game.
+     * @return The {@link Player} selected as the spy.
+     */
     private Player chooseRandomSpy(List<Player> players) {
         Random random = new Random();
         int index = random.nextInt(0, players.size());
@@ -148,6 +156,12 @@ public class Game {
         return players.get(index);
     }
 
+    /**
+     * Chooses a random location for the round.
+     *
+     * @param locations The list of available locations.
+     * @return The {@link Location} selected for the round.
+     */
     private Location chooseRandomLocation(List<Location> locations) {
         Random random = new Random();
         int index = random.nextInt(0, locations.size());
