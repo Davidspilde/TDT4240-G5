@@ -1,7 +1,9 @@
 package io.github.Spyfall.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
 
 public class GameData {
     private boolean isSpy;
@@ -11,6 +13,33 @@ public class GameData {
     private int totalRounds;
     private int timeRemaining;
     private List<String> possibleLocations = new ArrayList<>();
+    private boolean roundEnded;
+    private String isSpyUsername;
+    private HashMap<String, Integer> scoreboard;
+
+    public boolean isRoundEnded() {
+        return roundEnded;
+    }
+
+    public void setRoundEnded(boolean roundEnded) {
+        this.roundEnded = roundEnded;
+    }
+
+    public String getIsSpyUsername() {
+        return isSpyUsername;
+    }
+
+    public void setIsSpyUsername(String isSpyUsername) {
+        this.isSpyUsername = isSpyUsername;
+    }
+
+    public HashMap<String, Integer> getScoreboard() {
+        return scoreboard;
+    }
+
+    public void setScoreboard(HashMap<String, Integer> scoreboard) {
+        this.scoreboard = scoreboard;
+    }
     
     public boolean isSpy() {
         return isSpy;

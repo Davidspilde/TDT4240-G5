@@ -44,7 +44,7 @@ public class RecieveMessageService {
             
             // parse message based on type
             ResponseMessage parsedMessage = parseMessage(type, message);
-            System.out.println("HERE YU FUCK" + parsedMessage);
+            System.out.println("parsed message:" + parsedMessage);
             
             if (parsedMessage == null) {
                 System.err.println("Failed to parse message of type: " + type);
@@ -76,7 +76,7 @@ public class RecieveMessageService {
                 case "newRound":
                     return json.fromJson(GameNewRoundMessage.class, message);
                     
-                case "gameRoundEnded":
+                case "roundEnded":
                     return json.fromJson(GameRoundEndedMessage.class, message);
                     
                 case "gameSpyCaught":

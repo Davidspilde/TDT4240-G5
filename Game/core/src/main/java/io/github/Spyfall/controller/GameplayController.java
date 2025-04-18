@@ -12,10 +12,13 @@ import io.github.Spyfall.message.response.GameSpyCaughtMessage;
 import io.github.Spyfall.message.response.GameSpyGuessMessage;
 import io.github.Spyfall.message.response.GameVoteMessage;
 import io.github.Spyfall.message.response.ResponseMessage;
+import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.view.GameLobbyStage;
+import io.github.Spyfall.view.StageView;
 
 public class GameplayController {
     private static GameplayController instance;
@@ -68,14 +71,13 @@ private void handleNewRound(GameNewRoundMessage message) {
     
     // Update game data
     gameModel.getGameData().setCurrentRound(message.getRoundNumber());
-    // gameModel.getGameData().setSpy(message.isSpy());
+    gameModel.getGameData().setSpy(message.getRole().equals("spy"));
     gameModel.getGameData().setLocation(message.getLocation());
     gameModel.getGameData().setRole(message.getRole());
-    gameModel.getGameData().setTimeRemaining(message.getRoundDuration());
+    gameModel.getGameData().setTimeRemaining(message.getRoundDuration()); // 
     
-    // For spy, populate possible locations
+    // test locations
     if (message.getRole().equals("spy")) {
-        // Use default locations list if needed
         List<String> defaultLocations = Arrays.asList(
             "Airplane", "Bank", "Beach", "Casino", "Hospital", 
             "Hotel", "Military Base", "Movie Studio", "Ocean Liner", 
@@ -84,29 +86,58 @@ private void handleNewRound(GameNewRoundMessage message) {
         );
         gameModel.getGameData().setPossibleLocations(defaultLocations);
     }
+
     Gdx.app.postRunnable(() -> {
         // Change game state if not already in game
-        System.out.println("do we get here?");
         if (gameModel.getCurrentState() != GameState.IN_GAME) {
-            System.out.println("WE DO");
             gameModel.setCurrentState(GameState.IN_GAME);
+        }
+
+        StageView currentStage = StageManager.getInstance().getStage();
+        if (currentStage instanceof GameLobbyStage) {
+            ((GameLobbyStage) currentStage).startTimer(message.getRoundDuration()); 
         }
     });
 }
 
 private void handleRoundEnded(GameRoundEndedMessage message) {
-    System.out.println("Round ended: Spy was " + message.getSpy());
+    System.out.println("HELLLOOOOO: Spy was " + message.getSpy());
     
-    // Play sound
-    AudioService.getInstance().playSound("click");
+    // Update game model with round end information
+    GameData gameData = gameModel.getGameData();
+    gameData.setRoundEnded(true);
+    gameData.setIsSpyUsername(message.getSpy());
+
+    gameData.setLocation(message.getLocation());
+    gameData.setCurrentRound(message.getRoundNumber());
     
-    // Update scores in game model if there is a scoreboard
+
     if (message.getScoreboard() != null) {
-        // TODO: Update game model with scores
+        gameData.setScoreboard(message.getScoreboard());
     }
+
+    Gdx.app.postRunnable(() -> {
+        try {
+            StageView currentStage = StageManager.getInstance().getStage();
+            if (currentStage instanceof GameLobbyStage) {
+
+                ((GameLobbyStage) currentStage).handleRoundEnded(
+                    message.getRoundNumber(),  // Round number from message
+                    message.getReason(),       // Reason for round end (e.g., "TIMEOUT")
+                    message.getSpy(),          // Spy player name
+                    message.getLocation(),     // Location from message
+                    message.getScoreboard()    // Scoreboard
+                );
+
+                ((GameLobbyStage) currentStage).updateTimerDisplay(0);
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        
+    });
     
-    // Reset votes or prepare for next round
-    // This might be handled in the UI
+    
 }
 
 private void handleSpyCaught(GameSpyCaughtMessage message) {
@@ -126,7 +157,7 @@ private void handleSpyGuess(GameSpyGuessMessage message) {
     AudioService.getInstance().playSound("click");
     
     // Show dialog with result
-    // This might be better handled in the view
+
 }
 
 private void handleVote(GameVoteMessage message) {

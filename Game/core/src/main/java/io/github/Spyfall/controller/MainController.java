@@ -97,16 +97,18 @@ public class MainController implements GameStateObserver, MessageHandler {
         // update view based on model state
         switch (model.getCurrentState()) {
             case MAIN_MENU:
+                System.out.println("State: MAIN MENU");
                 setMainMenuStage();
                 break;
             case CREATE_GAME:
                 setCreateGameStage();
                 break;
             case LOBBY:
-                System.out.println("WE ACTUALLY GET HERE");
+                System.out.println("State: LOBBY");
                 setLobbyStage();
                 break;
             case IN_GAME:
+                System.out.println("State: IN-GAME");
                 setGameLobbyStage();
                 break;
             default:

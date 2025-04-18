@@ -47,7 +47,7 @@ public class LobbyService {
                 30, // locationNumber
                 1, // spyCount
                 8, // maxPlayers
-                120 // roundDuration (seconds)
+                10 // roundDuration (seconds) // change
         );
 
         Lobby newLobby = new Lobby(lobbyCode, host, options);
