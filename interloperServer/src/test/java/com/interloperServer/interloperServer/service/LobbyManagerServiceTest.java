@@ -1,8 +1,6 @@
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.Lobby;
-import com.interloperServer.interloperServer.model.LobbyOptions;
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,12 +13,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@DisplayName("LobbyService Tests")
-public class LobbyServiceTest {
+@DisplayName("LobbyManagerService Tests")
+public class LobbyManagerServiceTest {
 
     private MessagingService messagingService;
     private GameMessageFactory messageFactory;
-    private LobbyService lobbyService;
+    private LobbyManagerService lobbyService;
+    private LobbyHostService lobbyHostservice;
     private WebSocketSession session;
 
     @BeforeEach
@@ -28,7 +27,8 @@ public class LobbyServiceTest {
         messagingService = mock(MessagingService.class);
         messageFactory = mock(GameMessageFactory.class);
         session = mock(WebSocketSession.class);
-        lobbyService = new LobbyService(messagingService, messageFactory);
+        lobbyHostservice = mock(LobbyHostService.class);
+        lobbyService = new LobbyManagerService(messagingService, messageFactory, lobbyHostservice);
     }
 
     @Test
@@ -82,29 +82,6 @@ public class LobbyServiceTest {
     }
 
     @Test
-    @DisplayName("Should update lobby options from message input")
-    public void testUpdateLobbyOptions() {
-        String username = "host";
-        String lobbyCode = lobbyService.createLobby(session, username);
-
-        RecieveLobbyOptionsMessage optionsMsg = new RecieveLobbyOptionsMessage();
-        optionsMsg.setRoundLimit(5);
-        optionsMsg.setSpyCount(2);
-        optionsMsg.setLocationNumber(25);
-        optionsMsg.setTimePerRound(150);
-        optionsMsg.setMaxPlayerCount(6);
-
-        lobbyService.updateLobbyOptions(lobbyCode, optionsMsg);
-        LobbyOptions updatedOptions = lobbyService.getLobbyFromLobbyCode(lobbyCode).getLobbyOptions();
-
-        assertEquals(5, updatedOptions.getRoundLimit());
-        assertEquals(2, updatedOptions.getSpyCount());
-        assertEquals(5, updatedOptions.getLocationNumber()); // still note: method uses roundLimit here
-        assertEquals(150, updatedOptions.getTimePerRound());
-        assertEquals(6, updatedOptions.getMaxPlayerCount());
-    }
-
-    @Test
     @DisplayName("Should correctly identify if user is host")
     public void testIsHost() {
         String username = "host";
@@ -114,4 +91,3 @@ public class LobbyServiceTest {
         assertFalse(lobbyService.isHost(lobbyCode, "notHost"));
     }
 }
-

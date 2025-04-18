@@ -1,0 +1,299 @@
+[
+    {
+      "name": "School",
+      "roles": [
+        "Teacher",
+        "Student",
+        "Principal",
+        "Janitor",
+        "School Nurse",
+        "Cafeteria Worker",
+        "Coach",
+        "Librarian"
+      ]
+    },
+    {
+      "name": "Airplane",
+      "roles": [
+        "Pilot",
+        "Co-Pilot",
+        "Flight Attendant",
+        "Passenger",
+        "Air Marshal",
+        "Engineer",
+        "Child",
+        "Business Traveler"
+      ]
+    },
+    {
+      "name": "Junkyard",
+      "roles": [
+        "Scrap Collector",
+        "Mechanic",
+        "Thief",
+        "Guard Dog",
+        "Recycling Inspector",
+        "Truck Driver"
+      ]
+    },
+    {
+      "name": "Hospital",
+      "roles": [
+        "Doctor",
+        "Nurse",
+        "Surgeon",
+        "Patient",
+        "Receptionist",
+        "Paramedic",
+        "Intern",
+        "Security Guard"
+      ]
+    },
+    {
+      "name": "Theater",
+      "roles": [
+        "Actor",
+        "Director",
+        "Stagehand",
+        "Audience Member",
+        "Usher",
+        "Lighting Technician",
+        "Makeup Artist"
+      ]
+    },
+    {
+      "name": "Cruise Ship",
+      "roles": [
+        "Captain",
+        "Chef",
+        "Tourist",
+        "Musician",
+        "Bartender",
+        "Housekeeper",
+        "Lifeguard"
+      ]
+    },
+    {
+      "name": "Military Base",
+      "roles": [
+        "Soldier",
+        "General",
+        "Mechanic",
+        "Cook",
+        "Medic",
+        "Radio Operator",
+        "Guard"
+      ]
+    },
+    {
+      "name": "Space Station",
+      "roles": [
+        "Astronaut",
+        "Engineer",
+        "Scientist",
+        "Mission Control",
+        "Medical Officer",
+        "Researcher"
+      ]
+    },
+    {
+      "name": "Casino",
+      "roles": [
+        "Dealer",
+        "Gambler",
+        "Security",
+        "Bartender",
+        "Entertainer",
+        "Manager",
+        "Cleaner"
+      ]
+    },
+    {
+      "name": "Farm",
+      "roles": [
+        "Farmer",
+        "Farmhand",
+        "Veterinarian",
+        "Delivery Driver",
+        "Animal",
+        "Child"
+      ]
+    },
+    {
+      "name": "Submarine",
+      "roles": [
+        "Captain",
+        "Navigator",
+        "Cook",
+        "Sonar Technician",
+        "Engineer",
+        "Medic"
+      ]
+    },
+    {
+      "name": "Circus",
+      "roles": [
+        "Clown",
+        "Acrobat",
+        "Animal Trainer",
+        "Ringmaster",
+        "Audience",
+        "Vendor"
+      ]
+    },
+    {
+      "name": "Train Station",
+      "roles": [
+        "Conductor",
+        "Passenger",
+        "Ticket Seller",
+        "Janitor",
+        "Security",
+        "Pickpocket"
+      ]
+    },
+    {
+      "name": "Art Museum",
+      "roles": [
+        "Artist",
+        "Curator",
+        "Visitor",
+        "Security Guard",
+        "Tour Guide",
+        "Cleaner"
+      ]
+    },
+    {
+      "name": "Police Station",
+      "roles": [
+        "Officer",
+        "Detective",
+        "Suspect",
+        "Receptionist",
+        "Jail Guard",
+        "Lawyer"
+      ]
+    },
+    {
+      "name": "Restaurant",
+      "roles": [
+        "Chef",
+        "Waiter",
+        "Customer",
+        "Manager",
+        "Busser",
+        "Health Inspector"
+      ]
+    },
+    {
+      "name": "TV Studio",
+      "roles": [
+        "Host",
+        "Camera Operator",
+        "Producer",
+        "Makeup Artist",
+        "Guest",
+        "Sound Engineer"
+      ]
+    },
+    {
+      "name": "Beach",
+      "roles": ["Lifeguard", "Surfer", "Sunbather", "Vendor", "Child", "Fisher"]
+    },
+    {
+      "name": "Mountain Cabin",
+      "roles": ["Hiker", "Caretaker", "Photographer", "Hunter", "Cook", "Guest"]
+    },
+    {
+      "name": "University",
+      "roles": [
+        "Professor",
+        "Student",
+        "Janitor",
+        "Librarian",
+        "Dean",
+        "Researcher"
+      ]
+    },
+    {
+      "name": "Zoo",
+      "roles": [
+        "Zookeeper",
+        "Visitor",
+        "Veterinarian",
+        "Security",
+        "Kid",
+        "Animal"
+      ]
+    },
+    {
+      "name": "Amusement Park",
+      "roles": [
+        "Ride Operator",
+        "Visitor",
+        "Entertainer",
+        "Security",
+        "Vendor",
+        "Mechanic"
+      ]
+    },
+    {
+      "name": "Underground Bunker",
+      "roles": [
+        "Scientist",
+        "Prepper",
+        "Guard",
+        "Technician",
+        "Survivor",
+        "Leader"
+      ]
+    },
+    {
+      "name": "Mall",
+      "roles": [
+        "Shopper",
+        "Salesperson",
+        "Security",
+        "Janitor",
+        "Teenager",
+        "Food Court Staff"
+      ]
+    },
+    {
+      "name": "Fire Station",
+      "roles": [
+        "Firefighter",
+        "Paramedic",
+        "Dispatcher",
+        "Chief",
+        "Driver",
+        "Visitor"
+      ]
+    },
+    {
+      "name": "Library",
+      "roles": [
+        "Librarian",
+        "Student",
+        "Author",
+        "Researcher",
+        "Reader",
+        "Technician"
+      ]
+    },
+    {
+      "name": "Construction Site",
+      "roles": [
+        "Foreman",
+        "Builder",
+        "Architect",
+        "Electrician",
+        "Crane Operator",
+        "Inspector"
+      ]
+    },
+    {
+      "name": "Football Stadium",
+      "roles": ["Athlete", "Coach", "Fan", "Referee", "Security", "Announcer"]
+    }
+]

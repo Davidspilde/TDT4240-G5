@@ -50,9 +50,10 @@ public class MainMenuStage extends StageView {
         TextButton howToPlayButton = new TextButton("How to play", skin);
 
         //Settings
-        TextButton settings = new TextButton("Settings", skin);
+        TextureRegion region = new TextureRegion(new Texture("settings-logo.png"));
+        Image settings = new Image(region);
 
-
+        settings.setSize((float) (viewport.getScreenWidth()*0.1), (float) (viewport.getScreenHeight()*0.1));
         TextureRegionDrawable texture = new TextureRegionDrawable(
                 new TextureRegion(new Texture("Background_city.png")));
         Table table = new Table();
@@ -109,7 +110,9 @@ public class MainMenuStage extends StageView {
         Table bottomRightTable = new Table();
         bottomRightTable.setFillParent(true);
         bottomRightTable.bottom().right();
-        bottomRightTable.add(settings).pad(20);
+        bottomRightTable.add(settings).width(viewport.getScreenWidth() * 0.15f) // 50% of screen width
+                .height(viewport.getScreenHeight() * 0.075f)
+                .pad(20); // 20% of screen height
 
         // Add UI to Stage
         stage.addActor(table);
@@ -130,6 +133,7 @@ public class MainMenuStage extends StageView {
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
+                    //showNoLobbyDialog(lobbyCode);
                     controller.onJoinLobby(usernameString, lobbyCode);
                 }
             }
@@ -155,6 +159,24 @@ public class MainMenuStage extends StageView {
         dialog.show(stage);
         dialog.pack(); // for calculating layout libgdx stuff
 
+        dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+    }
+
+    private void showNoLobbyDialog(String lobbyCode) {
+        Dialog dialog = new Dialog("No lobby with code "+lobbyCode+ " found",skin,"dialog") {
+            @Override
+            public void result(Object obj){
+                audioService.playSound("click");
+            }
+        };
+
+        dialog.getTitleTable().padTop(20f);
+        dialog.getTitleTable().padBottom(5f);
+
+        dialog.button("Ok",true);
+        dialog.key(Input.Keys.ENTER, true);
+        dialog.show(stage);
+        dialog.pack();
         dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
     }
 

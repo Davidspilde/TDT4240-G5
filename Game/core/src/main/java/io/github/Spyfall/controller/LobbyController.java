@@ -1,5 +1,7 @@
 package io.github.Spyfall.controller;
 
+import com.badlogic.gdx.Gdx;
+
 import io.github.Spyfall.message.response.LobbyCreatedMessage;
 import io.github.Spyfall.message.response.LobbyJoinedMessage;
 import io.github.Spyfall.message.response.LobbyNewHostMessage;
@@ -19,7 +21,7 @@ public class LobbyController {
     
     private LobbyController() {
         this.gameModel = GameModel.getInstance();
-        this.sendMessageService = SendMessageService.getInstace();
+        this.sendMessageService = SendMessageService.getInstance();
     }
 
     public static LobbyController getInstance(){
@@ -57,8 +59,21 @@ public class LobbyController {
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage message) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyCreated'");
+        gameModel.setLobbyCode(message.getLobbyCode());
+        gameModel.getLobbyData().setHostPlayer(message.getHost());
+        gameModel.getLobbyData().getPlayers().clear();
+        gameModel.getLobbyData().addPlayer(gameModel.getUsername());
+        System.out.println("Handling lobby created: " + message.getLobbyCode());
+        
+        Gdx.app.postRunnable(() -> {
+            // transition to game config state
+            if (gameModel.getCurrentState() != GameState.GAME_CONFIG) {
+                gameModel.setCurrentState(GameState.GAME_CONFIG);
+            } else {
+                System.out.println("WRONG STATE: " + gameModel.getCurrentState());
+            }
+            
+        });
     }
 
     public void createLobby(String username) {
@@ -70,27 +85,27 @@ public class LobbyController {
             return;
         }
         gameModel.setUsername(username);
-        
+
         boolean success = sendMessageService.createLobby(username);
         if (success) {
-            gameModel.setCurrentState(GameState.LOBBY);
+            gameModel.setCurrentState(GameState.GAME_CONFIG);
             System.out.println("State is: " + gameModel.getCurrentState());
         } else {
             System.out.println("something failed on the backend");
         }
     }
-    
-    public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound) {
-        AudioService.getInstance().playSound("click");
+
+    public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
+            int spyLastAttemptTime) {
         boolean success = sendMessageService.updateLobbyOptions(
-            gameModel.getUsername(),
-            gameModel.getLobbyCode(),
-            roundLimit,
-            locationNumber,
-            maxPlayers,
-            timePerRound
-        );
-        
+                gameModel.getUsername(),
+                gameModel.getLobbyCode(),
+                roundLimit,
+                locationNumber,
+                maxPlayers,
+                timePerRound,
+                spyLastAttemptTime);
+
         if (success) {
             // Update local model immediately, it will be confirmed by server response
             gameModel.getLobbyData().setRoundLimit(roundLimit);
@@ -108,7 +123,7 @@ public class LobbyController {
             ((LobbyStage) currentStage).updateFromModel();
         }
     }
-    
+
     public void startGame() {
         AudioService.getInstance().playSound("click");
 
@@ -128,7 +143,7 @@ public class LobbyController {
         }
         // do stuff here
     }
-    
+
     public void leaveLobby() {
         AudioService.getInstance().playSound("click");
         // Send leave lobby request to server

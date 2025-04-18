@@ -1,4 +1,4 @@
-package com.interloperServer.interloperServer.model.messages.incomming;
+package com.interloperServer.interloperServer.model.messages.incoming;
 
 public class RecieveMessage {
     private String type;

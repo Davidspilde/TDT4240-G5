@@ -1,8 +1,5 @@
 package io.github.Spyfall.services;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
@@ -10,6 +7,7 @@ import com.badlogic.gdx.utils.JsonValue;
 import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.handlers.MessageHandler;
 import io.github.Spyfall.message.response.*;
+import io.github.Spyfall.model.GameState;
 
 
 public class RecieveMessageService {
@@ -41,22 +39,13 @@ public class RecieveMessageService {
             String type = root.getString("event", "");
 
             System.out.println("Received message of type: " + type);
-            
-            // parse message based on type
             ResponseMessage parsedMessage = parseMessage(type, message);
-            System.out.println("parsed message:" + parsedMessage);
+            
             
             if (parsedMessage == null) {
                 System.err.println("Failed to parse message of type: " + type);
                 return;
-            }
-            
-            if (messageHandler == null) {
-                // later processing
-                // messageQueue.add(parsedMessage);
-                System.out.println("EL BRUH MOMENTO " + type);
             } else {
-                // process message immediately
                 messageHandler.handleMessage(parsedMessage);
             }
             
@@ -111,13 +100,41 @@ public class RecieveMessageService {
         }
     }
 
+    // private void handleLobbyCreated(LobbyCreatedMessage msg) {
+    //     String lobbyCode = msg.getLobbyCode();
+    //     System.out.println("Handling lobby created: " + lobbyCode);
+        
+    //     Gdx.app.postRunnable(() -> {
+    //         gameModel.setLobbyCode(lobbyCode);
+    //         gameModel.getLobbyData().setHostPlayer(msg.getHost());
+            
+    //         // add player to the player list
+    //         gameModel.getLobbyData().getPlayers().clear();
+    //         gameModel.getLobbyData().addPlayer(gameModel.getUsername());
+            
+    //         // transition to game config state
+    //         gameModel.setCurrentState(GameState.GAME_CONFIG);
+    //     });
+    // }
+
+    // private void handleLobbyJoined(LobbyJoinedMessage msg) {
+    //     System.out.println("Handling lobby joined: " + msg);
+        
+    //     Gdx.app.postRunnable(() -> {
+    //         // update model
+    //         gameModel.setLobbyCode(msg.getLobbyCode());
+    //         gameModel.getLobbyData().setHostPlayer(msg.getHost());
+            
+    //         // transition to game config state instead of lobby state
+    //         gameModel.setCurrentState(GameState.GAME_CONFIG);
+    //     });
+    // }
+
     public void setupMessageHandling() {
         try {
             MainController mainController = MainController.getInstance();
             System.out.println("Message handling is now set up");
-            // Now we can process any queued messages
         } catch (RuntimeException e) {
-            // MainController not ready yet
             System.out.println("MainController not ready yet, will try again later");
         }
     }

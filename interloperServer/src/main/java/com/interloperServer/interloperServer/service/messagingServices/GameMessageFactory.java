@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.interloperServer.interloperServer.model.Location;
 import com.interloperServer.interloperServer.model.messages.outgoing.*;
 
 @Component
@@ -22,13 +23,13 @@ public class GameMessageFactory {
         return new GameMessage("gameEnded");
     }
 
-    public NewRoundMessage newRound(int number, int duration, String role, String location) {
-        return new NewRoundMessage(number, duration, role, location);
+    public NewRoundMessage newRound(int number, int duration, String role, String firstQuestioner, String location) {
+        return new NewRoundMessage(number, duration, role, firstQuestioner, location);
     }
 
-    public NewRoundMessage newRound(int number, int duration, String role) {
+    public NewRoundMessage newRound(int number, int duration, String role, String firstQuestioner) {
 
-        return new NewRoundMessage(number, duration, role);
+        return new NewRoundMessage(number, duration, role, firstQuestioner);
     }
 
     public LobbyCreatedMessage lobbyCreated(String lobbyCode, String host) {
@@ -51,8 +52,17 @@ public class GameMessageFactory {
         return new GameCompleteMessage(scoreboard);
     }
 
+    public SpyLastAttemptMessage spyLastAttempt(String spyUsername, int duration) {
+        return new SpyLastAttemptMessage(spyUsername, duration);
+
+    }
+
     public GameMessage voted() {
         return new GameMessage("voted");
+    }
+
+    public LobbyLocationsUpdateMessage locationsUpdate(List<Location> locations) {
+        return new LobbyLocationsUpdateMessage(locations);
     }
 
     public RoundEndedMessage roundEnded(

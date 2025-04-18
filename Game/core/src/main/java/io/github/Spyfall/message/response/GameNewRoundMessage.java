@@ -5,6 +5,7 @@ public class GameNewRoundMessage extends ResponseMessage {
     private int roundDuration;
     private String location;
     private String role;
+    private String firstQuestioner;
 
     public GameNewRoundMessage() {
 
@@ -12,6 +13,10 @@ public class GameNewRoundMessage extends ResponseMessage {
 
     public int getRoundNumber() {
         return roundNumber;
+    }
+
+    public String getFirstQuestioner() {
+        return this.firstQuestioner;
     }
 
     public void setRoundNumber(int roundNumber) {

@@ -18,6 +18,7 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.view.CreateGameStage;
+import io.github.Spyfall.view.GameConfigStage;
 import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.MainMenuStage;
@@ -70,7 +71,7 @@ public class MainController implements GameStateObserver, MessageHandler {
     }
     
     public void setCreateGameStage() {
-        CreateGameStage createGameStage = new CreateGameStage(viewport, lobbyController);
+        CreateGameStage createGameStage = new CreateGameStage(viewport, lobbyController, this);
         stageManager.setStage(createGameStage);
     }
 
@@ -82,12 +83,21 @@ public class MainController implements GameStateObserver, MessageHandler {
         stageManager.setStage(lobbyStage);
     }
     
+    public void setGameConfigStage() {
+        GameConfigStage gameConfigStage = new GameConfigStage(
+            viewport,
+            gameModel.getLobbyCode(),
+            gameModel.getLobbyData().getHostPlayer()
+        );
+        stageManager.setStage(gameConfigStage);
+    }
+    
     public void setGameLobbyStage() {
         GameLobbyStage gameLobbyStage = new GameLobbyStage(
             gameModel.getGameData().isSpy(),
             gameModel.getGameData().getLocation(), 
             gameModel.getGameData().getRole(),
-            viewport        );
+            viewport);
         stageManager.setStage(gameLobbyStage);
     }
     
@@ -106,6 +116,9 @@ public class MainController implements GameStateObserver, MessageHandler {
             case LOBBY:
                 System.out.println("State: LOBBY");
                 setLobbyStage();
+                break;
+            case GAME_CONFIG:
+                setGameConfigStage();
                 break;
             case IN_GAME:
                 System.out.println("State: IN-GAME");

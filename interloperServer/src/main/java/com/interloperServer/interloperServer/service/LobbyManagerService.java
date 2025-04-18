@@ -6,7 +6,6 @@ import org.springframework.web.socket.WebSocketSession;
 import com.interloperServer.interloperServer.model.Lobby;
 import com.interloperServer.interloperServer.model.LobbyOptions;
 import com.interloperServer.interloperServer.model.Player;
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
@@ -17,16 +16,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class for handling lobby-related logic.
  */
 @Service
-public class LobbyService {
+public class LobbyManagerService {
     private final MessagingService messagingService;
     private final GameMessageFactory messageFactory;
+    private final LobbyHostService lobbyHostService;
 
     // Stores lobbies by their unique code
     private final Map<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
-    public LobbyService(MessagingService messagingService, GameMessageFactory messageFactory) {
+    public LobbyManagerService(MessagingService messagingService, GameMessageFactory messageFactory,
+            LobbyHostService lobbyHostService) {
         this.messagingService = messagingService;
         this.messageFactory = messageFactory;
+        this.lobbyHostService = lobbyHostService;
     }
 
     /**
@@ -42,18 +44,28 @@ public class LobbyService {
 
         Player host = new Player(session, username);
 
+        // Set session attributes for reconnection purposes
+        session.getAttributes().put("username", username);
+        session.getAttributes().put("lobbyCode", lobbyCode);
+
         LobbyOptions options = new LobbyOptions(
                 10, // roundNumber
                 30, // locationNumber
-                1, // spyCount
                 8, // maxPlayers
-                10 // roundDuration (seconds) // change
+                10, // roundDuration (seconds)
+                45 // SpyLastAttemptDuration (seconds)
+
         );
 
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.put(lobbyCode, newLobby);
 
+        lobbyHostService.setInitialLocations(newLobby);
+
         messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
+
+        // sends the locations for the lobby
+        messagingService.sendMessage(session, messageFactory.locationsUpdate(newLobby.getLocations()));
 
         return lobbyCode;
     }
@@ -70,6 +82,28 @@ public class LobbyService {
             return false;
         }
 
+        // Look for a player with the same username who is disconnected
+        Player existingPlayer = lobby.getPlayer(username);
+        if (existingPlayer != null && existingPlayer.isDisconnected()) {
+            // This is a reconnect
+            existingPlayer.cancelDisconnectRemoval();
+            existingPlayer.setSession(session);
+
+            // Set session attributes for reconnection purposes
+            session.getAttributes().put("username", username);
+            session.getAttributes().put("lobbyCode", lobbyCode);
+
+            messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
+            broadcastPlayerList(lobbyCode);
+            return true;
+        }
+
+        // check if game is running
+        if (lobby.getGameActive()) {
+            messagingService.sendMessage(session, messageFactory.error("Cannot join lobby when game started"));
+            return false;
+        }
+
         LobbyOptions options = lobby.getLobbyOptions();
         List<Player> players = lobby.getPlayers();
 
@@ -79,21 +113,45 @@ public class LobbyService {
             return false;
         }
 
-        // Check if player is already in the lobby
-        Player existingPlayer = lobby.getPlayerBySession(session);
-
-        if (existingPlayer != null) {
-            messagingService.sendMessage(session, messageFactory.error("You are already in the lobby!"));
+        // Player username exists in the lobby but the player is not disconnected
+        if (existingPlayer != null && !existingPlayer.isDisconnected()) {
+            messagingService.sendMessage(session, messageFactory.error("Username is taken!"));
             return false;
         }
 
+        // Otherwise, add player to lobby
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
+            // sends the locations for the lobby
+            messagingService.sendMessage(session, messageFactory.locationsUpdate(lobby.getLocations()));
         }
+
+        // Set session attributes for reconnection purposes
+        session.getAttributes().put("username", username);
+        session.getAttributes().put("lobbyCode", lobbyCode);
 
         broadcastPlayerList(lobbyCode);
         return true;
+    }
+
+    public boolean leaveLobby(WebSocketSession session, String lobbyCode, String username) {
+        Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
+
+        // Check for non-existent lobby
+        if (lobby == null) {
+            messagingService.sendMessage(session, messageFactory.error("Lobby not found!"));
+            return false;
+        }
+        if (lobby.getGameActive()) {
+            messagingService.sendMessage(session, messageFactory.error("Cannot leave while game is active"));
+            return false;
+        }
+
+        removeUser(session);
+
+        return true;
+
     }
 
     /**
@@ -137,7 +195,6 @@ public class LobbyService {
                 targetLobby.setHost(newHost);
 
                 messagingService.broadcastMessage(targetLobby, messageFactory.newHost(newHost.getUsername()));
-
             }
 
             // Remove empty lobby
@@ -145,6 +202,9 @@ public class LobbyService {
                 lobbies.remove(targetLobby.getLobbyCode());
             }
         }
+
+        // Broadcasts changes in the lobby
+        broadcastPlayerList(targetLobby.getLobbyCode());
     }
 
     /**
@@ -170,16 +230,6 @@ public class LobbyService {
     public List<Player> getPlayersInLobby(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
         return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
-    }
-
-    public void updateLobbyOptions(String lobbycode, RecieveLobbyOptionsMessage newOptions) {
-        LobbyOptions lobbyOptions = getLobbyFromLobbyCode(lobbycode).getLobbyOptions();
-
-        lobbyOptions.setRoundLimit(newOptions.getRoundLimit());
-        lobbyOptions.setSpyCount(newOptions.getSpyCount());
-        lobbyOptions.setLocationNumber(newOptions.getRoundLimit());
-        lobbyOptions.setTimePerRound(newOptions.getTimePerRound());
-        lobbyOptions.setMaxPlayerCount(newOptions.getMaxPlayerCount());
     }
 
     public Lobby getLobbyFromLobbyCode(String lobbyCode) {

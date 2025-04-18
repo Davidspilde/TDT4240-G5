@@ -4,6 +4,8 @@ import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.view.GameRulesStage;
+import io.github.Spyfall.controller.StageManager;
 
 public class MainMenuController {
     private static MainMenuController instance;
@@ -12,7 +14,7 @@ public class MainMenuController {
     
     private MainMenuController() {
         this.gameModel = GameModel.getInstance();
-        this.sendMessageService = SendMessageService.getInstace();
+        this.sendMessageService = SendMessageService.getInstance();
     }
 
     public static MainMenuController getInstance() {
@@ -49,10 +51,9 @@ public class MainMenuController {
         System.out.println("Joined lobby with code: " + gameModel.getLobbyCode() + ", current state: " + gameModel.getCurrentState());
         // todo: response from server
     }
-    
+
     public void onHowToPlay() {
-        // TODO:
-        AudioService.getInstance().playSound("click");
-        System.out.println("How to play requested");
+        GameRulesStage rulesStage = new GameRulesStage(this);
+        StageManager.getInstance().setStage(rulesStage);
     }
 }

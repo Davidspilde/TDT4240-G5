@@ -334,6 +334,16 @@ public class GameLobbyStage extends StageView {
         roundEndTable.setVisible(true);
     }
 
+    public void resetRoundEndUI() {
+        if (roundEndTable != null) {
+            roundEndTable.setVisible(false);
+        }
+        isRoundEnded = false;
+        
+        // Update the UI to reflect game data
+        updateFromModel();
+    }
+
     
     
     // called when the model changes

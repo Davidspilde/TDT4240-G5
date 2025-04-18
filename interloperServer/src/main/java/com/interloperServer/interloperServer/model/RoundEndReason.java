@@ -3,5 +3,7 @@ package com.interloperServer.interloperServer.model;
 public enum RoundEndReason {
     VOTES,
     SPY_GUESS,
-    TIMEOUT
+    WRONG_VOTE,
+    TIMEOUT,
+    SPY_DISCONNECT
 }

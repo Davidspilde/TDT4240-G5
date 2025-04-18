@@ -7,8 +7,6 @@ import com.interloperServer.interloperServer.model.*;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
-import java.util.*;
-
 /**
  * Service for handling game related logic
  */
@@ -19,7 +17,7 @@ public class GameService {
     private final RoundService roundService;
     private final MessagingService messagingService;
     private final GameMessageFactory messageFactory;
-    private final LobbyService lobbyService;
+    private final LobbyManagerService lobbyManager;
 
     // All active games
     // private final Map<String, Game> activeGames = new ConcurrentHashMap<>();
@@ -32,8 +30,9 @@ public class GameService {
      */
     public GameService(VotingService votingService, RoundService roundService,
             MessagingService messagingService, GameMessageFactory messageFactory, GameManagerService gameManagerService,
-            LobbyService lobbyService) {
-        this.lobbyService = lobbyService;
+
+            LobbyManagerService lobbyManager) {
+        this.lobbyManager = lobbyManager;
         this.votingService = votingService;
         this.roundService = roundService;
         this.messagingService = messagingService;
@@ -48,10 +47,15 @@ public class GameService {
      * @return True if the host called the method, false if someone else did
      */
     public boolean startGame(String username, String lobbyCode, WebSocketSession session) {
-        Lobby lobby = lobbyService.getLobbyFromLobbyCode(lobbyCode);
+        Lobby lobby = lobbyManager.getLobbyFromLobbyCode(lobbyCode);
 
         if (lobby == null) {
             messagingService.sendMessage(session, messageFactory.error("Lobby doesn't exist."));
+            return false;
+        }
+        // Prevents game to get started when there already is an active game in place
+        if (lobby.getGameActive()) {
+            messagingService.sendMessage(session, messageFactory.error("Active game is already in session"));
             return false;
         }
 
@@ -62,7 +66,7 @@ public class GameService {
         }
 
         // Prevent game from starting with too few players
-        if (lobby.getPlayers().size() < 2) {
+        if (lobby.getPlayers().size() < 3) {
             messagingService.sendMessage(session, messageFactory.error("Too few players to start the game."));
             return false;
         }
@@ -82,22 +86,50 @@ public class GameService {
     }
 
     /**
-     * Removes a player from a game when they disconnect
-     * Ends the game if the player to disconnect is the only one left
+     * Removes a player from a lobby and game when they disconnect
+     * Ends the game if there are too few players left after disconnect
      */
     public void handlePlayerDisconnect(WebSocketSession session, String lobbyCode) {
-
-        Game game = gameManagerService.getGame(lobbyCode);
-
-        if (game == null) {
+        Lobby lobby = lobbyManager.getLobbyFromLobbyCode(lobbyCode);
+        if (lobby == null) {
             return;
         }
 
-        lobbyService.removeUser(session);
-        // If there is less than 2 left, end it
-        if (game.getPlayers().size() < 2) {
-            endGame(lobbyCode);
-        }
+        Player player = lobby.getPlayerBySession(session);
+        if (player == null)
+            return;
+
+        // Schedule them to be removed if they do not come back in 30 seconds
+        final int DISCONNECT_BUFFER_SECONDS = 30;
+        player.scheduleDisconnectRemoval(() -> {
+            // This code runs only after the buffer if the player is still disconnected
+            if (!player.isDisconnected()) {
+                return;
+            }
+
+            // Remove them from the lobby
+            lobbyManager.removeUser(session);
+
+            if (!gameManagerService.hasGame(lobbyCode)) {
+                return;
+            }
+
+            // If the game is left with fewer than 3 players, end the game
+            Game game = gameManagerService.getGame(lobbyCode);
+            if (game != null && game.getPlayers().size() < 3) {
+                endGame(lobbyCode);
+            }
+            // If the disconnected player is the spy -> end the round without awarding any
+            // points
+            else if (game != null && game.getCurrentRound() != null) {
+                Player spy = game.getCurrentRound().getSpy();
+                if (spy != null && spy.getUsername().equals(player.getUsername())) {
+                    // Spy disconnected –> end round early
+                    roundService.endRoundDueToSpyDisconnect(lobbyCode);
+                    return;
+                }
+            }
+        }, DISCONNECT_BUFFER_SECONDS);
     }
 
     /**
@@ -204,8 +236,25 @@ public class GameService {
         if (game == null)
             return;
 
+        game.getLobby().setGameActive(false);
         gameManagerService.removeGame(lobbyCode);
+
         messagingService.broadcastMessage(game.getLobby(), messageFactory.gameEnded());
+    }
+
+    // Host can end game prematurly
+    public void hostEndOngoingGame(String lobbyCode, String username, WebSocketSession session) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null) {
+            return;
+        }
+
+        if (!game.getLobby().getHost().getUsername().equals(username)) {
+            messagingService.sendMessage(session, messageFactory.error("Only the host is allowed to end the game"));
+            return;
+        }
+
+        endGame(lobbyCode);
     }
 
 }

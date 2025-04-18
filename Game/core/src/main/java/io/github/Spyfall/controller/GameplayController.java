@@ -27,7 +27,7 @@ public class GameplayController {
     
     private GameplayController() {
         this.gameModel = GameModel.getInstance();
-        this.sendMessageService = SendMessageService.getInstace();
+        this.sendMessageService = SendMessageService.getInstance();
     }
 
     public static GameplayController getInstance() {
@@ -74,7 +74,10 @@ private void handleNewRound(GameNewRoundMessage message) {
     gameModel.getGameData().setSpy(message.getRole().equals("spy"));
     gameModel.getGameData().setLocation(message.getLocation());
     gameModel.getGameData().setRole(message.getRole());
-    gameModel.getGameData().setTimeRemaining(message.getRoundDuration()); // 
+    gameModel.getGameData().setTimeRemaining(message.getRoundDuration()); //
+    gameModel.getGameData().setRole(message.getRole());
+
+    gameModel.getGameData().setRoundEnded(false);
     
     // test locations
     if (message.getRole().equals("spy")) {
@@ -95,6 +98,8 @@ private void handleNewRound(GameNewRoundMessage message) {
 
         StageView currentStage = StageManager.getInstance().getStage();
         if (currentStage instanceof GameLobbyStage) {
+            ((GameLobbyStage) currentStage).resetRoundEndUI();
+
             ((GameLobbyStage) currentStage).startTimer(message.getRoundDuration()); 
         }
     });
