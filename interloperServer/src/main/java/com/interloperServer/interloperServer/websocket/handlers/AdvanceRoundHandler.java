@@ -6,6 +6,25 @@ import org.springframework.web.socket.WebSocketSession;
 import com.interloperServer.interloperServer.model.messages.incoming.RecieveMessage;
 import com.interloperServer.interloperServer.service.GameService;
 
+/**
+ * Handles WebSocket messages of type "advanceRound".
+ * <p>
+ * This handler processes incoming messages that request advancing the game to
+ * the next round.
+ * <p>
+ * The handler performs the following actions:
+ * <ul>
+ * <li>Retrieves the type of the message it processes ("advanceRound").</li>
+ * <li>Specifies the class of the message it handles
+ * ({@link RecieveMessage}).</li>
+ * <li>Invokes the {@link GameService#advanceRound(String)} method to advance
+ * the round for the specified lobby.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class implements {@link WebSocketMessageHandler}, which defines the
+ * required methods for handling WebSocket messages.
+ */
 @Component
 public class AdvanceRoundHandler implements WebSocketMessageHandler<RecieveMessage> {
 

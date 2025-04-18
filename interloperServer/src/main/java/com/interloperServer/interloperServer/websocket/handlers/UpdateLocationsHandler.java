@@ -8,6 +8,25 @@ import com.interloperServer.interloperServer.model.messages.incoming.RecieveLoca
 import com.interloperServer.interloperServer.service.LobbyHostService;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
 
+/**
+ * Handles WebSocket messages of type "updateLocations".
+ * <p>
+ * This handler processes incoming messages that request updates to the list of
+ * locations in a lobby.
+ * <p>
+ * The handler performs the following actions:
+ * <ul>
+ * <li>Retrieves the type of the message it processes ("updateLocations").</li>
+ * <li>Specifies the class of the message it handles
+ * ({@link RecieveLocationsMessage}).</li>
+ * <li>Invokes the {@link LobbyHostService#setLocations(Lobby, List, String)}
+ * method to update the locations for the specified lobby.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class implements {@link WebSocketMessageHandler}, which defines the
+ * required methods for handling WebSocket messages.
+ */
 @Component
 public class UpdateLocationsHandler implements WebSocketMessageHandler<RecieveLocationsMessage> {
 

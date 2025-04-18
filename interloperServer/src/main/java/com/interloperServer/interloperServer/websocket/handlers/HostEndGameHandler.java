@@ -6,6 +6,26 @@ import org.springframework.web.socket.WebSocketSession;
 import com.interloperServer.interloperServer.model.messages.incoming.RecieveMessage;
 import com.interloperServer.interloperServer.service.GameService;
 
+/**
+ * Handles WebSocket messages of type "endGame".
+ * <p>
+ * This handler processes incoming messages that request the host to end an
+ * ongoing game.
+ * <p>
+ * The handler performs the following actions:
+ * <ul>
+ * <li>Retrieves the type of the message it processes ("endGame").</li>
+ * <li>Specifies the class of the message it handles
+ * ({@link RecieveMessage}).</li>
+ * <li>Invokes the
+ * {@link GameService#hostEndOngoingGame(String, String, WebSocketSession)}
+ * method to end the game for the specified lobby.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class implements {@link WebSocketMessageHandler}, which defines the
+ * required methods for handling WebSocket messages.
+ */
 @Component
 public class HostEndGameHandler implements WebSocketMessageHandler<RecieveMessage> {
 

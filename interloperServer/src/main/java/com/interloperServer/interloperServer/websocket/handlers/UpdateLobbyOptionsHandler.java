@@ -8,6 +8,26 @@ import com.interloperServer.interloperServer.model.messages.incoming.RecieveLobb
 import com.interloperServer.interloperServer.service.LobbyHostService;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
 
+/**
+ * Handles WebSocket messages of type "updateOptions".
+ * <p>
+ * This handler processes incoming messages that request updates to the lobby
+ * options.
+ * <p>
+ * The handler performs the following actions:
+ * <ul>
+ * <li>Retrieves the type of the message it processes ("updateOptions").</li>
+ * <li>Specifies the class of the message it handles
+ * ({@link RecieveLobbyOptionsMessage}).</li>
+ * <li>Invokes the
+ * {@link LobbyHostService#updateLobbyOptions(Lobby, String, int, int, int, int, int)}
+ * method to update the lobby options for the specified lobby.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class implements {@link WebSocketMessageHandler}, which defines the
+ * required methods for handling WebSocket messages.
+ */
 @Component
 public class UpdateLobbyOptionsHandler implements WebSocketMessageHandler<RecieveLobbyOptionsMessage> {
 

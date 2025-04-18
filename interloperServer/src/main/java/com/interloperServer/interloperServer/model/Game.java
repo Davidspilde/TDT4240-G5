@@ -1,7 +1,6 @@
 package com.interloperServer.interloperServer.model;
 
 import java.util.*;
-
 import org.springframework.web.socket.WebSocketSession;
 
 public class Game {

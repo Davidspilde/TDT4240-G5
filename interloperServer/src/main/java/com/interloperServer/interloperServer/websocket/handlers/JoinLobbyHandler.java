@@ -6,6 +6,26 @@ import org.springframework.web.socket.WebSocketSession;
 import com.interloperServer.interloperServer.model.messages.incoming.RecieveMessage;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
 
+/**
+ * Handles WebSocket messages of type "joinLobby".
+ * <p>
+ * This handler processes incoming messages that request a player to join a
+ * lobby.
+ * <p>
+ * The handler performs the following actions:
+ * <ul>
+ * <li>Retrieves the type of the message it processes ("joinLobby").</li>
+ * <li>Specifies the class of the message it handles
+ * ({@link RecieveMessage}).</li>
+ * <li>Invokes the
+ * {@link LobbyManagerService#joinLobby(WebSocketSession, String, String)}
+ * method to add the player to the specified lobby.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class implements {@link WebSocketMessageHandler}, which defines the
+ * required methods for handling WebSocket messages.
+ */
 @Component
 public class JoinLobbyHandler implements WebSocketMessageHandler<RecieveMessage> {
 
