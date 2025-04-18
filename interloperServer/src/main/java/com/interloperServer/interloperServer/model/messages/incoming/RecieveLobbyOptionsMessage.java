@@ -1,5 +1,29 @@
 package com.interloperServer.interloperServer.model.messages.incoming;
 
+/**
+ * Represents an incoming message for updating the lobby settings.
+ * <p>
+ * The message contains the following fields:
+ * <ul>
+ * <li><b>roundLimit</b>: The number of rounds in the game.</li>
+ * <li><b>locationNumber</b>: The number of locations available in the
+ * game.</li>
+ * <li><b>maxPlayerCount</b>: The maximum number of players allowed in the
+ * lobby.</li>
+ * <li><b>timePerRound</b>: The duration of each round in seconds.</li>
+ * <li><b>spyLastAttemptTime</b>: The time allocated for the spy's last attempt
+ * in seconds.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class extends {@link RecieveMessage}, which includes the following
+ * fields:
+ * <ul>
+ * <li><b>type</b>: The type of the message (e.g., "updateOptions").</li>
+ * <li><b>lobbyCode</b>: The code of the lobby being updated.</li>
+ * <li><b>username</b>: The username of the player sending the message.</li>
+ * </ul>
+ */
 public class RecieveLobbyOptionsMessage extends RecieveMessage {
     private int roundLimit;
     private int locationNumber;
