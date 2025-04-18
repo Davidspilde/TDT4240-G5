@@ -31,7 +31,7 @@ Interloper brings this experience online through a WebSocket-based architecture 
 
 ### ✅ Prerequisites
 
-- Java 17+
+- Java 17
 - Gradle
 - Android SDK (for Android build)
 - A modern IDE (e.g., IntelliJ IDEA or Android Studio)
