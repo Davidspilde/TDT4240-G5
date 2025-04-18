@@ -6,8 +6,8 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.LocalWebSocketClient;
+import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.controller.MainController;
-import io.github.Spyfall.model.GameModel;
 
 public class GameClient {
     private MainController mainController;
@@ -23,8 +23,11 @@ public class GameClient {
         //this.gameModel = GameModel.getInstance();
 
         // init game controller
+        mainController = MainController.getInstance(viewport);
+
+        RecieveMessageService.GetInstance().setupMessageHandling();
+
         AudioService.getInstance().playMusic("background",true);
-        mainController = new MainController(viewport);
     }
 
     public void resize(int width, int height) {

@@ -52,7 +52,7 @@ public class LobbyManagerService {
                 10, // roundNumber
                 30, // locationNumber
                 8, // maxPlayers
-                120, // roundDuration (seconds)
+                10, // roundDuration (seconds)
                 45 // SpyLastAttemptDuration (seconds)
 
         );

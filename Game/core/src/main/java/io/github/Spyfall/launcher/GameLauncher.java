@@ -2,7 +2,6 @@ package io.github.Spyfall.launcher;
 
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
-
 import io.github.Spyfall.client.GameClient;
 import io.github.Spyfall.services.AudioService;
 

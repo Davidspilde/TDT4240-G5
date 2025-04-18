@@ -34,12 +34,12 @@ public class GameConfigStage extends StageView {
     private MainController mainController;
     private GameModel gameModel;
 
-    public GameConfigStage(ScreenViewport viewport, String lobbyCode, String host, MainController mainController) {
+    public GameConfigStage(ScreenViewport viewport, String lobbyCode, String host) {
         super(viewport);
         System.out.println("GameConfigStage constructor called with lobbyCode: " + lobbyCode + ", host: " + host);
         this.lobbyCode = lobbyCode;
         this.host = host;
-        this.mainController = mainController;
+        this.mainController = MainController.getInstance();
         this.sendMsgService = SendMessageService.getInstance();
         this.gameModel = GameModel.getInstance();
         initGameConfig();
@@ -114,7 +114,7 @@ public class GameConfigStage extends StageView {
         backButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                StageManager.getInstance().setStage(new MainMenuStage(viewport, new MainMenuController(mainController)));
+                gameModel.setCurrentState(GameState.MAIN_MENU);
             }
         });
 

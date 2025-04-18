@@ -21,8 +21,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-import org.w3c.dom.Text;
-
 import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.services.AudioService;
@@ -135,7 +133,8 @@ public class MainMenuStage extends StageView {
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
-                    showNoLobbyDialog(lobbyCode);
+                    //showNoLobbyDialog(lobbyCode);
+                    controller.onJoinLobby(usernameString, lobbyCode);
                 }
             }
         };
