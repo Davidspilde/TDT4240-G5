@@ -214,6 +214,35 @@ public class RoundService {
     }
 
     /**
+     * Method called when the spy is disconnected during a round
+     * Ends the round without awarding any points
+     * 
+     * @param lobbyCode
+     */
+    public void endRoundDueToSpyDisconnect(String lobbyCode) {
+        Game game = gameManagerService.getGame(lobbyCode);
+        if (game == null)
+            return;
+
+        Round currentRound = game.getCurrentRound();
+        if (currentRound == null)
+            return;
+
+        currentRound.endRound();
+        game.stopTimer();
+
+        // Broadcast end of round message
+        messagingService.broadcastMessage(game.getLobby(), messageFactory.roundEnded(
+                currentRound.getRoundNumber(),
+                RoundEndReason.SPY_DISCONNECT.toString(),
+                false,
+                false,
+                currentRound.getSpy().getUsername(),
+                currentRound.getLocation().getName(),
+                game.getScoreboard()));
+    }
+
+    /**
      * Calls award points and then broadcast the end round message
      * 
      * @param game            the current game
