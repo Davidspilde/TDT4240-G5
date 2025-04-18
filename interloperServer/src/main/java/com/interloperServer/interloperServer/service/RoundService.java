@@ -198,8 +198,7 @@ public class RoundService {
         if (game == null)
             return;
 
-        RoundEndReason reason = spyGuessedCorrectly ? RoundEndReason.SPY_GUESS : RoundEndReason.VOTES;
-        finalizeRound(game, reason, spyCaught, spyGuessedCorrectly, spyUsername);
+        finalizeRound(game, RoundEndReason.SPY_GUESS, spyCaught, spyGuessedCorrectly, spyUsername);
     }
 
     /**
@@ -214,7 +213,6 @@ public class RoundService {
             return;
 
         finalizeRound(game, RoundEndReason.WRONG_VOTE, false, false, spyUsername);
-
     }
 
     /**
