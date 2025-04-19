@@ -145,8 +145,15 @@ public class LobbyController {
     }
 
     public void leaveLobby() {
-        AudioService.getInstance().playSound("click");
-        // Send leave lobby request to server
-        gameModel.setCurrentState(GameState.MAIN_MENU);
+        try {
+            AudioService.getInstance().playSound("click");
+            // Send leave lobby request to server
+            
+            SendMessageService.getInstance().leaveLobby(gameModel.getUsername(), gameModel.getLobbyCode());
+            gameModel.setCurrentState(GameState.MAIN_MENU);
+            
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
     }
 }

@@ -112,10 +112,18 @@ public class LobbyStage extends StageView {
         rootTable.add(centerTable).expand().row();
         
         Table buttonsTable = new Table();
-        buttonsTable.add(startGameButton).padRight(20);
-        buttonsTable.add(leaveLobbyButton);
-        
-        rootTable.add(buttonsTable).padBottom(20);
+
+        // narrow screens
+        if (Gdx.graphics.getWidth() < 500) {
+            buttonsTable.add(startGameButton).fillX().pad(10).row();
+            buttonsTable.add(leaveLobbyButton).fillX().pad(10);
+        } else {
+            // wider screens horizontal button layout
+            buttonsTable.add(startGameButton).padRight(20).padTop(10).padBottom(10);
+            buttonsTable.add(leaveLobbyButton).padLeft(20).padTop(10).padBottom(10);
+        }
+
+        rootTable.add(buttonsTable).padBottom(30).width(Math.min(300, Gdx.graphics.getWidth() * 0.8f));
     }
     
     private void updatePlayersList() {
