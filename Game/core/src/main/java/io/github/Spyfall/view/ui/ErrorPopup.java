@@ -5,6 +5,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.view.StageView;
@@ -12,8 +15,8 @@ import io.github.Spyfall.view.StageView;
 public class ErrorPopup {
     private static ErrorPopup instance;
     private Skin skin;
-    private static final float DEFAULT_DISPLAY_SECONDS = 2.0f; // How long to show the popup
-    private static final float FADE_DURATION = 0.5f; // How long the fade animation takes
+    private static final float DEFAULT_DISPLAY_SECONDS = 2.0f; // popup duration
+    private static final float FADE_DURATION = 0.5f; // fade duration
     
     private ErrorPopup() {
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
@@ -47,14 +50,26 @@ public class ErrorPopup {
         Dialog dialog = new Dialog(title, skin) {
             @Override
             protected void result(Object object) {
-                // Dialog dismissed
+                // dialog closed
             }
         };
         
-        // Configure the dialog
-        dialog.text(message);
+        // max width
+        float dialogWidth = Math.min(400, Gdx.graphics.getWidth() * 0.8f);
         
-        // Only add button if not auto-hiding
+        Label messageLabel = new Label(message, skin);
+        messageLabel.setWrap(true); // Enable text wrapping
+        messageLabel.setAlignment(Align.center);
+        
+
+        Container<Label> container = new Container<>(messageLabel);
+        container.width(dialogWidth - 40);
+        container.minHeight(80);
+        container.pad(10);
+        
+        dialog.getContentTable().add(container).width(dialogWidth - 40);
+        
+        // add button if not auto-hiding
         if (!autoHide) {
             dialog.button("OK", true);
         }
@@ -62,18 +77,15 @@ public class ErrorPopup {
         dialog.setMovable(false);
         dialog.setResizable(false);
         
-        // Adapt size to screen dimensions
-        float width = Math.min(400, Gdx.graphics.getWidth() * 0.8f);
-        dialog.setWidth(width);
+
         dialog.setPosition(
-            (Gdx.graphics.getWidth() - width) / 2,
+            (Gdx.graphics.getWidth() - dialogWidth) / 2,
             Gdx.graphics.getHeight() / 2
         );
         
-        // Show the dialog
         dialog.show(currentStage.getStage());
         
-        // Auto-hide with fade effect if requested
+
         if (autoHide) {
             Timer.schedule(new Timer.Task() {
                 @Override
@@ -83,14 +95,7 @@ public class ErrorPopup {
                         Actions.removeActor()
                     ));
                 }
-            }, DEFAULT_DISPLAY_SECONDS);
+                }, DEFAULT_DISPLAY_SECONDS);
         }
-    }
-    
-    /**
-     * Show an error popup with default settings (auto-hide)
-     */
-    public void show(String title, String message) {
-        show(title, message, true);
     }
 }
