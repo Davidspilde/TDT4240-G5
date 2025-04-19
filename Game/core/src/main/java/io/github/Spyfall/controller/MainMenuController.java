@@ -5,6 +5,7 @@ import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.view.GameRulesStage;
+import io.github.Spyfall.view.ui.ErrorPopup;
 import io.github.Spyfall.controller.StageManager;
 
 public class MainMenuController {
@@ -30,10 +31,15 @@ public class MainMenuController {
     public void onJoinLobby(String username, String lobbyCode) {
         AudioService.getInstance().playSound("click");
 
-        // validate username, lobbycode
-        if (username == null || username.trim().isEmpty() || 
-            lobbyCode == null || lobbyCode.trim().isEmpty()) {
-            System.out.println("Username or lobby code is empty");
+        // validate username
+        if (username == null || username.trim().isEmpty()) {
+            ErrorPopup.getInstance().showClientError("Username cannot be empty");
+            return;
+        }
+        
+        // validate lobbycode
+        if (lobbyCode == null || lobbyCode.trim().isEmpty()) {
+            ErrorPopup.getInstance().showClientError("Lobby code cannot be empty");
             return;
         }
         
@@ -43,13 +49,13 @@ public class MainMenuController {
         // request join
         boolean success = sendMessageService.joinLobby(username, lobbyCode);
         if (!success) {
+            ErrorPopup.getInstance().showClientError("Failed to join lobby");
             System.out.println("Failed to send join lobby request");
             // error
+        } else {
+            System.out.println("Joined lobby with code: " + gameModel.getLobbyCode() + ", current state: " + gameModel.getCurrentState());
         }
         
-        gameModel.setCurrentState(GameState.LOBBY);
-        System.out.println("Joined lobby with code: " + gameModel.getLobbyCode() + ", current state: " + gameModel.getCurrentState());
-        // todo: response from server
     }
 
     public void onHowToPlay() {

@@ -1,5 +1,6 @@
 package io.github.Spyfall.services;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
@@ -8,6 +9,7 @@ import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.handlers.MessageHandler;
 import io.github.Spyfall.message.response.*;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.view.ui.ErrorPopup;
 
 
 public class RecieveMessageService {
@@ -39,6 +41,12 @@ public class RecieveMessageService {
             String type = root.getString("event", "");
 
             System.out.println("Received message of type: " + type);
+
+            if (type.equals("error")) {
+                handleErrorMessage(root);
+                return;
+            }
+
             ResponseMessage parsedMessage = parseMessage(type, message);
             
             
@@ -99,6 +107,17 @@ public class RecieveMessageService {
             return null;
         }
     }
+
+    
+        private void handleErrorMessage(JsonValue messageData) {
+            String errorEvent = messageData.getString("event", "unknown");
+            String errorMessage = messageData.getString("message", "Unknown error occurred");
+            
+            // Show the error popup on the UI thread
+            Gdx.app.postRunnable(() -> {
+                ErrorPopup.getInstance().showServerError(errorEvent, errorMessage);
+            });
+        }
 
     // private void handleLobbyCreated(LobbyCreatedMessage msg) {
     //     String lobbyCode = msg.getLobbyCode();

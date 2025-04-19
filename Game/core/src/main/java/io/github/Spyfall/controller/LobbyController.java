@@ -13,6 +13,7 @@ import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class LobbyController {
     private static LobbyController instance;
@@ -56,6 +57,13 @@ public class LobbyController {
 
     private void handleLobbyJoined(LobbyJoinedMessage message) {
         gameModel.getLobbyData().setHostPlayer(message.getHost());
+        Gdx.app.postRunnable(() -> {
+            if (gameModel.getCurrentState() != GameState.LOBBY) {
+                gameModel.setCurrentState(GameState.LOBBY);
+            } else {
+                ErrorPopup.getInstance().showClientError("Wrong state");
+            }
+        });
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage message) {

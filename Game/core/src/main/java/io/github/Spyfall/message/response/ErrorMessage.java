@@ -1,6 +1,6 @@
 package io.github.Spyfall.message.response;
 
-public class ErrorMessage {
+public class ErrorMessage extends ResponseMessage{
     private String event;
     private String message;
 
