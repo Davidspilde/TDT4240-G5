@@ -161,7 +161,8 @@ public class LobbyController {
             gameModel.setCurrentState(GameState.MAIN_MENU);
             
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println("An error occurred while leaving the lobby: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
