@@ -9,7 +9,7 @@ package com.interloperServer.interloperServer.model.messages.incoming;
  * </ul>
  * 
  * <p>
- * This class extends {@link RecieveMessage}, which includes the following
+ * This class extends {@link ReceiveMessage}, which includes the following
  * fields:
  * <ul>
  * <li><b>type</b>: The type of the message (e.g., "vote").</li>
@@ -17,10 +17,10 @@ package com.interloperServer.interloperServer.model.messages.incoming;
  * <li><b>username</b>: The username of the player sending the message.</li>
  * </ul>
  */
-public class RecieveVoteMessage extends RecieveMessage {
+public class ReceiveVoteMessage extends ReceiveMessage {
     private String target;
 
-    public RecieveVoteMessage() {
+    public ReceiveVoteMessage() {
     }
 
     public String getTarget() {

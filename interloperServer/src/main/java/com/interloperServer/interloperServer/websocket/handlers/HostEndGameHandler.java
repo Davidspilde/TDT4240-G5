@@ -3,7 +3,7 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.interloperServer.interloperServer.model.messages.incoming.RecieveMessage;
+import com.interloperServer.interloperServer.model.messages.incoming.ReceiveMessage;
 import com.interloperServer.interloperServer.service.GameService;
 
 /**
@@ -16,7 +16,7 @@ import com.interloperServer.interloperServer.service.GameService;
  * <ul>
  * <li>Retrieves the type of the message it processes ("endGame").</li>
  * <li>Specifies the class of the message it handles
- * ({@link RecieveMessage}).</li>
+ * ({@link ReceiveMessage}).</li>
  * <li>Invokes the
  * {@link GameService#hostEndOngoingGame(String, String, WebSocketSession)}
  * method to end the game for the specified lobby.</li>
@@ -27,7 +27,7 @@ import com.interloperServer.interloperServer.service.GameService;
  * required methods for handling WebSocket messages.
  */
 @Component
-public class HostEndGameHandler implements WebSocketMessageHandler<RecieveMessage> {
+public class HostEndGameHandler implements WebSocketMessageHandler<ReceiveMessage> {
 
     private final GameService gameService;
 
@@ -41,12 +41,12 @@ public class HostEndGameHandler implements WebSocketMessageHandler<RecieveMessag
     }
 
     @Override
-    public Class<RecieveMessage> getMessageClass() {
-        return RecieveMessage.class;
+    public Class<ReceiveMessage> getMessageClass() {
+        return ReceiveMessage.class;
     }
 
     @Override
-    public void handle(RecieveMessage message, WebSocketSession session) {
+    public void handle(ReceiveMessage message, WebSocketSession session) {
         gameService.hostEndOngoingGame(message.getLobbyCode(), message.getUsername(), session);
     }
 }

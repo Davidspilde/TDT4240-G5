@@ -14,7 +14,7 @@ import com.interloperServer.interloperServer.model.Location;
  * </ul>
  * 
  * <p>
- * This class extends {@link RecieveMessage}, which includes the following
+ * This class extends {@link ReceiveMessage}, which includes the following
  * fields:
  * <ul>
  * <li><b>type</b>: The type of the message (e.g., "locationsUpdate").</li>
@@ -22,10 +22,10 @@ import com.interloperServer.interloperServer.model.Location;
  * <li><b>username</b>: The username of the player sending the message.</li>
  * </ul>
  */
-public class RecieveLocationsMessage extends RecieveMessage {
+public class ReceiveLocationsMessage extends ReceiveMessage {
     private List<Location> locations;
 
-    public RecieveLocationsMessage() {
+    public ReceiveLocationsMessage() {
 
     }
 

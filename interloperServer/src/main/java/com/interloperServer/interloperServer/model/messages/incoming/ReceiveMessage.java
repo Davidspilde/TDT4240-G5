@@ -16,12 +16,12 @@ package com.interloperServer.interloperServer.model.messages.incoming;
  * This class serves as a base class for more specific message types, which
  * extend this class to include additional fields.
  */
-public class RecieveMessage {
+public class ReceiveMessage {
     private String type;
     private String lobbyCode;
     private String username;
 
-    public RecieveMessage() {
+    public ReceiveMessage() {
     }
 
     public String getType() {

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.interloperServer.interloperServer.model.Lobby;
-import com.interloperServer.interloperServer.model.messages.incoming.RecieveLocationsMessage;
+import com.interloperServer.interloperServer.model.messages.incoming.ReceiveLocationsMessage;
 import com.interloperServer.interloperServer.service.LobbyHostService;
 import com.interloperServer.interloperServer.service.LobbyManagerService;
 
@@ -18,7 +18,7 @@ import com.interloperServer.interloperServer.service.LobbyManagerService;
  * <ul>
  * <li>Retrieves the type of the message it processes ("updateLocations").</li>
  * <li>Specifies the class of the message it handles
- * ({@link RecieveLocationsMessage}).</li>
+ * ({@link ReceiveLocationsMessage}).</li>
  * <li>Invokes the {@link LobbyHostService#setLocations(Lobby, List, String)}
  * method to update the locations for the specified lobby.</li>
  * </ul>
@@ -28,7 +28,7 @@ import com.interloperServer.interloperServer.service.LobbyManagerService;
  * required methods for handling WebSocket messages.
  */
 @Component
-public class UpdateLocationsHandler implements WebSocketMessageHandler<RecieveLocationsMessage> {
+public class UpdateLocationsHandler implements WebSocketMessageHandler<ReceiveLocationsMessage> {
 
     private final LobbyHostService hostService;
     private final LobbyManagerService lobbyManager;
@@ -44,12 +44,12 @@ public class UpdateLocationsHandler implements WebSocketMessageHandler<RecieveLo
     }
 
     @Override
-    public Class<RecieveLocationsMessage> getMessageClass() {
-        return RecieveLocationsMessage.class;
+    public Class<ReceiveLocationsMessage> getMessageClass() {
+        return ReceiveLocationsMessage.class;
     }
 
     @Override
-    public void handle(RecieveLocationsMessage message, WebSocketSession session) {
+    public void handle(ReceiveLocationsMessage message, WebSocketSession session) {
 
         Lobby lobby = lobbyManager.getLobbyFromLobbyCode(message.getLobbyCode());
 

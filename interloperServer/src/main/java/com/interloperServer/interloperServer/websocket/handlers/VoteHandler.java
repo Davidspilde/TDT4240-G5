@@ -3,7 +3,7 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.interloperServer.interloperServer.model.messages.incoming.RecieveVoteMessage;
+import com.interloperServer.interloperServer.model.messages.incoming.ReceiveVoteMessage;
 import com.interloperServer.interloperServer.service.GameService;
 
 /**
@@ -16,7 +16,7 @@ import com.interloperServer.interloperServer.service.GameService;
  * <ul>
  * <li>Retrieves the type of the message it processes ("vote").</li>
  * <li>Specifies the class of the message it handles
- * ({@link RecieveVoteMessage}).</li>
+ * ({@link ReceiveVoteMessage}).</li>
  * <li>Invokes the {@link GameService#castVote(String, String, String)} method
  * to process the vote for the specified target player.</li>
  * </ul>
@@ -26,7 +26,7 @@ import com.interloperServer.interloperServer.service.GameService;
  * required methods for handling WebSocket messages.
  */
 @Component
-public class VoteHandler implements WebSocketMessageHandler<RecieveVoteMessage> {
+public class VoteHandler implements WebSocketMessageHandler<ReceiveVoteMessage> {
 
     private final GameService gameService;
 
@@ -40,12 +40,12 @@ public class VoteHandler implements WebSocketMessageHandler<RecieveVoteMessage> 
     }
 
     @Override
-    public Class<RecieveVoteMessage> getMessageClass() {
-        return RecieveVoteMessage.class;
+    public Class<ReceiveVoteMessage> getMessageClass() {
+        return ReceiveVoteMessage.class;
     }
 
     @Override
-    public void handle(RecieveVoteMessage message, WebSocketSession session) {
+    public void handle(ReceiveVoteMessage message, WebSocketSession session) {
         gameService.castVote(message.getLobbyCode(), message.getUsername(), message.getTarget());
     }
 }

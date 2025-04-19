@@ -16,7 +16,7 @@ package com.interloperServer.interloperServer.model.messages.incoming;
  * </ul>
  * 
  * <p>
- * This class extends {@link RecieveMessage}, which includes the following
+ * This class extends {@link ReceiveMessage}, which includes the following
  * fields:
  * <ul>
  * <li><b>type</b>: The type of the message (e.g., "updateOptions").</li>
@@ -24,14 +24,14 @@ package com.interloperServer.interloperServer.model.messages.incoming;
  * <li><b>username</b>: The username of the player sending the message.</li>
  * </ul>
  */
-public class RecieveLobbyOptionsMessage extends RecieveMessage {
+public class ReceiveLobbyOptionsMessage extends ReceiveMessage {
     private int roundLimit;
     private int locationNumber;
     private int maxPlayerCount;
     private int timePerRound;
     private int spyLastAttemptTime;
 
-    public RecieveLobbyOptionsMessage() {
+    public ReceiveLobbyOptionsMessage() {
     }
 
     public int getSpyLastAttemptTime() {

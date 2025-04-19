@@ -9,11 +9,11 @@ package com.interloperServer.interloperServer.model.messages.incoming;
  * <li><b>username</b>: The username of the player creating the lobby.</li>
  * </ul>
  */
-public class RecieveCreateLobbyMessage {
+public class ReceiveCreateLobbyMessage {
     private String type;
     private String username;
 
-    public RecieveCreateLobbyMessage() {
+    public ReceiveCreateLobbyMessage() {
     }
 
     public String getType() {
