@@ -2,7 +2,9 @@ package io.github.Spyfall.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class GameData {
@@ -13,6 +15,7 @@ public class GameData {
     private int totalRounds;
     private int timeRemaining;
     private List<String> possibleLocations = new ArrayList<>();
+    private Set<String> greyedOutLocations = new HashSet<>();
     private boolean roundEnded;
     private String isSpyUsername;
     private HashMap<String, Integer> scoreboard;
@@ -96,4 +99,17 @@ public class GameData {
     public void setPossibleLocations(List<String> possibleLocations) {
         this.possibleLocations = possibleLocations;
     }
+
+    public Set<String> getGreyedOutLocations() {
+        return greyedOutLocations;
+    }
+
+    public void toggleLocationGreyout(String location) {
+    if (greyedOutLocations.contains(location)) {
+        greyedOutLocations.remove(location);
+    } else {
+        greyedOutLocations.add(location);
+    }
+
+}
 }

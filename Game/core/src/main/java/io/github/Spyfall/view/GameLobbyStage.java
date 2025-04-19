@@ -1,8 +1,11 @@
 package io.github.Spyfall.view;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -177,19 +180,40 @@ public class GameLobbyStage extends StageView {
     private void updateLocationsList() {
         possibleLocationsTable.clear();
         
-        // Add a "Possible Locations" header
+        // Add header
         Label locationsHeader = new Label("Possible Locations", skin);
         locationsHeader.setAlignment(Align.center);
-        possibleLocationsTable.add(locationsHeader).colspan(2).padBottom(10).row();
+        possibleLocationsTable.add(locationsHeader).colspan(3).padBottom(10).row();
         
-        // Add all locations from the model
         GameData gameData = gameModel.getGameData();
+        boolean isSpy = gameData.isSpy();
+        
+        // Get greyed out locations if they exist
+        Set<String> greyedOutLocations = gameData.getGreyedOutLocations() != null ? 
+            gameData.getGreyedOutLocations() : new HashSet<>();
+        
         if (gameData.getPossibleLocations() != null) {
             for (String location : gameData.getPossibleLocations()) {
+                boolean isGreyedOut = greyedOutLocations.contains(location);
                 Label locationLabel = new Label(location, skin);
                 
-                // If we're the spy, add guess buttons
-                if (gameData.isSpy()) {
+                // Apply styling for greyed-out locations
+                if (isGreyedOut) {
+                    locationLabel.setColor(Color.GRAY);
+                    locationLabel.setText("[" + location + "]");
+                }
+                
+                if (isSpy) {
+                    // For spy: add toggle and guess buttons
+                    TextButton toggleButton = new TextButton(isGreyedOut ? "✓" : "×", skin);
+                    toggleButton.addListener(new ClickListener() {
+                        @Override
+                        public void clicked(InputEvent event, float x, float y) {
+                            // Toggle this location's greyed state
+                            controller.toggleLocationGreyout(location);
+                        }
+                    });
+                    
                     TextButton guessButton = new TextButton("Guess", skin);
                     guessButton.addListener(new ClickListener() {
                         @Override
@@ -198,18 +222,21 @@ public class GameLobbyStage extends StageView {
                         }
                     });
                     
-                    possibleLocationsTable.add(locationLabel).padRight(10);
-                    possibleLocationsTable.add(guessButton).row();
+                    possibleLocationsTable.add(locationLabel).expandX().fillX();
+                    possibleLocationsTable.add(toggleButton).width(40).padRight(5);
+                    possibleLocationsTable.add(guessButton).width(70).row();
                 } else {
-                    possibleLocationsTable.add(locationLabel).colspan(2).row();
+                    // Regular players just see the location list
+                    possibleLocationsTable.add(locationLabel).colspan(3).row();
                 }
             }
-        } else {
-            // Add sample locations as placeholders
-            String[] sampleLocations = {"Airplane", "Bank", "Beach", "Casino", "Hospital", "Hotel", "School"};
-            for (String location : sampleLocations) {
-                Label locationLabel = new Label(location, skin);
-                possibleLocationsTable.add(locationLabel).colspan(2).row();
+            
+            // Add help text for spy
+            if (isSpy) {
+                Label helpLabel = new Label("Mark unlikely locations with × to track your progress", skin);
+                helpLabel.setWrap(true);
+                helpLabel.setAlignment(Align.center);
+                possibleLocationsTable.add(helpLabel).colspan(3).padTop(15);
             }
         }
     }
@@ -220,7 +247,7 @@ public class GameLobbyStage extends StageView {
             roundEndTable = new Table();
             roundEndTable.setFillParent(true);
             
-            // Create semi-transparent background
+            // Semi-transparent background (unchanged)
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
             pixmap.setColor(0, 0, 0, 0.8f);
             pixmap.fill();
@@ -229,37 +256,56 @@ public class GameLobbyStage extends StageView {
             
             roundEndTable.setBackground(new TextureRegionDrawable(new TextureRegion(bgTexture)));
             
-            // Create content table
+            // Calculate content width based on screen size
+            float contentWidth = Math.min(500, Gdx.graphics.getWidth() * 0.85f);
+            
+            // Create content table with width constraint
             Table contentTable = new Table();
             contentTable.pad(30);
             contentTable.defaults().pad(10).align(Align.center);
+            contentTable.setWidth(contentWidth);
             
             // Round end title
             Label titleLabel = new Label("ROUND ENDED", skin);
-            titleLabel.setFontScale(2.0f);
-            contentTable.add(titleLabel).colspan(2).row();
+            titleLabel.setFontScale(1.5f); // Slightly smaller for mobile
+            contentTable.add(titleLabel).colspan(2).fillX().row();
             
-            // Spy reveal information
+            // Spy reveal information with text wrapping
             Label spyRevealLabel = new Label("Spy: " + spy, skin);
-            contentTable.add(spyRevealLabel).colspan(2).row();
+            spyRevealLabel.setWrap(true);
+            contentTable.add(spyRevealLabel).colspan(2).fillX().width(contentWidth - 60).row();
             
-            // Location reveal
+            // Location reveal with text wrapping
             Label locationRevealLabel = new Label("Location: " + location, skin);
-            contentTable.add(locationRevealLabel).colspan(2).row();
+            locationRevealLabel.setWrap(true); // Enable text wrapping
+            contentTable.add(locationRevealLabel).colspan(2).fillX().width(contentWidth - 60).row();
             
-            // Scoreboard
+            // Scoreboard with constraints
             if (scoreboard != null && !scoreboard.isEmpty()) {
                 contentTable.add(new Label("SCOREBOARD", skin)).colspan(2).padTop(20).row();
                 
-                // Add header row
-                contentTable.add(new Label("Player", skin)).left();
-                contentTable.add(new Label("Score", skin)).right().row();
+                // Create a table for scoreboard with fixed column widths
+                Table scoreboardTable = new Table();
+                float playerColWidth = contentWidth * 0.6f;
+                float scoreColWidth = contentWidth * 0.2f;
                 
-                // Add all players' scores
+                // Add header row
+                Label playerHeader = new Label("Player", skin);
+                Label scoreHeader = new Label("Score", skin);
+                scoreboardTable.add(playerHeader).width(playerColWidth).left().padBottom(8);
+                scoreboardTable.add(scoreHeader).width(scoreColWidth).right().padBottom(8).row();
+                
+                // Add all players' scores with text wrapping
                 for (java.util.Map.Entry<String, Integer> entry : scoreboard.entrySet()) {
-                    contentTable.add(new Label(entry.getKey(), skin)).left();
-                    contentTable.add(new Label(Integer.toString(entry.getValue()), skin)).right().row();
+                    Label playerLabel = new Label(entry.getKey(), skin);
+                    playerLabel.setWrap(true);
+                    Label scoreLabel = new Label(Integer.toString(entry.getValue()), skin);
+                    
+                    scoreboardTable.add(playerLabel).width(playerColWidth).left().fillX();
+                    scoreboardTable.add(scoreLabel).width(scoreColWidth).right().row();
                 }
+                
+                contentTable.add(scoreboardTable).colspan(2).fillX().row();
             }
             
             // Next round button (only for host)
@@ -277,14 +323,14 @@ public class GameLobbyStage extends StageView {
                 contentTable.add(nextRoundButton).colspan(2).padTop(20);
             }
             
-            roundEndTable.add(contentTable).expand().fill();
+            // Add content table to the overlay, centered
+            roundEndTable.add(contentTable).expand().fill().maxWidth(contentWidth);
             stage.addActor(roundEndTable);
             
             // Initially hidden
             roundEndTable.setVisible(false);
         } catch (Exception e) {
             e.printStackTrace();
-            
         }
     }
 

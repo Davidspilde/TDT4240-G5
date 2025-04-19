@@ -145,6 +145,11 @@ private void handleRoundEnded(GameRoundEndedMessage message) {
     
 }
 
+public void toggleLocationGreyout(String location) {
+    gameModel.getGameData().toggleLocationGreyout(location);
+    
+}
+
 private void handleSpyCaught(GameSpyCaughtMessage message) {
     System.out.println("Spy caught: " + message.getSpy() + " with " + message.getVotes() + " votes");
     
