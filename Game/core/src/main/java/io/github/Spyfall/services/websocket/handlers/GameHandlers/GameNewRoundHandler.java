@@ -1,6 +1,7 @@
-package io.github.Spyfall.services.websocket.handlers;
+package io.github.Spyfall.services.websocket.handlers.GameHandlers;
 
 import io.github.Spyfall.message.response.GameNewRoundMessage;
+import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 
 public class GameNewRoundHandler implements WebSocketMessageHandler<GameNewRoundMessage> {
 

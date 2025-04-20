@@ -1,17 +1,7 @@
 package io.github.Spyfall.controller;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 
-import com.badlogic.gdx.Gdx;
-
-import io.github.Spyfall.message.response.GameCompleteMessage;
-import io.github.Spyfall.message.response.GameNewRoundMessage;
-import io.github.Spyfall.message.response.GameRoundEndedMessage;
-import io.github.Spyfall.message.response.GameSpyCaughtMessage;
-import io.github.Spyfall.message.response.GameSpyGuessMessage;
-import io.github.Spyfall.message.response.GameVoteMessage;
-import io.github.Spyfall.message.response.ResponseMessage;
 import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
@@ -34,26 +24,8 @@ public class GameplayController {
         return (instance == null) ? (instance = new GameplayController()) : instance;
     }
 
-    public void handleServerMessage(ResponseMessage message) {
-        if (message instanceof GameCompleteMessage) {
-            handleGameComplete((GameCompleteMessage) message);
-        } else if (message instanceof GameNewRoundMessage) {
-            handleNewRound((GameNewRoundMessage) message);
-        } else if (message instanceof GameRoundEndedMessage) {
-            handleRoundEnded((GameRoundEndedMessage) message);
-        } else if (message instanceof GameSpyCaughtMessage) {
-            handleSpyCaught((GameSpyCaughtMessage) message);
-        } else if (message instanceof GameSpyGuessMessage) {
-            handleSpyGuess((GameSpyGuessMessage) message);
-        } else if (message instanceof GameVoteMessage) {
-            handleVote((GameVoteMessage) message);
-        } else {
-            System.out.println("GameplayController: Unexpected message type: " + message.getClass().getName());
-        }
-    }
-
-    private void handleGameComplete(GameCompleteMessage message) {
-        System.out.println("Game complete received: " + message.getScoreboard());
+    public void handleGameComplete(HashMap<String, Integer> scoreboard) {
+        System.out.println("Game complete received: " + scoreboard);
 
         // Play sound
         AudioService.getInstance().playSound("click");
@@ -64,95 +36,79 @@ public class GameplayController {
         gameModel.setCurrentState(GameState.LOBBY);
     }
 
-    private void handleNewRound(GameNewRoundMessage message) {
+    public void handleNewRound(int roundNumber, String role, String location, int roundDuration) {
 
-        System.out.println("New round received: Round " + message.getRoundNumber());
+        System.out.println("New round received: Round " + roundNumber);
 
         // Update game data
-        gameModel.getGameData().setCurrentRound(message.getRoundNumber());
-        gameModel.getGameData().setSpy(message.getRole().equals("spy"));
-        gameModel.getGameData().setLocation(message.getLocation());
-        gameModel.getGameData().setRole(message.getRole());
-        gameModel.getGameData().setTimeRemaining(message.getRoundDuration()); //
-        gameModel.getGameData().setRole(message.getRole());
+        gameModel.getGameData().setCurrentRound(roundNumber);
+        gameModel.getGameData().setSpy(role.equals("spy"));
+        gameModel.getGameData().setLocation(location);
+        gameModel.getGameData().setRole(role);
+        gameModel.getGameData().setTimeRemaining(roundDuration);
+        gameModel.getGameData().setRole(role);
 
         gameModel.getGameData().setRoundEnded(false);
 
-        // test locations
-        if (message.getRole().equals("spy")) {
-            List<String> defaultLocations = Arrays.asList(
-                    "Airplane", "Bank", "Beach", "Casino", "Hospital",
-                    "Hotel", "Military Base", "Movie Studio", "Ocean Liner",
-                    "Passenger Train", "Restaurant", "School", "Space Station",
-                    "Submarine", "Supermarket", "University");
-            gameModel.getGameData().setPossibleLocations(defaultLocations);
+        // Change game state if not already in game
+        if (gameModel.getCurrentState() != GameState.IN_GAME) {
+            gameModel.setCurrentState(GameState.IN_GAME);
         }
 
-        Gdx.app.postRunnable(() -> {
-            // Change game state if not already in game
-            if (gameModel.getCurrentState() != GameState.IN_GAME) {
-                gameModel.setCurrentState(GameState.IN_GAME);
-            }
+        StageView currentStage = StageManager.getInstance().getStage();
+        if (currentStage instanceof GameLobbyStage) {
+            ((GameLobbyStage) currentStage).resetRoundEndUI();
 
-            StageView currentStage = StageManager.getInstance().getStage();
-            if (currentStage instanceof GameLobbyStage) {
-                ((GameLobbyStage) currentStage).resetRoundEndUI();
+            ((GameLobbyStage) currentStage).startTimer(roundDuration);
+        }
 
-                ((GameLobbyStage) currentStage).startTimer(message.getRoundDuration());
-            }
-        });
     }
 
-    private void handleRoundEnded(GameRoundEndedMessage message) {
-        System.out.println("HELLLOOOOO: Spy was " + message.getSpy());
+    public void handleRoundEnded(String spy, String location, HashMap<String, Integer> scoreboard, int roundNumber,
+            String reason) {
+        System.out.println("HELLLOOOOO: Spy was " + spy);
 
         // Update game model with round end information
         GameData gameData = gameModel.getGameData();
         gameData.setRoundEnded(true);
-        gameData.setIsSpyUsername(message.getSpy());
+        gameData.setIsSpyUsername(spy);
 
-        gameData.setLocation(message.getLocation());
-        gameData.setCurrentRound(message.getRoundNumber());
+        gameData.setLocation(location);
+        gameData.setCurrentRound(roundNumber);
 
-        if (message.getScoreboard() != null) {
-            gameData.setScoreboard(message.getScoreboard());
+        if (scoreboard != null) {
+            gameData.setScoreboard(scoreboard);
         }
 
-        Gdx.app.postRunnable(() -> {
-            try {
-                StageView currentStage = StageManager.getInstance().getStage();
-                if (currentStage instanceof GameLobbyStage) {
+        try {
+            StageView currentStage = StageManager.getInstance().getStage();
+            if (currentStage instanceof GameLobbyStage) {
 
-                    ((GameLobbyStage) currentStage).handleRoundEnded(
-                            message.getRoundNumber(), // Round number from message
-                            message.getReason(), // Reason for round end (e.g., "TIMEOUT")
-                            message.getSpy(), // Spy player name
-                            message.getLocation(), // Location from message
-                            message.getScoreboard() // Scoreboard
-                    );
+                ((GameLobbyStage) currentStage).handleRoundEnded(
+                        roundNumber, // Round number from message
+                        reason, // Reason for round end (e.g., "TIMEOUT")
+                        spy, // Spy player name
+                        location, // Location from message
+                        scoreboard // Scoreboard
+                );
 
-                    ((GameLobbyStage) currentStage).updateTimerDisplay(0);
-                }
-            } catch (Exception e) {
-                // TODO: handle exception
+                ((GameLobbyStage) currentStage).updateTimerDisplay(0);
             }
-
-        });
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
 
     }
 
-    private void handleSpyCaught(GameSpyCaughtMessage message) {
-        System.out.println("Spy caught: " + message.getSpy() + " with " + message.getVotes() + " votes");
-
-        // Play sound
-        AudioService.getInstance().playSound("click");
+    public void handleSpyLastAttempt(String spy, int duration) {
+        System.out.println("Spy caught: " + spy + "and has 45 seconds to guess the location");
 
         // Show dialog with result
         // This might be better handled in the view
     }
 
-    private void handleSpyGuess(GameSpyGuessMessage message) {
-        System.out.println("Spy " + message.getSpy() + " guessed location: " + message.getLocation());
+    public void handleSpyGuess(String spy, String location) {
+        System.out.println("Spy " + spy + " guessed location: " + location);
 
         // Play sound
         AudioService.getInstance().playSound("click");
@@ -161,8 +117,8 @@ public class GameplayController {
 
     }
 
-    private void handleVote(GameVoteMessage message) {
-        System.out.println("Vote received: " + message.getVoted() + " was voted");
+    public void handleVote() {
+        System.out.println("Vote has been added succesfully");
 
         // Update UI if this stage is active
         // Could trigger an update in the GameLobbyStage

@@ -1,7 +1,8 @@
-package io.github.Spyfall.services.websocket.handlers;
+package io.github.Spyfall.services.websocket.handlers.lobbyHandlers;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.message.response.LobbyCreatedMessage;
+import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 
 public class LobbyCreatedHandler implements WebSocketMessageHandler<LobbyCreatedMessage> {
 
@@ -19,7 +20,7 @@ public class LobbyCreatedHandler implements WebSocketMessageHandler<LobbyCreated
     public void handle(LobbyCreatedMessage message) {
 
         LobbyController lobbyController = LobbyController.getInstance();
-        lobbyController.lobbyCreated(message.getHost(), message.getLobbyCode());
+        lobbyController.handleLobbyCreated(message.getHost(), message.getLobbyCode());
     }
 
 }

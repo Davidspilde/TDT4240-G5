@@ -1,6 +1,8 @@
-package io.github.Spyfall.services.websocket.handlers;
+package io.github.Spyfall.services.websocket.handlers.GameHandlers;
 
+import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.message.response.GameCompleteMessage;
+import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 
 public class GameCompleteHandler implements WebSocketMessageHandler<GameCompleteMessage> {
 
@@ -16,6 +18,9 @@ public class GameCompleteHandler implements WebSocketMessageHandler<GameComplete
 
     @Override
     public void handle(GameCompleteMessage message) {
+        GameplayController gameplayController = GameplayController.getInstance();
+
+        gameplayController.handleGameComplete(message.getScoreboard());
 
     }
 

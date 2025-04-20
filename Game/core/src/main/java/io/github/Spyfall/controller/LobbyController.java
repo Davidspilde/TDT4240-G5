@@ -27,7 +27,7 @@ public class LobbyController {
         return instance;
     }
 
-    public void lobbyUpdate(List<String> players) {
+    public void handleLobbyUpdate(List<String> players) {
         gameModel.getLobbyData().setPlayers(players);
         System.out.println("PLAYERS: " + gameModel.getLobbyData().getPlayers());
 
@@ -41,12 +41,12 @@ public class LobbyController {
         }
     }
 
-    public void lobbyNewHost(String host) {
+    public void handleLobbyNewHost(String host) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'handleLobbyNewHost'");
     }
 
-    public void lobbyJoined(String host, String lobbyCode) {
+    public void handleLobbyJoined(String host, String lobbyCode) {
         gameModel.getLobbyData().setHostPlayer(host);
         if (gameModel.getCurrentState() != GameState.LOBBY) {
             gameModel.setCurrentState(GameState.LOBBY);
@@ -55,7 +55,7 @@ public class LobbyController {
         }
     }
 
-    public void lobbyCreated(String host, String lobbyCode) {
+    public void handleLobbyCreated(String host, String lobbyCode) {
         gameModel.setLobbyCode(lobbyCode);
         gameModel.getLobbyData().setHostPlayer(host);
         gameModel.getLobbyData().getPlayers().clear();
@@ -68,6 +68,10 @@ public class LobbyController {
         } else {
             System.out.println("WRONG STATE: " + gameModel.getCurrentState());
         }
+    }
+
+    public void handleGameStarted() {
+
     }
 
     public void createLobby(String username) {

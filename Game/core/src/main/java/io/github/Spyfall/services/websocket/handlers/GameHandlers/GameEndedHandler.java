@@ -1,12 +1,13 @@
-package io.github.Spyfall.services.websocket.handlers;
+package io.github.Spyfall.services.websocket.handlers.GameHandlers;
 
 import io.github.Spyfall.message.response.ResponseMessage;
+import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 
-public class GameVotedHandler implements WebSocketMessageHandler<ResponseMessage> {
+public class GameEndedHandler implements WebSocketMessageHandler<ResponseMessage> {
 
     @Override
     public String getEvent() {
-        return "voted";
+        return "gameEnded";
     }
 
     @Override
