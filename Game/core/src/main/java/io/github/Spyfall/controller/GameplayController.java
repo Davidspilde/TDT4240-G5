@@ -101,7 +101,7 @@ public class GameplayController {
     }
 
     public void handleSpyLastAttempt(String spy, int duration) {
-        System.out.println("Spy caught: " + spy + "and has 45 seconds to guess the location");
+        System.out.println("Spy caught: " + spy + " and has " + duration + " seconds to guess the location");
 
         // Show dialog with result
         // This might be better handled in the view
