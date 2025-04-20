@@ -49,7 +49,7 @@ public class LobbyManagerService {
         session.getAttributes().put("lobbyCode", lobbyCode);
 
         LobbyOptions options = new LobbyOptions(
-                10, // roundNumber
+                4, // roundNumber
                 30, // locationNumber
                 8, // maxPlayers
                 10, // roundDuration (seconds)

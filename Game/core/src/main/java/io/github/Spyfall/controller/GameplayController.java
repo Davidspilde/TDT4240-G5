@@ -19,6 +19,7 @@ import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class GameplayController {
     private static GameplayController instance;
@@ -55,14 +56,13 @@ public class GameplayController {
 
     private void handleGameComplete(GameCompleteMessage message) {
     System.out.println("Game complete received: " + message.getScoreboard());
+    Gdx.app.postRunnable(()->{
+        
+        AudioService.getInstance().playSound("click");
+        
+        ErrorPopup.getInstance().showClientError("Game Complete fucker!");
+    });
     
-    // Play sound
-    AudioService.getInstance().playSound("click");
-    
-    // TODO: Show scoreboard in a dialog or screen
-    
-    // Return to lobby after game ends
-    gameModel.setCurrentState(GameState.LOBBY);
 }
 
 private void handleNewRound(GameNewRoundMessage message) {
@@ -147,7 +147,7 @@ private void handleRoundEnded(GameRoundEndedMessage message) {
 
 public void toggleLocationGreyout(String location) {
     gameModel.getGameData().toggleLocationGreyout(location);
-    
+
 }
 
 private void handleSpyCaught(GameSpyCaughtMessage message) {

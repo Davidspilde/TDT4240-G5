@@ -339,15 +339,16 @@ public class GameLobbyStage extends StageView {
         // Stop the timer
         timerRunning = false;
         
-        // Create and show the round end UI
-        if (roundEndTable == null) {
-            createRoundEndedUI(spy, location, scoreboard);
-        } else {
-            // Update the existing UI
-            roundEndTable.clear();
-            createRoundEndedUI(spy, location, scoreboard);
+        if (roundEndTable != null) {
+            roundEndTable.remove(); 
+            Texture bgTexture = ((TextureRegionDrawable)roundEndTable.getBackground()).getRegion().getTexture();
+            if (bgTexture != null) {
+                bgTexture.dispose(); // clean up
+            }
         }
         
+        // Create new round end UI
+        createRoundEndedUI(spy, location, scoreboard);
         roundEndTable.setVisible(true);
         isRoundEnded = true;
     }
@@ -355,7 +356,6 @@ public class GameLobbyStage extends StageView {
     public void showRoundEndedUI() {
         isRoundEnded = true;
         
-        // Hide or modify regular game UI
         timerLabel.setText("TIME'S UP!");
         
         // Hide vote buttons
@@ -369,14 +369,15 @@ public class GameLobbyStage extends StageView {
         String location = gameData.getLocation();
         HashMap<String, Integer> scoreboard = gameData.getScoreboard();
         
-        // Show round end overlay
-        if (roundEndTable == null) {
-            createRoundEndedUI(spy, location, scoreboard);
-        } else {
-            roundEndTable.clear();
-            createRoundEndedUI(spy, location, scoreboard);
+        if (roundEndTable != null) {
+            roundEndTable.remove(); 
+            Texture bgTexture = ((TextureRegionDrawable)roundEndTable.getBackground()).getRegion().getTexture();
+            if (bgTexture != null) {
+                bgTexture.dispose(); 
+            }
         }
         
+        createRoundEndedUI(spy, location, scoreboard);
         roundEndTable.setVisible(true);
     }
 
