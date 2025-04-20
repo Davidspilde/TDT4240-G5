@@ -5,5 +5,6 @@ public enum GameState {
     CREATE_GAME,
     JOIN_GAME,
     LOBBY,
+    GAME_CONFIG,
     IN_GAME
 }

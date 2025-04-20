@@ -10,7 +10,7 @@ apply plugin: 'com.android.application'
 
 android {
   namespace "io.github.Spyfall"
-  compileSdk 34
+  compileSdk 35
   sourceSets {
     main {
       manifest.srcFile 'AndroidManifest.xml'
@@ -32,8 +32,8 @@ android {
   }
   defaultConfig {
     applicationId 'io.github.Spyfall'
-    minSdkVersion 19
-    targetSdkVersion 34
+    minSdkVersion 28
+    targetSdkVersion 35
     versionCode 1
     versionName "1.0"
     multiDexEnabled true

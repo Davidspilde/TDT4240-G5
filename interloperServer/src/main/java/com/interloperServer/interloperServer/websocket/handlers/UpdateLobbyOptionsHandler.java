@@ -3,16 +3,20 @@ package com.interloperServer.interloperServer.websocket.handlers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import com.interloperServer.interloperServer.model.messages.incomming.RecieveLobbyOptionsMessage;
-import com.interloperServer.interloperServer.service.LobbyService;
+import com.interloperServer.interloperServer.model.Lobby;
+import com.interloperServer.interloperServer.model.messages.incoming.RecieveLobbyOptionsMessage;
+import com.interloperServer.interloperServer.service.LobbyHostService;
+import com.interloperServer.interloperServer.service.LobbyManagerService;
 
 @Component
 public class UpdateLobbyOptionsHandler implements WebSocketMessageHandler<RecieveLobbyOptionsMessage> {
 
-    private final LobbyService lobbyService;
+    private final LobbyHostService hostService;
+    private final LobbyManagerService lobbyManager;
 
-    public UpdateLobbyOptionsHandler(LobbyService lobbyService) {
-        this.lobbyService = lobbyService;
+    public UpdateLobbyOptionsHandler(LobbyHostService hostService, LobbyManagerService lobbyManager) {
+        this.hostService = hostService;
+        this.lobbyManager = lobbyManager;
     }
 
     @Override
@@ -27,6 +31,15 @@ public class UpdateLobbyOptionsHandler implements WebSocketMessageHandler<Reciev
 
     @Override
     public void handle(RecieveLobbyOptionsMessage message, WebSocketSession session) {
-        lobbyService.updateLobbyOptions(message.getLobbyCode(), message);
+        Lobby lobby = lobbyManager.getLobbyFromLobbyCode(message.getLobbyCode());
+        String username = message.getUsername();
+        int roundLimit = message.getRoundLimit();
+        int locationNumber = message.getLocationNumber();
+        int timePerRound = message.getTimePerRound();
+        int maxPlayerCount = message.getMaxPlayerCount();
+        int spyLastAttemptTime = message.getSpyLastAttemptTime();
+
+        hostService.updateLobbyOptions(lobby, username, roundLimit, locationNumber, timePerRound,
+                maxPlayerCount, spyLastAttemptTime);
     }
 }

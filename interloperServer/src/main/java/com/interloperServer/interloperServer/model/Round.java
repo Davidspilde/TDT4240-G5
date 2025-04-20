@@ -5,21 +5,19 @@ import java.util.Map;
 
 public class Round {
     private final int roundNumber;
-    private final String location;
-    private boolean isActive;
+    private Location location;
     private Player spy;
     private int roundDuration;
-    private boolean votingComplete;
+    private RoundState roundState;
 
     private final Map<String, String> votes = new HashMap<>(); // voterUsername -> targetUsername
 
-    public Round(int roundNumber, int roundDuration, Player spy) {
+    public Round(int roundNumber, int roundDuration, Player spy, Location location) {
         this.spy = spy;
         this.roundNumber = roundNumber;
-        this.location = generateRandomLocation();
-        this.isActive = true;
+        this.location = location;
         this.roundDuration = roundDuration;
-        this.votingComplete = false;
+        this.roundState = RoundState.NORMAL;
     }
 
     public int getRoundNumber() {
@@ -34,16 +32,40 @@ public class Round {
         this.spy = spy;
     }
 
-    public String getLocation() {
+    public Location getLocation() {
         return location;
     }
 
+    public void setLocation(Location location) {
+        this.location = location;
+
+    }
+
+    public RoundState getRoundState() {
+        return roundState;
+    }
+
     public boolean isActive() {
-        return isActive;
+        if (roundState == RoundState.ENDED) {
+            return false;
+        }
+
+        return true;
     }
 
     public void endRound() {
-        this.isActive = false;
+        roundState = RoundState.ENDED;
+    }
+
+    public void setSpyLastAttempt() {
+        roundState = RoundState.SPY_LAST_ATTEMPT;
+    }
+
+    public boolean isVotingComplete() {
+        if (roundState != RoundState.NORMAL) {
+            return true;
+        }
+        return false;
     }
 
     // Cast a vote from one player to another
@@ -57,20 +79,6 @@ public class Round {
 
     public void clearVotes() {
         votes.clear();
-    }
-
-    public void setVotingComplete() {
-        votingComplete = true;
-    }
-
-    public boolean isVotingComplete() {
-        return votingComplete;
-    }
-
-    // Create the location for this round
-    private String generateRandomLocation() {
-        String[] locations = { "Restaurant", "Museum", "Beach", "Space Station", "Jungle" };
-        return locations[new java.util.Random().nextInt(locations.length)];
     }
 
     public int getRoundDuration() {

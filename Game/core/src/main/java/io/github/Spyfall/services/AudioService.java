@@ -8,8 +8,6 @@ import com.badlogic.gdx.audio.Sound;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.Spyfall.controller.StageManager;
-
 // AudioService.java
 public class AudioService {
     private final Map<String, Sound> sounds;

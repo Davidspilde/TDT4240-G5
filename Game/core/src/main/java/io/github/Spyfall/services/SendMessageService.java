@@ -15,7 +15,7 @@ public class SendMessageService {
         this.wsClient = LocalWebSocketClient.getInstance();
     }
 
-    public static SendMessageService getInstace() {
+    public static SendMessageService getInstance() {
         if (instance == null) {
             instance = new SendMessageService();
         }
@@ -29,6 +29,12 @@ public class SendMessageService {
 
     public boolean joinLobby(String username, String lobbyCode) {
         String type = "joinLobby";
+        RequestMessage msg = new RequestMessage(type, username, lobbyCode);
+        return sendMessage(msg);
+    }
+
+    public boolean leaveLobby(String username, String lobbyCode) {
+        String type = "leaveLobby";
         RequestMessage msg = new RequestMessage(type, username, lobbyCode);
         return sendMessage(msg);
     }
@@ -60,9 +66,9 @@ public class SendMessageService {
     }
 
     public boolean updateLobbyOptions(String username, String lobbyCode, int roundlimit, int locationNumber,
-            int maxPlayers, int timeperRound) {
+            int maxPlayers, int timeperRound, int spyLastAttemptTime) {
         LobbyOptionsMessage msg = new LobbyOptionsMessage(username, lobbyCode, roundlimit, locationNumber, maxPlayers,
-                timeperRound);
+                timeperRound, spyLastAttemptTime);
         return sendMessage(msg);
     }
 

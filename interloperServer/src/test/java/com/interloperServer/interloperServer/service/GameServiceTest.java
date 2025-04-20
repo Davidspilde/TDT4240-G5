@@ -1,4 +1,3 @@
-
 package com.interloperServer.interloperServer.service;
 
 import com.interloperServer.interloperServer.model.*;
@@ -8,11 +7,14 @@ import com.interloperServer.interloperServer.service.messagingServices.Messaging
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Collections;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @DisplayName("GameService Tests")
@@ -23,7 +25,7 @@ class GameServiceTest {
     private MessagingService messagingService;
     private GameMessageFactory messageFactory;
     private GameManagerService gameManagerService;
-    private LobbyService lobbyService;
+    private LobbyManagerService lobbyService;
     private GameService gameService;
 
     @BeforeEach
@@ -33,9 +35,10 @@ class GameServiceTest {
         messagingService = mock(MessagingService.class);
         messageFactory = mock(GameMessageFactory.class);
         gameManagerService = mock(GameManagerService.class);
-        lobbyService = mock(LobbyService.class);
+        lobbyService = mock(LobbyManagerService.class);
 
-        gameService = new GameService(votingService, roundService, messagingService, messageFactory, gameManagerService, lobbyService);
+        gameService = new GameService(votingService, roundService, messagingService, messageFactory, gameManagerService,
+                lobbyService);
     }
 
     @Test
@@ -71,6 +74,9 @@ class GameServiceTest {
         when(lobby.getPlayers()).thenReturn(List.of(new Player(null, "Alice")));
         when(lobbyService.getLobbyFromLobbyCode("ABC")).thenReturn(lobby);
 
+        when(lobby.getLocations()).thenReturn(List.of(
+                new Location("Beach", List.of("Surfer", "Lifeguard")),
+                new Location("School", List.of("Teacher", "Student"))));
         gameService.startGame("Alice", "ABC", session);
 
         verify(messagingService).sendMessage(eq(session), any());
@@ -83,32 +89,25 @@ class GameServiceTest {
         WebSocketSession session = mock(WebSocketSession.class);
 
         when(lobby.getHost()).thenReturn(new Player(null, "Alice"));
-        when(lobby.getPlayers()).thenReturn(List.of(new Player(null, "Alice"), new Player(null, "Bob")));
+        when(lobby.getPlayers()).thenReturn(List.of(
+                new Player(null, "Alice"),
+                new Player(null, "Bob"),
+                new Player(null, "John")));
         when(lobby.getLobbyCode()).thenReturn("XYZ");
-        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 1, 8, 120));
+        when(lobby.getLobbyOptions()).thenReturn(new LobbyOptions(5, 30, 8, 120, 45));
         when(lobbyService.getLobbyFromLobbyCode("XYZ")).thenReturn(lobby);
+        when(lobby.getLocations()).thenReturn(List.of(
+                new Location("Beach", List.of("Surfer", "Lifeguard")),
+                new Location("School", List.of("Teacher", "Student"))));
 
         GameMessage mockGameMessage = mock(GameMessage.class);
         when(messageFactory.gameStarted()).thenReturn(mockGameMessage);
 
-        gameService.startGame("Alice", "XYZ", session);
+        gameService.startGame(lobby.getHost().getUsername(), lobby.getLobbyCode(), session);
 
         verify(gameManagerService).storeGame(eq("XYZ"), any(Game.class));
         verify(messagingService).broadcastMessage(eq(lobby), eq(mockGameMessage));
         verify(roundService).advanceRound(eq("XYZ"));
-    }
-
-    @Test
-    @DisplayName("Should end game if player disconnects and only one remains")
-    void handlePlayerDisconnect_ShouldEndGame_IfTooFewPlayers() {
-        Game game = mock(Game.class);
-        when(game.getPlayers()).thenReturn(Collections.singletonList(mock(Player.class)));
-        when(gameManagerService.getGame("XYZ")).thenReturn(game);
-
-        gameService.handlePlayerDisconnect(mock(WebSocketSession.class), "XYZ");
-
-        verify(gameManagerService).removeGame("XYZ");
-        verify(messagingService).broadcastMessage(any(), any());
     }
 
     @Test

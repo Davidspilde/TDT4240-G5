@@ -4,16 +4,25 @@ public class LobbyOptions {
 
     private int roundLimit;
     private int locationNumber;
-    private int spyCount;
     private int maxPlayerCount;
     private int timePerRound;
+    private int spyLastAttemptTime;
 
-    public LobbyOptions(int roundLimit, int locationNumber, int spyCount, int maxPlayerCount, int timePerRound) {
+    public LobbyOptions(int roundLimit, int locationNumber, int maxPlayerCount, int timePerRound,
+            int spyLastAttemptTime) {
         this.roundLimit = roundLimit;
         this.locationNumber = locationNumber;
-        this.spyCount = spyCount;
         this.maxPlayerCount = maxPlayerCount;
         this.timePerRound = timePerRound;
+        this.spyLastAttemptTime = spyLastAttemptTime;
+    }
+
+    public int getSpyLastAttemptTime() {
+        return spyLastAttemptTime;
+    }
+
+    public void setSpyLastAttemptTime(int spyLastAttemptTime) {
+        this.spyLastAttemptTime = spyLastAttemptTime;
     }
 
     public int getRoundLimit() {
@@ -30,14 +39,6 @@ public class LobbyOptions {
 
     public void setLocationNumber(int locationNumber) {
         this.locationNumber = locationNumber;
-    }
-
-    public int getSpyCount() {
-        return spyCount;
-    }
-
-    public void setSpyCount(int spyCount) {
-        this.spyCount = spyCount;
     }
 
     public int getMaxPlayerCount() {

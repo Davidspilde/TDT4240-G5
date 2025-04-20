@@ -1,9 +1,7 @@
 
 package com.interloperServer.interloperServer.service;
 
-import com.interloperServer.interloperServer.model.Game;
-import com.interloperServer.interloperServer.model.Player;
-import com.interloperServer.interloperServer.model.Round;
+import com.interloperServer.interloperServer.model.*;
 import com.interloperServer.interloperServer.model.messages.outgoing.GameMessage;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
@@ -14,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("VotingService Tests")
@@ -30,6 +29,7 @@ class VotingServiceTest {
     private Player voter;
     private Player target;
     private Player spy;
+    private Location mockLocation;
 
     @BeforeEach
     void setup() {
@@ -42,6 +42,10 @@ class VotingServiceTest {
 
         game = mock(Game.class);
         round = mock(Round.class);
+
+        mockLocation = mock(Location.class);
+        when(mockLocation.getName()).thenReturn("Airport");
+        when(round.getLocation()).thenReturn(mockLocation);
 
         WebSocketSession voterSession = mock(WebSocketSession.class);
         WebSocketSession targetSession = mock(WebSocketSession.class);
@@ -66,14 +70,12 @@ class VotingServiceTest {
         when(gameManagerService.getGame("LOBBY")).thenReturn(game);
         when(round.getVotes()).thenReturn(new HashMap<>());
         when(round.getSpy()).thenReturn(spy);
-        when(round.getLocation()).thenReturn("Airport");
     }
 
     @Test
-    @DisplayName("Should cast valid vote and evaluate round")
-    void testValidVote_CastsVoteAndEvaluates() {
+    @DisplayName("Should cast valid vote and trigger spy last attempt")
+    void testValidVote_CastsVoteAndTriggersSpyLastAttempt() {
         GameMessage msg = mock(GameMessage.class);
-
         when(round.isVotingComplete()).thenReturn(false);
         when(messageFactory.voted()).thenReturn(msg);
 
@@ -94,15 +96,14 @@ class VotingServiceTest {
         votingService.castVote("LOBBY", "p1", "target");
 
         verify(round).castVote("p1", "target");
-        verify(messagingService).sendMessage(eq(p1.getSession()), any());
-        verify(roundService).endRoundDueToVotes("LOBBY", true, "target");
+        verify(messagingService).sendMessage(eq(p1.getSession()), eq(msg));
+        verify(roundService).startSpyLastAttempt("LOBBY", "target");
     }
 
     @Test
     @DisplayName("Should reject vote if target is not found")
     void testInvalidVote_TargetNotFound() {
         when(round.isVotingComplete()).thenReturn(false);
-
         votingService.castVote("LOBBY", "voter", "ghost");
 
         verify(messagingService).sendMessage(eq(voter.getSession()), any());
@@ -113,7 +114,7 @@ class VotingServiceTest {
     @DisplayName("Should reject self-vote but still register it")
     void testInvalidVote_SelfVote() {
         when(round.isVotingComplete()).thenReturn(false);
-
+        when(messageFactory.voted()).thenReturn(mock(GameMessage.class));
         votingService.castVote("LOBBY", "voter", "voter");
 
         verify(messagingService).sendMessage(eq(voter.getSession()), anyString());
@@ -133,24 +134,7 @@ class VotingServiceTest {
     }
 
     @Test
-    @DisplayName("Should end round when majority is reached and spy is caught")
-    void testEvaluateVotes_WithMajority_SpyCaught() {
-        when(round.getVotes()).thenReturn(Map.of("p1", "spy", "p2", "spy"));
-        when(round.isVotingComplete()).thenReturn(false);
-
-        Player p1 = new Player(mock(WebSocketSession.class), "p1");
-        Player p2 = new Player(mock(WebSocketSession.class), "p2");
-
-        when(game.getPlayers()).thenReturn(List.of(p1, p2, spy));
-        when(round.getSpy()).thenReturn(spy);
-
-        votingService.evaluateVotes("LOBBY");
-
-        verify(roundService).endRoundDueToVotes("LOBBY", true, "spy");
-    }
-
-    @Test
-    @DisplayName("Should not end round if no majority is reached")
+    @DisplayName("Should do nothing if no majority is reached")
     void testEvaluateVotes_NoMajority_DoesNothing() {
         when(round.getVotes()).thenReturn(Map.of("voter", "target"));
         when(game.getPlayers()).thenReturn(List.of(voter, target, spy));
@@ -158,41 +142,82 @@ class VotingServiceTest {
 
         votingService.evaluateVotes("LOBBY");
 
-        verify(roundService, never()).endRoundDueToVotes(any(), anyBoolean(), any());
+        verify(roundService, never()).startSpyLastAttempt(any(), any());
     }
 
     @Test
-    @DisplayName("Should end round with spy point if guess is correct")
-    void testSpyGuess_CorrectGuess() {
-        when(round.isVotingComplete()).thenReturn(false);
+    @DisplayName("Should end round with spy point if guess is correct and not caught")
+    void testSpyGuess_CorrectGuess_NotCaught() {
+        when(round.isActive()).thenReturn(true);
         when(round.getSpy()).thenReturn(spy);
-        when(round.getLocation()).thenReturn("Airport");
+        when(round.getLocation()).thenReturn(mockLocation);
+        when(mockLocation.getName()).thenReturn("Airport");
+        when(round.getRoundState()).thenReturn(RoundState.NORMAL);
 
         votingService.castSpyGuess("LOBBY", "spy", "Airport");
 
-        verify(roundService).endRoundDueToSpyGuess("LOBBY", "spy", true);
+        verify(roundService).endRoundDueToGuess("LOBBY", "spy", false, true);
     }
 
     @Test
-    @DisplayName("Should end round with no point if guess is incorrect")
-    void testSpyGuess_IncorrectGuess() {
-        when(round.isVotingComplete()).thenReturn(false);
+    @DisplayName("Should end round with no point if guess is incorrect and not caught")
+    void testSpyGuess_IncorrectGuess_NotCaught() {
+        when(round.isActive()).thenReturn(true);
         when(round.getSpy()).thenReturn(spy);
-        when(round.getLocation()).thenReturn("Airport");
+        when(round.getLocation()).thenReturn(mockLocation);
+        when(mockLocation.getName()).thenReturn("Airport");
+        when(round.getRoundState()).thenReturn(RoundState.NORMAL);
 
         votingService.castSpyGuess("LOBBY", "spy", "Library");
 
-        verify(roundService).endRoundDueToSpyGuess("LOBBY", "spy", false);
+        verify(roundService).endRoundDueToGuess("LOBBY", "spy", false, false);
+    }
+
+    @Test
+    @DisplayName("Should end round with spy caught and correct guess")
+    void testSpyGuess_CorrectGuess_SpyCaught() {
+        when(round.isActive()).thenReturn(true);
+        when(round.getSpy()).thenReturn(spy);
+        when(round.getLocation()).thenReturn(mockLocation);
+        when(mockLocation.getName()).thenReturn("Airport");
+        when(round.getRoundState()).thenReturn(RoundState.ENDED);
+
+        votingService.castSpyGuess("LOBBY", "spy", "Airport");
+
+        verify(roundService).endRoundDueToGuess("LOBBY", "spy", true, true);
+    }
+
+    @Test
+    @DisplayName("Should end round with spy caught and incorrect guess")
+    void testSpyGuess_IncorrectGuess_SpyCaught() {
+        when(round.isActive()).thenReturn(true);
+        when(round.getSpy()).thenReturn(spy);
+        when(round.getLocation()).thenReturn(mockLocation);
+        when(mockLocation.getName()).thenReturn("Airport");
+        when(round.getRoundState()).thenReturn(RoundState.ENDED);
+
+        votingService.castSpyGuess("LOBBY", "spy", "Library");
+
+        verify(roundService).endRoundDueToGuess("LOBBY", "spy", true, false);
     }
 
     @Test
     @DisplayName("Should do nothing if non-spy tries to guess")
     void testSpyGuess_NotSpy_NoEffect() {
-        when(round.isVotingComplete()).thenReturn(false);
+        when(round.isActive()).thenReturn(true);
         when(round.getSpy()).thenReturn(spy);
-
         votingService.castSpyGuess("LOBBY", "voter", "Airport");
 
-        verify(roundService, never()).endRoundDueToSpyGuess(any(), any(), anyBoolean());
+        verify(roundService, never()).endRoundDueToGuess(any(), any(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Should do nothing if round is not active")
+    void testSpyGuess_RoundNotActive_NoEffect() {
+        when(round.isActive()).thenReturn(false);
+        when(round.getSpy()).thenReturn(spy);
+        votingService.castSpyGuess("LOBBY", "spy", "Airport");
+
+        verify(roundService, never()).endRoundDueToGuess(any(), any(), anyBoolean(), anyBoolean());
     }
 }

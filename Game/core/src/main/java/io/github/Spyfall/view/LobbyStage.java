@@ -17,7 +17,7 @@ import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 
-public class LobbyStage extends StageView implements GameStateObserver {
+public class LobbyStage extends StageView {
     private LobbyController controller;
     private GameModel gameModel;
     private Skin skin;
@@ -30,13 +30,13 @@ public class LobbyStage extends StageView implements GameStateObserver {
     private TextButton leaveLobbyButton;
     private Texture bgTexture;
 
-    public LobbyStage(ScreenViewport viewport, LobbyController controller) {
+    public LobbyStage(ScreenViewport viewport) {
         super(viewport);
-        this.controller = controller;
+        this.controller = LobbyController.getInstance();
         this.gameModel = GameModel.getInstance();
         
         // Register as observer to get model updates
-        gameModel.addObserver(this);
+        // gameModel.addObserver(this);
         
         initStage();
     }
@@ -112,10 +112,18 @@ public class LobbyStage extends StageView implements GameStateObserver {
         rootTable.add(centerTable).expand().row();
         
         Table buttonsTable = new Table();
-        buttonsTable.add(startGameButton).padRight(20);
-        buttonsTable.add(leaveLobbyButton);
-        
-        rootTable.add(buttonsTable).padBottom(20);
+
+        // narrow screens
+        if (Gdx.graphics.getWidth() < 500) {
+            buttonsTable.add(startGameButton).fillX().pad(10).row();
+            buttonsTable.add(leaveLobbyButton).fillX().pad(10);
+        } else {
+            // wider screens horizontal button layout
+            buttonsTable.add(startGameButton).padRight(20).padTop(10).padBottom(10);
+            buttonsTable.add(leaveLobbyButton).padLeft(20).padTop(10).padBottom(10);
+        }
+
+        rootTable.add(buttonsTable).padBottom(30).width(Math.min(300, Gdx.graphics.getWidth() * 0.8f));
     }
     
     private void updatePlayersList() {
@@ -132,6 +140,21 @@ public class LobbyStage extends StageView implements GameStateObserver {
             playersTable.add(playerLabel).padBottom(5).row();
         }
     }
+
+    public void updateFromModel() {
+        // Update lobby code
+        lobbyCodeLabel.setText("Lobby Code: " + gameModel.getLobbyCode());
+        
+        // Update host
+        hostLabel.setText("Host: " + gameModel.getLobbyData().getHostPlayer());
+        
+        // Update players list
+        updatePlayersList();
+        
+        // Update start button visibility based on host status
+        boolean isHost = gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer());
+        startGameButton.setVisible(isHost);
+    }
     
     @Override
     public void update() {
@@ -143,26 +166,13 @@ public class LobbyStage extends StageView implements GameStateObserver {
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
-    
-    @Override
-    public void onGameStateChanged(GameModel model) {
-        // Update UI based on model changes
-        lobbyCodeLabel.setText("Lobby Code: " + model.getLobbyCode());
-        hostLabel.setText("Host: " + model.getLobbyData().getHostPlayer());
-        updatePlayersList();
-        
-        // Check if user is host and update UI
-        boolean isHost = model.getUsername().equals(model.getLobbyData().getHostPlayer());
-        startGameButton.setVisible(isHost);
-    }
+
     
     public void dispose() {
         if (bgTexture != null) {
             bgTexture.dispose();
         }
         
-        // remove observer
-        gameModel.removeObserver(this);
         
         stage.dispose();
     }
