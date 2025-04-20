@@ -16,19 +16,17 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
-import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.services.websocket.SendMessageService;
 
 public class GameConfigStage extends StageView {
-    private SendMessageService sendMsgService;
+    private final SendMessageService sendMsgService;
     private String lobbyCode;
-    private String host;
+    private final String host;
     private Label lobbyCodeLabel;
     private VerticalGroup playersGroup;
     private Skin skin;
-    private MainController mainController;
     private GameModel gameModel;
 
     public GameConfigStage(ScreenViewport viewport, String lobbyCode) {
@@ -36,7 +34,6 @@ public class GameConfigStage extends StageView {
         this.gameModel = GameModel.getInstance();
         this.lobbyCode = lobbyCode;
         this.host = gameModel.getLobbyData().getHostPlayer();
-        this.mainController = MainController.getInstance();
         this.sendMsgService = SendMessageService.getInstance();
         this.gameModel = GameModel.getInstance();
         initGameConfig();
@@ -54,24 +51,24 @@ public class GameConfigStage extends StageView {
         TextButton locationsButton = new TextButton("Edit Locations", skin);
         TextButton backButton = new TextButton("Back", skin);
         TextButton startGameButton = new TextButton("Start Game", skin);
-        
+
         // Reduce text size by 30%
         settingsButton.getLabel().setFontScale(0.7f);
         locationsButton.getLabel().setFontScale(0.7f);
         backButton.getLabel().setFontScale(0.7f);
         startGameButton.getLabel().setFontScale(0.7f);
-        
+
         System.out.println("GameConfigStage UI elements created");
-        
+
         // Create lobby code label
         lobbyCodeLabel = new Label("Lobby Code: " + lobbyCode, skin);
         lobbyCodeLabel.setAlignment(Align.center);
-        
+
         // Create players group for scrolling
         playersGroup = new VerticalGroup();
         playersGroup.space(10);
         playersGroup.align(Align.center);
-        
+
         // Add host as first player
         Label.LabelStyle style = new Label.LabelStyle();
         style.font = skin.getFont("commodore-64");
@@ -80,7 +77,7 @@ public class GameConfigStage extends StageView {
         Label hostLabel = new Label("Host: " + host, style);
         hostLabel.setAlignment(Align.center);
         playersGroup.addActor(hostLabel);
-        
+
         // Create scroll pane for players
         ScrollPane playersScrollPane = new ScrollPane(playersGroup, skin);
         playersScrollPane.setFadeScrollBars(false);
@@ -88,7 +85,8 @@ public class GameConfigStage extends StageView {
         playersScrollPane.setScrollbarsOnTop(true);
 
         // Background
-        TextureRegionDrawable texture = new TextureRegionDrawable(new TextureRegion(new Texture("Background_city.png")));
+        TextureRegionDrawable texture = new TextureRegionDrawable(
+                new TextureRegion(new Texture("Background_city.png")));
         Table mainTable = new Table();
         Image logo = new Image(new TextureRegion(new Texture("logo-Photoroom.png")));
 
@@ -120,8 +118,8 @@ public class GameConfigStage extends StageView {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 // Send start game message
-                sendMsgService.joinLobby(host, lobbyCode);
-                
+                sendMsgService.startGame(host, lobbyCode);
+
                 // Update game state
                 gameModel.setCurrentState(GameState.LOBBY);
             }
@@ -130,12 +128,12 @@ public class GameConfigStage extends StageView {
         // Layout
         mainTable.setFillParent(true);
         mainTable.setBackground(texture);
-        
+
         // Top section with logo and lobby code
         Table topTable = new Table();
         topTable.add(logo).padBottom(20).row();
         topTable.add(lobbyCodeLabel).padBottom(20);
-        
+
         // Buttons table - only show host controls to host
         Table buttonsTable = new Table();
         boolean isHost = gameModel.getUsername().equals(host);
@@ -144,7 +142,7 @@ public class GameConfigStage extends StageView {
             buttonsTable.add(locationsButton).width(200).padBottom(10).row();
             buttonsTable.add(startGameButton).width(200).padBottom(10).row();
         }
-        
+
         // Main layout
         mainTable.add(topTable).expandX().center().padTop(20).row();
         mainTable.add(buttonsTable).expandX().center().padTop(20).padBottom(20).row();
@@ -154,19 +152,19 @@ public class GameConfigStage extends StageView {
         // Add UI to Stage
         stage.addActor(mainTable);
     }
-    
+
     private void openGameSettings() {
         // Create a dialog for game settings
         GameSettingsDialog settingsDialog = new GameSettingsDialog("Game Settings", skin, host, lobbyCode);
         settingsDialog.show(stage);
     }
-    
+
     private void openLocationsEditor() {
         // Create a dialog for editing locations
         LocationsEditorDialog locationsDialog = new LocationsEditorDialog(skin, lobbyCode);
         locationsDialog.show(stage);
     }
-    
+
     public void addPlayer(String playerName) {
         Label.LabelStyle style = new Label.LabelStyle();
         style.font = skin.getFont("commodore-64");
@@ -176,7 +174,7 @@ public class GameConfigStage extends StageView {
         playerLabel.setAlignment(Align.center);
         playersGroup.addActor(playerLabel);
     }
-    
+
     public void removePlayer(String playerName) {
         // Find and remove the player label
         for (int i = 0; i < playersGroup.getChildren().size; i++) {
@@ -187,9 +185,9 @@ public class GameConfigStage extends StageView {
             }
         }
     }
-    
+
     public void updateLobbyCode(String newLobbyCode) {
         this.lobbyCode = newLobbyCode;
         lobbyCodeLabel.setText("Lobby Code: " + newLobbyCode);
     }
-} 
+}

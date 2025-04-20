@@ -8,11 +8,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.Align;
 
-import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.services.websocket.SendMessageService;
 
 public class GameSettingsDialog extends Dialog {
     private TextField roundTimeField;

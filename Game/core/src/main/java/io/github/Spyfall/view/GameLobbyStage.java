@@ -107,16 +107,16 @@ public class GameLobbyStage extends StageView {
         endGameButton = new TextButton("End Game", skin);
         leaveGameButton = new TextButton("Leave Game", skin);
 
-        endGameButton.addListener(new ClickListener(){
+        endGameButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y){
+            public void clicked(InputEvent event, float x, float y) {
                 controller.endGame();
             }
         });
 
-        leaveGameButton.addListener(new ClickListener(){
+        leaveGameButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y){
+            public void clicked(InputEvent event, float x, float y) {
                 controller.leaveGame();
             }
         });
@@ -141,20 +141,18 @@ public class GameLobbyStage extends StageView {
         rootTable.add(bottomButtonsTable).colspan(2);
     }
 
-
-
     private void updatePlayersList() {
         playersTable.clear();
-        
+
         // Add a "Players" header
         Label playersHeader = new Label("Players", skin);
         playersHeader.setAlignment(Align.center);
         playersTable.add(playersHeader).colspan(2).padBottom(10).row();
-        
+
         // Add all players from the model
         for (String playerName : gameModel.getLobbyData().getPlayers()) {
             Label playerLabel = new Label(playerName, skin);
-            
+
             // If we're in game and not spy, add vote buttons
             if (gameModel.getCurrentState() == io.github.Spyfall.model.GameState.IN_GAME &&
                     !gameModel.getGameData().isSpy()) {
@@ -165,7 +163,7 @@ public class GameLobbyStage extends StageView {
                         controller.votePlayer(playerName);
                     }
                 });
-                
+
                 playersTable.add(playerLabel).padRight(10);
                 playersTable.add(voteButton).row();
             } else {
@@ -173,21 +171,21 @@ public class GameLobbyStage extends StageView {
             }
         }
     }
-    
+
     private void updateLocationsList() {
         possibleLocationsTable.clear();
-        
+
         // Add a "Possible Locations" header
         Label locationsHeader = new Label("Possible Locations", skin);
         locationsHeader.setAlignment(Align.center);
         possibleLocationsTable.add(locationsHeader).colspan(2).padBottom(10).row();
-        
+
         // Add all locations from the model
         GameData gameData = gameModel.getGameData();
         if (gameData.getPossibleLocations() != null) {
             for (String location : gameData.getPossibleLocations()) {
                 Label locationLabel = new Label(location, skin);
-                
+
                 // If we're the spy, add guess buttons
                 if (gameData.isSpy()) {
                     TextButton guessButton = new TextButton("Guess", skin);
@@ -197,7 +195,7 @@ public class GameLobbyStage extends StageView {
                             controller.spyGuessLocation(location);
                         }
                     });
-                    
+
                     possibleLocationsTable.add(locationLabel).padRight(10);
                     possibleLocationsTable.add(guessButton).row();
                 } else {
@@ -206,7 +204,7 @@ public class GameLobbyStage extends StageView {
             }
         } else {
             // Add sample locations as placeholders
-            String[] sampleLocations = {"Airplane", "Bank", "Beach", "Casino", "Hospital", "Hotel", "School"};
+            String[] sampleLocations = { "Airplane", "Bank", "Beach", "Casino", "Hospital", "Hotel", "School" };
             for (String location : sampleLocations) {
                 Label locationLabel = new Label(location, skin);
                 possibleLocationsTable.add(locationLabel).colspan(2).row();
@@ -219,49 +217,49 @@ public class GameLobbyStage extends StageView {
             // Create round end overlay
             roundEndTable = new Table();
             roundEndTable.setFillParent(true);
-            
+
             // Create semi-transparent background
             Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
             pixmap.setColor(0, 0, 0, 0.8f);
             pixmap.fill();
             Texture bgTexture = new Texture(pixmap);
             pixmap.dispose();
-            
+
             roundEndTable.setBackground(new TextureRegionDrawable(new TextureRegion(bgTexture)));
-            
+
             // Create content table
             Table contentTable = new Table();
             contentTable.pad(30);
             contentTable.defaults().pad(10).align(Align.center);
-            
+
             // Round end title
             Label titleLabel = new Label("ROUND ENDED", skin);
             titleLabel.setFontScale(2.0f);
             contentTable.add(titleLabel).colspan(2).row();
-            
+
             // Spy reveal information
             Label spyRevealLabel = new Label("Spy: " + spy, skin);
             contentTable.add(spyRevealLabel).colspan(2).row();
-            
+
             // Location reveal
             Label locationRevealLabel = new Label("Location: " + location, skin);
             contentTable.add(locationRevealLabel).colspan(2).row();
-            
+
             // Scoreboard
             if (scoreboard != null && !scoreboard.isEmpty()) {
                 contentTable.add(new Label("SCOREBOARD", skin)).colspan(2).padTop(20).row();
-                
+
                 // Add header row
                 contentTable.add(new Label("Player", skin)).left();
                 contentTable.add(new Label("Score", skin)).right().row();
-                
+
                 // Add all players' scores
                 for (java.util.Map.Entry<String, Integer> entry : scoreboard.entrySet()) {
                     contentTable.add(new Label(entry.getKey(), skin)).left();
                     contentTable.add(new Label(Integer.toString(entry.getValue()), skin)).right().row();
                 }
             }
-            
+
             // Next round button (only for host)
             boolean isHost = gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer());
             if (isHost) {
@@ -276,23 +274,23 @@ public class GameLobbyStage extends StageView {
                 });
                 contentTable.add(nextRoundButton).colspan(2).padTop(20);
             }
-            
+
             roundEndTable.add(contentTable).expand().fill();
             stage.addActor(roundEndTable);
-            
+
             // Initially hidden
             roundEndTable.setVisible(false);
         } catch (Exception e) {
             e.printStackTrace();
-            
+
         }
     }
 
-    public void handleRoundEnded(int roundNumber, String reason, String spy, 
-                           String location, HashMap<String, Integer> scoreboard) {
+    public void handleRoundEnded(int roundNumber, String reason, String spy,
+            String location, HashMap<String, Integer> scoreboard) {
         // Stop the timer
         timerRunning = false;
-        
+
         // Create and show the round end UI
         if (roundEndTable == null) {
             createRoundEndedUI(spy, location, scoreboard);
@@ -301,28 +299,28 @@ public class GameLobbyStage extends StageView {
             roundEndTable.clear();
             createRoundEndedUI(spy, location, scoreboard);
         }
-        
+
         roundEndTable.setVisible(true);
         isRoundEnded = true;
     }
 
     public void showRoundEndedUI() {
         isRoundEnded = true;
-        
+
         // Hide or modify regular game UI
         timerLabel.setText("TIME'S UP!");
-        
+
         // Hide vote buttons
         updatePlayersList();
-        
+
         // Hide location guess buttons
         updateLocationsList();
-        
+
         GameData gameData = gameModel.getGameData();
         String spy = gameData.getIsSpyUsername();
         String location = gameData.getLocation();
         HashMap<String, Integer> scoreboard = gameData.getScoreboard();
-        
+
         // Show round end overlay
         if (roundEndTable == null) {
             createRoundEndedUI(spy, location, scoreboard);
@@ -330,7 +328,7 @@ public class GameLobbyStage extends StageView {
             roundEndTable.clear();
             createRoundEndedUI(spy, location, scoreboard);
         }
-        
+
         roundEndTable.setVisible(true);
     }
 
@@ -339,29 +337,27 @@ public class GameLobbyStage extends StageView {
             roundEndTable.setVisible(false);
         }
         isRoundEnded = false;
-        
+
         // Update the UI to reflect game data
         updateFromModel();
     }
 
-    
-    
     // called when the model changes
     public void updateFromModel() {
         GameData gameData = gameModel.getGameData();
-        
+
         if (!timerRunning) {
             int timeRemaining = gameData.getTimeRemaining();
             int minutes = timeRemaining / 60;
             int seconds = timeRemaining % 60;
             timerLabel.setText(String.format("%d:%02d", minutes, seconds));
         }
-        
+
         // update location and role
         String displayedLocation = gameData.isSpy() ? "???" : gameData.getLocation();
         locationLabel.setText(displayedLocation);
         roleLabel.setText(gameData.getRole());
-        
+
         // update players and locations lists
         updatePlayersList();
         updateLocationsList();
@@ -370,14 +366,14 @@ public class GameLobbyStage extends StageView {
     private void decrementTimer() {
         GameData gameData = gameModel.getGameData();
         int timeRemaining = gameData.getTimeRemaining();
-        
+
         if (timeRemaining > 0) {
             timeRemaining--;
             gameData.setTimeRemaining(timeRemaining);
-            
+
             // Update the timer display
             updateTimerDisplay(timeRemaining);
-            
+
             // If timer reaches 0, handle round end
             if (timeRemaining == 0) {
                 timerRunning = false;
@@ -385,7 +381,7 @@ public class GameLobbyStage extends StageView {
             }
         }
     }
-    
+
     public void updateTimerDisplay(int timeRemaining) {
         int minutes = timeRemaining / 60;
         int seconds = timeRemaining % 60;
@@ -405,7 +401,7 @@ public class GameLobbyStage extends StageView {
         if (timerRunning) {
             float delta = Gdx.graphics.getDeltaTime();
             accumulator += delta;
-            
+
             // Update timer every second
             if (accumulator >= 1.0f) {
                 accumulator -= 1.0f;
@@ -416,7 +412,7 @@ public class GameLobbyStage extends StageView {
 
         stage.act();
         stage.draw();
-        
+
     }
 
     @Override
@@ -432,5 +428,4 @@ public class GameLobbyStage extends StageView {
         stage.dispose();
     }
 
-    
 }

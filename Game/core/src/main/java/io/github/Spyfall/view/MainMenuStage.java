@@ -25,7 +25,7 @@ import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.services.AudioService;
 
 public class MainMenuStage extends StageView {
-    private MainMenuController controller;
+    private final MainMenuController controller;
     private Skin skin;
     private final AudioService audioService;
 
@@ -47,11 +47,11 @@ public class MainMenuStage extends StageView {
         TextButton joinGameButton = new TextButton("Join game", skin);
         TextButton howToPlayButton = new TextButton("How to play", skin);
 
-        //Settings
+        // Settings
         TextureRegion region = new TextureRegion(new Texture("settings-logo.png"));
         Image settings = new Image(region);
 
-        settings.setSize((float) (viewport.getScreenWidth()*0.1), (float) (viewport.getScreenHeight()*0.1));
+        settings.setSize((float) (viewport.getScreenWidth() * 0.1), (float) (viewport.getScreenHeight() * 0.1));
         TextureRegionDrawable texture = new TextureRegionDrawable(
                 new TextureRegion(new Texture("Background_city.png")));
         Table table = new Table();
@@ -104,7 +104,6 @@ public class MainMenuStage extends StageView {
         table.row();
         table.add(howToPlayButton).padBottom((float) viewport.getScreenHeight() / 10);
 
-
         Table bottomRightTable = new Table();
         bottomRightTable.setFillParent(true);
         bottomRightTable.bottom().right();
@@ -127,7 +126,7 @@ public class MainMenuStage extends StageView {
             @Override
             public void result(Object obj) {
                 audioService.playSound("click");
-                if (obj.equals(true)) {  // Only change stage if "Join" is pressed
+                if (obj.equals(true)) { // Only change stage if "Join" is pressed
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
@@ -145,12 +144,13 @@ public class MainMenuStage extends StageView {
 
         ScrollPane scrollPane = new ScrollPane(label, skin);
         scrollPane.setFadeScrollBars(false);
-        dialog.getContentTable().add(scrollPane).width((viewport.getScreenWidth()*0.8f)).height((viewport.getScreenWidth()*0.2f)).row();
+        dialog.getContentTable().add(scrollPane).width((viewport.getScreenWidth() * 0.8f))
+                .height((viewport.getScreenWidth() * 0.2f)).row();
         dialog.getContentTable().add(textField).width(250).center().pad(15).row();
         dialog.getContentTable().add(username).width(250).center().pad(15);
 
         dialog.button("Join", true); // Sends "true" when clicked
-        dialog.button("Cancel", false);  // Sends "false" when clicked
+        dialog.button("Cancel", false); // Sends "false" when clicked
         dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
 
         dialog.show(stage);
@@ -159,23 +159,23 @@ public class MainMenuStage extends StageView {
         dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
     }
 
-    private void showNoLobbyDialog(String lobbyCode) {
-        Dialog dialog = new Dialog("No lobby with code "+lobbyCode+ " found",skin,"dialog") {
-            @Override
-            public void result(Object obj){
-                audioService.playSound("click");
-            }
-        };
+    // private void showNoLobbyDialog(String lobbyCode) {
+    //     Dialog dialog = new Dialog("No lobby with code " + lobbyCode + " found", skin, "dialog") {
+    //         @Override
+    //         public void result(Object obj) {
+    //             audioService.playSound("click");
+    //         }
+    //     };
 
-        dialog.getTitleTable().padTop(20f);
-        dialog.getTitleTable().padBottom(5f);
+    //     dialog.getTitleTable().padTop(20f);
+    //     dialog.getTitleTable().padBottom(5f);
 
-        dialog.button("Ok",true);
-        dialog.key(Input.Keys.ENTER, true);
-        dialog.show(stage);
-        dialog.pack();
-        dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
-    }
+    //     dialog.button("Ok", true);
+    //     dialog.key(Input.Keys.ENTER, true);
+    //     dialog.show(stage);
+    //     dialog.pack();
+    //     dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+    // }
 
     private void showSettingsDialog() {
         Dialog dialog = new Dialog("Settings", skin, "dialog") {
@@ -223,8 +223,7 @@ public class MainMenuStage extends StageView {
         // Center and show dialog
         dialog.show(stage);
         dialog.setPosition(
-            (stage.getWidth() - dialog.getWidth()) / 2,
-            (stage.getHeight() - dialog.getHeight()) / 2
-        );
+                (stage.getWidth() - dialog.getWidth()) / 2,
+                (stage.getHeight() - dialog.getHeight()) / 2);
     }
 }

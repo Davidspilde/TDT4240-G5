@@ -78,6 +78,7 @@ public class LobbyManagerService {
 
         // Check for non-existent lobby
         if (lobby == null) {
+            System.out.println("Lobby not found");
             messagingService.sendMessage(session, messageFactory.error("Lobby not found!"));
             return false;
         }

@@ -1,18 +1,9 @@
 package io.github.Spyfall.message.response;
 
-public class ErrorMessage extends ResponseMessage{
-    private String event;
+public class ErrorMessage extends ResponseMessage {
     private String message;
 
     public ErrorMessage() {
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
     }
 
     public String getMessage() {
@@ -22,4 +13,5 @@ public class ErrorMessage extends ResponseMessage{
     public void setMessage(String message) {
         this.message = message;
     }
-} 
+
+}
