@@ -46,8 +46,6 @@ public class GameplayController {
         gameModel.getGameData().setLocation(location);
         gameModel.getGameData().setRole(role);
         gameModel.getGameData().setTimeRemaining(roundDuration);
-        gameModel.getGameData().setRole(role);
-
         gameModel.getGameData().setRoundEnded(false);
 
         // Change game state if not already in game
