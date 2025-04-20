@@ -1,5 +1,6 @@
 package io.github.Spyfall.services.websocket.handlers;
 
+import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.message.response.LobbyUpdateMessage;
 
 public class LobbyUpdateHandler implements WebSocketMessageHandler<LobbyUpdateMessage> {
@@ -16,6 +17,9 @@ public class LobbyUpdateHandler implements WebSocketMessageHandler<LobbyUpdateMe
 
     @Override
     public void handle(LobbyUpdateMessage message) {
+        LobbyController lobbyController = LobbyController.getInstance();
+
+        lobbyController.lobbyUpdate(message.getPlayers());
 
     }
 

@@ -18,7 +18,6 @@ public class ErrorHandler implements WebSocketMessageHandler<ErrorMessage> {
     @Override
     public void handle(ErrorMessage message) {
         ErrorPopup.getInstance().showServerError(message.getEvent(), message.getMessage());
-
     }
 
 }

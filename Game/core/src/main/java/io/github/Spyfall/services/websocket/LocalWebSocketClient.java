@@ -6,6 +6,8 @@ import java.net.URI;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import com.badlogic.gdx.Gdx;
+
 public class LocalWebSocketClient extends WebSocketClient {
 
     private static LocalWebSocketClient instance;
@@ -42,7 +44,11 @@ public class LocalWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        dispatcher.dispatch(message);
+        // Sets this on the same thread as the rest of the game logic, avoiding
+        // threading issues
+        Gdx.app.postRunnable(() -> {
+            dispatcher.dispatch(message);
+        });
     }
 
     @Override
