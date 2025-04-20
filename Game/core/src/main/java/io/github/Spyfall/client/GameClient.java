@@ -13,7 +13,8 @@ public class GameClient {
 
     public GameClient(ScreenViewport viewport) {
         // init WebSocket client first
-        webSocketClient = LocalWebSocketClient.getInstance("ws://localhost:8080/ws/game");
+        String uri = Config.getWebSocketUri();
+        webSocketClient = LocalWebSocketClient.getInstance(uri);
         webSocketClient.connect();
 
         // init game model
