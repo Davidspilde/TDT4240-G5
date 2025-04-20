@@ -2,11 +2,6 @@ package io.github.Spyfall.controller;
 
 import java.util.List;
 
-import com.badlogic.gdx.Gdx;
-
-import io.github.Spyfall.message.response.LobbyCreatedMessage;
-import io.github.Spyfall.message.response.LobbyJoinedMessage;
-import io.github.Spyfall.message.response.LobbyNewHostMessage;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
@@ -22,10 +17,14 @@ public class LobbyController {
 
     private LobbyController() {
         this.gameModel = GameModel.getInstance();
+        this.sendMessageService = SendMessageService.getInstance();
     }
 
     public static LobbyController getInstance() {
-        return (instance == null) ? (instance = new LobbyController()) : instance;
+        if (instance == null) {
+            instance = new LobbyController();
+        }
+        return instance;
     }
 
     public void lobbyUpdate(List<String> players) {
@@ -81,13 +80,7 @@ public class LobbyController {
         }
         gameModel.setUsername(username);
 
-        boolean success = sendMessageService.createLobby(username);
-        if (success) {
-            gameModel.setCurrentState(GameState.GAME_CONFIG);
-            System.out.println("State is: " + gameModel.getCurrentState());
-        } else {
-            System.out.println("something failed on the backend");
-        }
+        sendMessageService.createLobby(username);
     }
 
     public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,

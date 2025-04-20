@@ -1,12 +1,9 @@
 package io.github.Spyfall.client;
 
-import java.net.URISyntaxException;
-
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.LocalWebSocketClient;
-import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.controller.MainController;
 
 public class GameClient {
@@ -23,8 +20,8 @@ public class GameClient {
         // this.gameModel = GameModel.getInstance();
 
         // init game controller
-        AudioService.getInstance().playMusic("background",true);
-        mainController = new MainController(viewport);
+        AudioService.getInstance().playMusic("background", true);
+        mainController = MainController.getInstance(viewport);
     }
 
     public void resize(int width, int height) {

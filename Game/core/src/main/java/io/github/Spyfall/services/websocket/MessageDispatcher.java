@@ -12,19 +12,6 @@ import org.reflections.Reflections;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.github.Spyfall.message.response.GameCompleteMessage;
-import io.github.Spyfall.message.response.GameNewRoundMessage;
-import io.github.Spyfall.message.response.GameRoundEndedMessage;
-import io.github.Spyfall.message.response.GameSpyCaughtMessage;
-import io.github.Spyfall.message.response.GameSpyGuessMessage;
-import io.github.Spyfall.message.response.GameVoteMessage;
-import io.github.Spyfall.message.response.LobbyCreatedMessage;
-import io.github.Spyfall.message.response.LobbyJoinedMessage;
-import io.github.Spyfall.message.response.LobbyNewHostMessage;
-import io.github.Spyfall.message.response.LobbyPlayersMessage;
-import io.github.Spyfall.message.response.ResponseMessage;
-import io.github.Spyfall.model.GameModel;
-import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.websocket.handlers.WebSocketMessageHandler;
 
 public class MessageDispatcher {
@@ -44,6 +31,7 @@ public class MessageDispatcher {
         // Creates a map of all handlers
         try {
             for (Class<? extends WebSocketMessageHandler> handlerClass : handlerClasses) {
+
                 WebSocketMessageHandler<?> handler = handlerClass.getDeclaredConstructor().newInstance();
                 handlers.put(handler.getEvent(), handler);
             }
@@ -68,6 +56,11 @@ public class MessageDispatcher {
             String event = json.get("event").asText();
             WebSocketMessageHandler<?> handler = handlers.get(event);
 
+            // Checks if there exists handler for given event
+            if (handler == null) {
+                System.out.println("No handler registered for event type: " + event);
+                return;
+            }
             dispatchToHandler(handler, json);
         } catch (Exception e) {
             System.err.println(e);
