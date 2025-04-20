@@ -67,7 +67,7 @@ public class LobbyController {
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage message) {
-        System.out.println("mowkao+wkdpioajwd"+message.getLobbyCode());
+        System.out.println("Lobby created with code: " + message.getLobbyCode());
         gameModel.setLobbyCode(message.getLobbyCode());
         gameModel.getLobbyData().setHostPlayer(message.getHost());
         gameModel.getLobbyData().getPlayers().clear();
