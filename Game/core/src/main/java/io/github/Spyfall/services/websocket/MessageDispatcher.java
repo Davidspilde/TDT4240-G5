@@ -19,7 +19,7 @@ public class MessageDispatcher {
     private MessageDispatcher() {
         objectMapper = new ObjectMapper();
 
-        // Dynamicly fetches all handler classes
+        // Dynamically fetches all handler classes
         Reflections reflections = new Reflections("io.github.Spyfall.services.websocket.handlers");
 
         Set<Class<? extends WebSocketMessageHandler>> handlerClasses = reflections
