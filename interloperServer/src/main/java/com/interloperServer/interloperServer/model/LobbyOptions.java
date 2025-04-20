@@ -1,5 +1,14 @@
 package com.interloperServer.interloperServer.model;
 
+/**
+ * Represents the configurable options for a lobby.
+ * <p>
+ * This class defines various settings for a lobby, such as the number of
+ * rounds,
+ * the number of locations, the maximum number of players, the duration of each
+ * round,
+ * and the time allowed for the spy's last attempt.
+ */
 public class LobbyOptions {
 
     private int roundLimit;

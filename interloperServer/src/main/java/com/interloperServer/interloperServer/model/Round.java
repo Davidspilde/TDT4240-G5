@@ -3,7 +3,17 @@ package com.interloperServer.interloperServer.model;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a single round in the game.
+ * <p>
+ * This class manages the state of a round, including the spy, location,
+ * duration,
+ * votes, and the current round state. It provides methods for managing votes,
+ * transitioning round states, and determining if the round is active or voting
+ * is complete.
+ */
 public class Round {
+
     private final int roundNumber;
     private Location location;
     private Player spy;
@@ -49,7 +59,6 @@ public class Round {
         if (roundState == RoundState.ENDED) {
             return false;
         }
-
         return true;
     }
 
@@ -68,7 +77,9 @@ public class Round {
         return false;
     }
 
-    // Cast a vote from one player to another
+    /**
+     * Cast a vote from one player to another
+     */
     public void castVote(String voterUsername, String targetUsername) {
         votes.put(voterUsername, targetUsername);
     }

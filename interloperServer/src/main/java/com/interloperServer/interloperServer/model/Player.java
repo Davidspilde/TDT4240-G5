@@ -5,10 +5,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Model for a player
- * Includes the websocket session, username, lobby role, and game role
+ * Represents a player in the game.
+ * <p>
+ * This class manages the player's WebSocket session, username, connection
+ * status,
+ * and logic for handling disconnections. It provides methods for scheduling and
+ * canceling removal tasks when a player disconnects.
  */
 public class Player {
+
     private WebSocketSession session;
     private final String username;
     private boolean disconnected;
@@ -28,7 +33,7 @@ public class Player {
 
     public void setSession(WebSocketSession session) {
         this.session = session;
-    } // Allow reconnections
+    }
 
     public String getUsername() {
         return username;
@@ -49,7 +54,7 @@ public class Player {
      * @param bufferInSeconds How long the timer should wait before running the task
      */
     public synchronized void scheduleDisconnectRemoval(Runnable removalTask, int bufferInSeconds) {
-        // Cancel any old timer just in case
+        // Cancel any old timer, if one exists
         if (disconnectTimer != null) {
             disconnectTimer.cancel();
         }
@@ -61,7 +66,7 @@ public class Player {
         disconnectTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // If still disconnected when this fires, call the removal logic
+                // If the player is still disconnected when this fires, call the removal logic
                 if (disconnected) {
                     removalTask.run();
                 }

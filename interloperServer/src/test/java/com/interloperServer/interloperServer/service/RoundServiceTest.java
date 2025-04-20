@@ -12,6 +12,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @DisplayName("RoundService Tests")
@@ -161,4 +166,26 @@ class RoundServiceTest {
         verify(game).stopTimer();
         verify(messagingService).broadcastMessage(eq(game.getLobby()), eq(endMessage));
     }
+
+    @Test
+    @DisplayName("Should end round with no points when spy disconnects")
+    void testEndRoundDueToSpyDisconnect() {
+        when(gameManagerService.getGame("ABC")).thenReturn(game);
+        when(game.getCurrentRound()).thenReturn(round);
+
+        RoundEndedMessage endMessage = mock(RoundEndedMessage.class);
+        when(messageFactory.roundEnded(eq(1), eq("SPY_DISCONNECT"), eq(false), eq(false),
+                eq("spy"), eq("Space Station"), anyMap()))
+                .thenReturn(endMessage);
+
+        roundService.endRoundDueToSpyDisconnect("ABC");
+
+        verify(round).endRound();
+        verify(game).stopTimer();
+        verify(messagingService).broadcastMessage(eq(game.getLobby()), eq(endMessage));
+
+        // Ensure no points were awarded
+        verify(game, never()).updateScore(anyString(), anyInt());
+    }
+
 }

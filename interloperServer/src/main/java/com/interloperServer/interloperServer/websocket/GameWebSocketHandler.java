@@ -13,6 +13,23 @@ import com.interloperServer.interloperServer.service.GameConnectionService;
 import com.interloperServer.interloperServer.service.messagingServices.GameMessageFactory;
 import com.interloperServer.interloperServer.service.messagingServices.MessagingService;
 
+/**
+ * Handles WebSocket communication for the game.
+ * <p>
+ * This class extends {@link TextWebSocketHandler} to process WebSocket events
+ * such as incoming messages,
+ * connection establishment, and connection closure.
+ * <p>
+ * The handler performs the following actions:
+ * <ul>
+ * <li>Processes incoming text messages and dispatches them to the appropriate
+ * handler using {@link MessageDispatcher}.</li>
+ * <li>Handles connection establishment by invoking
+ * {@link GameConnectionService#onConnect(WebSocketSession)}.</li>
+ * <li>Handles connection closure by invoking
+ * {@link GameConnectionService#onDisconnect(WebSocketSession)}.</li>
+ * </ul>
+ */
 @Component
 public class GameWebSocketHandler extends TextWebSocketHandler {
 
@@ -31,9 +48,20 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         this.connectionService = connectionService;
     }
 
+    /**
+     * Handles incoming text messages from the WebSocket connection.
+     * <p>
+     * Parses the JSON payload and dispatches it to the appropriate handler using
+     * {@link MessageDispatcher}.
+     * If an error occurs during parsing, an error message is sent back to the
+     * client.
+     *
+     * @param session The {@link WebSocketSession} associated with the client.
+     * @param message The {@link TextMessage} received from the client.
+     * @throws Exception If an error occurs during message processing.
+     */
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) throws Exception {
-        // If fields are missing from the message an error message will be sent
         try {
             String payload = message.getPayload();
 
@@ -44,11 +72,29 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Handles the event when a WebSocket connection is established.
+     * <p>
+     * Invokes {@link GameConnectionService#onConnect(WebSocketSession)} to handle
+     * connection logic.
+     *
+     * @param session The {@link WebSocketSession} associated with the client.
+     */
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
         connectionService.onConnect(session);
     }
 
+    /**
+     * Handles the event when a WebSocket connection is closed.
+     * <p>
+     * Invokes {@link GameConnectionService#onDisconnect(WebSocketSession)} to
+     * handle disconnection logic.
+     *
+     * @param session The {@link WebSocketSession} associated with the client.
+     * @param status  The {@link CloseStatus} indicating the reason for the
+     *                connection closure.
+     */
     @Override
     public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus status) {
         connectionService.onDisconnect(session);

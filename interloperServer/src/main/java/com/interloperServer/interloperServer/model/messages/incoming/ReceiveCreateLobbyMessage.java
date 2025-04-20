@@ -1,10 +1,19 @@
 package com.interloperServer.interloperServer.model.messages.incoming;
 
-public class RecieveCreateLobbyMessage {
+/**
+ * Represents an incoming message for creating a lobby.
+ * <p>
+ * The message contains the following fields:
+ * <ul>
+ * <li><b>type</b>: The type of the message (e.g., "createLobby").</li>
+ * <li><b>username</b>: The username of the player creating the lobby.</li>
+ * </ul>
+ */
+public class ReceiveCreateLobbyMessage {
     private String type;
     private String username;
 
-    public RecieveCreateLobbyMessage() {
+    public ReceiveCreateLobbyMessage() {
     }
 
     public String getType() {

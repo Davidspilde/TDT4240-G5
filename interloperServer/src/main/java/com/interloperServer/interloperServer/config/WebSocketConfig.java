@@ -8,8 +8,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 
 import com.interloperServer.interloperServer.websocket.GameWebSocketHandler;
 
-/*
- * Connect using ws://localhost:8080/ws/game
+/**
+ * Configuration class for WebSocket support.
+ * <p>
+ * This class enables WebSocket functionality and registers WebSocket handlers
+ * for specific endpoints.
+ * <p>
+ * Connect using: <code>ws://localhost:8080/ws/game</code>
  */
 @Configuration
 @EnableWebSocket
