@@ -3,6 +3,9 @@ package io.github.Spyfall.services.websocket;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -15,6 +18,7 @@ public class LocalWebSocketClient extends WebSocketClient {
     private final MessageDispatcher dispatcher;
 
     private final long reconnectDelayMillis = 3000; // 3 seconds
+    private final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
     private volatile boolean isReconnecting = false;
 
     private LocalWebSocketClient(String serverUrl) throws URISyntaxException {
@@ -43,7 +47,7 @@ public class LocalWebSocketClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshake) {
         System.out.println("Connected to server");
-        isReconnecting = false; // ✅ reset on success
+        isReconnecting = false;
     }
 
     @Override
@@ -65,6 +69,7 @@ public class LocalWebSocketClient extends WebSocketClient {
         }
     }
 
+    // Schedules a new reeconnect attempt
     private void scheduleReconnect() {
         if (isOpen() || isReconnecting) {
             System.out.println("Skipping reconnect — already connected or reconnecting.");
@@ -73,29 +78,25 @@ public class LocalWebSocketClient extends WebSocketClient {
 
         isReconnecting = true;
         System.out.println("Scheduling reconnect in " + reconnectDelayMillis + "ms...");
-
-        new Thread(() -> {
+        reconnectExecutor.schedule(() -> {
             try {
-                Thread.sleep(reconnectDelayMillis);
-
                 System.out.println("Trying to reconnect...");
                 reconnectBlocking();
 
                 if (isOpen()) {
                     System.out.println("Reconnected successfully!");
-                    isReconnecting = false; // ✅ success, reset
+                    isReconnecting = false;
                 } else {
-                    System.out.println("Reconnect failed — still not connected.");
-                    isReconnecting = false; // ✅ must reset to allow next attempt
-                    scheduleReconnect(); // ✅ trigger next retry
+                    System.out.println("Reconnect failed — not connected.");
+                    isReconnecting = false;
+                    scheduleReconnect(); // retry
                 }
-
             } catch (Exception e) {
                 System.out.println("Reconnect failed with exception: " + e.getMessage());
-                isReconnecting = false; // ✅ allow future attempts
-                scheduleReconnect(); // ✅ schedule next retry
+                isReconnecting = false;
+                scheduleReconnect(); // retry
             }
-        }).start();
+        }, reconnectDelayMillis, TimeUnit.MILLISECONDS);
     }
 
 }
