@@ -12,8 +12,8 @@ import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class LobbyController {
     private static LobbyController instance;
-    private GameModel gameModel;
-    private SendMessageService sendMessageService;
+    private final GameModel gameModel;
+    private final SendMessageService sendMessageService;
 
     private LobbyController() {
         this.gameModel = GameModel.getInstance();
@@ -36,8 +36,8 @@ public class LobbyController {
 
     private void updateCurrentLobbyStage() {
         StageView currentStage = StageManager.getInstance().getStage();
-        if (currentStage instanceof LobbyStage) {
-            ((LobbyStage) currentStage).updateFromModel();
+        if (currentStage instanceof LobbyStage lobbyStage) {
+            lobbyStage.updateFromModel();
         }
     }
 
@@ -83,6 +83,7 @@ public class LobbyController {
             return;
         }
         gameModel.setUsername(username);
+        gameModel.getLobbyData().setHostPlayer(username);
 
         sendMessageService.createLobby(username);
     }

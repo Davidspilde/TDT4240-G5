@@ -6,12 +6,11 @@ import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.GameRulesStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
-import io.github.Spyfall.controller.StageManager;
 
 public class MainMenuController {
     private static MainMenuController instance;
-    private SendMessageService sendMessageService;
-    private GameModel gameModel;
+    private final SendMessageService sendMessageService;
+    private final GameModel gameModel;
 
     private MainMenuController() {
         this.gameModel = GameModel.getInstance();

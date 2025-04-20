@@ -1,5 +1,6 @@
 package io.github.Spyfall.controller;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameModel;
@@ -65,10 +66,11 @@ public class MainController implements GameStateObserver {
     }
 
     public void setGameConfigStage() {
+        System.out.println(gameModel.getLobbyCode());
         GameConfigStage gameConfigStage = new GameConfigStage(
-                viewport,
-                gameModel.getLobbyCode(),
-                gameModel.getLobbyData().getHostPlayer());
+            viewport,
+            gameModel.getLobbyCode()
+        );
         stageManager.setStage(gameConfigStage);
     }
 
@@ -85,29 +87,28 @@ public class MainController implements GameStateObserver {
     @Override
     public void onGameStateChanged(GameModel model) {
         // update view based on model state
+        Gdx.app.postRunnable(() -> {
         switch (model.getCurrentState()) {
-            case MAIN_MENU:
+            case MAIN_MENU -> {
                 System.out.println("State: MAIN MENU");
                 setMainMenuStage();
-                break;
-            case CREATE_GAME:
-                setCreateGameStage();
-                break;
-            case LOBBY:
+            }
+            case CREATE_GAME -> setCreateGameStage();
+            case LOBBY -> {
                 System.out.println("State: LOBBY");
                 setLobbyStage();
-                break;
-            case GAME_CONFIG:
-                setGameConfigStage();
-                break;
-            case IN_GAME:
+            }
+            case GAME_CONFIG -> {
+                System.out.println("State: Game-Config");
+                setGameConfigStage();  // runs safely on the render thread
+            }
+            case IN_GAME -> {
                 System.out.println("State: IN-GAME");
                 setGameLobbyStage();
-                break;
-            default:
-                System.out.println("Something went wrong with state");
-                break;
+            }
+            default -> System.out.println("Something went wrong with state");
         }
+    });
     }
 
     public GameModel getGameModel() {

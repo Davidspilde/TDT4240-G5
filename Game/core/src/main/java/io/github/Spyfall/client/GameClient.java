@@ -2,14 +2,14 @@ package io.github.Spyfall.client;
 
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.LocalWebSocketClient;
-import io.github.Spyfall.controller.MainController;
 
 public class GameClient {
-    private MainController mainController;
+    private final MainController mainController;
     // private GameModel gameModel;
-    private LocalWebSocketClient webSocketClient;
+    private final LocalWebSocketClient webSocketClient;
 
     public GameClient(ScreenViewport viewport) {
         // init WebSocket client first

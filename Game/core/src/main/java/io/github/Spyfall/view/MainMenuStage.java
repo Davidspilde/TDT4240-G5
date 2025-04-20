@@ -22,11 +22,10 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.MainMenuController;
-import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.services.AudioService;
 
 public class MainMenuStage extends StageView {
-    private MainMenuController controller;
+    private final MainMenuController controller;
     private Skin skin;
     private final AudioService audioService;
 
@@ -131,7 +130,6 @@ public class MainMenuStage extends StageView {
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
-                    // showNoLobbyDialog(lobbyCode);
                     controller.onJoinLobby(usernameString, lobbyCode);
                 }
             }
@@ -161,23 +159,23 @@ public class MainMenuStage extends StageView {
         dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
     }
 
-    private void showNoLobbyDialog(String lobbyCode) {
-        Dialog dialog = new Dialog("No lobby with code " + lobbyCode + " found", skin, "dialog") {
-            @Override
-            public void result(Object obj) {
-                audioService.playSound("click");
-            }
-        };
+    // private void showNoLobbyDialog(String lobbyCode) {
+    //     Dialog dialog = new Dialog("No lobby with code " + lobbyCode + " found", skin, "dialog") {
+    //         @Override
+    //         public void result(Object obj) {
+    //             audioService.playSound("click");
+    //         }
+    //     };
 
-        dialog.getTitleTable().padTop(20f);
-        dialog.getTitleTable().padBottom(5f);
+    //     dialog.getTitleTable().padTop(20f);
+    //     dialog.getTitleTable().padBottom(5f);
 
-        dialog.button("Ok", true);
-        dialog.key(Input.Keys.ENTER, true);
-        dialog.show(stage);
-        dialog.pack();
-        dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
-    }
+    //     dialog.button("Ok", true);
+    //     dialog.key(Input.Keys.ENTER, true);
+    //     dialog.show(stage);
+    //     dialog.pack();
+    //     dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+    // }
 
     private void showSettingsDialog() {
         Dialog dialog = new Dialog("Settings", skin, "dialog") {

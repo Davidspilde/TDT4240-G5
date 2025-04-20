@@ -22,6 +22,10 @@ public class LobbyData {
     public void addPlayer(String player) {
         this.players.add(player);
     }
+
+    public void removePlayer(String player){
+        this.players.remove(player);
+    }
     
     public String getHostPlayer() {
         return hostPlayer;
