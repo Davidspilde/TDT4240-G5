@@ -67,6 +67,7 @@ public class LobbyController {
     }
 
     private void handleLobbyCreated(LobbyCreatedMessage message) {
+        System.out.println("mowkao+wkdpioajwd"+message.getLobbyCode());
         gameModel.setLobbyCode(message.getLobbyCode());
         gameModel.getLobbyData().setHostPlayer(message.getHost());
         gameModel.getLobbyData().getPlayers().clear();
@@ -93,6 +94,7 @@ public class LobbyController {
             return;
         }
         gameModel.setUsername(username);
+        gameModel.getLobbyData().setHostPlayer(username);
 
         boolean success = sendMessageService.createLobby(username);
         if (success) {

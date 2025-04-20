@@ -22,9 +22,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.MainMenuController;
-import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.services.SendMessageService;
 
 public class MainMenuStage extends StageView {
     private MainMenuController controller;
@@ -133,7 +131,6 @@ public class MainMenuStage extends StageView {
                     String lobbyCode = textField.getText();
                     String usernameString = username.getText();
                     System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
-                    //showNoLobbyDialog(lobbyCode);
                     controller.onJoinLobby(usernameString, lobbyCode);
                 }
             }

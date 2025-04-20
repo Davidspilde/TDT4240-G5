@@ -2,11 +2,9 @@ package io.github.Spyfall.controller;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.services.RecieveMessageService;
 import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.view.GameRulesStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
-import io.github.Spyfall.controller.StageManager;
 
 public class MainMenuController {
     private static MainMenuController instance;

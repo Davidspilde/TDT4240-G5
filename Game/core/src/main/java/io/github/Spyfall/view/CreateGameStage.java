@@ -17,7 +17,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.controller.MainController;
-import io.github.Spyfall.controller.StageManager;
 
 public class CreateGameStage extends StageView {
     private LobbyController controller;

@@ -16,13 +16,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-import io.github.Spyfall.controller.StageManager;
-import io.github.Spyfall.services.SendMessageService;
-import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.controller.MainController;
-import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.services.SendMessageService;
 
 public class GameConfigStage extends StageView {
     private SendMessageService sendMsgService;
@@ -34,15 +31,16 @@ public class GameConfigStage extends StageView {
     private MainController mainController;
     private GameModel gameModel;
 
-    public GameConfigStage(ScreenViewport viewport, String lobbyCode, String host) {
+    public GameConfigStage(ScreenViewport viewport, String lobbyCode) {
         super(viewport);
-        System.out.println("GameConfigStage constructor called with lobbyCode: " + lobbyCode + ", host: " + host);
+        this.gameModel = GameModel.getInstance();
         this.lobbyCode = lobbyCode;
-        this.host = host;
+        this.host = gameModel.getLobbyData().getHostPlayer();
         this.mainController = MainController.getInstance();
         this.sendMsgService = SendMessageService.getInstance();
         this.gameModel = GameModel.getInstance();
         initGameConfig();
+        System.out.println("GameConfigStage constructor called with lobbyCode: " + lobbyCode + ", host: " + host);
         System.out.println("GameConfigStage initialized");
     }
 
@@ -122,10 +120,10 @@ public class GameConfigStage extends StageView {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 // Send start game message
-                sendMsgService.startGame(host, lobbyCode);
+                sendMsgService.joinLobby(host, lobbyCode);
                 
                 // Update game state
-                gameModel.setCurrentState(GameState.IN_GAME);
+                gameModel.setCurrentState(GameState.LOBBY);
             }
         });
 
