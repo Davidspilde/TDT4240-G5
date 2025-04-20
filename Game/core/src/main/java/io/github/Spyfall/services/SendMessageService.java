@@ -32,6 +32,12 @@ public class SendMessageService {
         return sendMessage(msg);
     }
 
+    public boolean leaveLobby(String username, String lobbyCode) {
+        String type = "leaveLobby";
+        RequestMessage msg = new RequestMessage(type, username, lobbyCode);
+        return sendMessage(msg);
+    }
+
     public boolean startGame(String username, String lobbyCode) {
         String type = "startGame";
         RequestMessage msg = new RequestMessage(type, username, lobbyCode);
