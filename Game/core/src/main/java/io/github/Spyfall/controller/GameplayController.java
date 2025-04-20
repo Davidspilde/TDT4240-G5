@@ -118,7 +118,7 @@ public class GameplayController {
     }
 
     public void handleVote() {
-        System.out.println("Vote has been added succesfully");
+        System.out.println("Vote has been added successfully");
 
         // Update UI if this stage is active
         // Could trigger an update in the GameLobbyStage
