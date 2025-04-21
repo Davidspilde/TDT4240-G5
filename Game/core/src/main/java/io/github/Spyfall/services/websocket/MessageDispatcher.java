@@ -2,9 +2,6 @@ package io.github.Spyfall.services.websocket;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
-import org.reflections.Reflections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,24 +15,7 @@ public class MessageDispatcher {
 
     private MessageDispatcher() {
         objectMapper = new ObjectMapper();
-
-        // Dynamically fetches all handler classes
-        Reflections reflections = new Reflections("io.github.Spyfall.services.websocket.handlers");
-
-        Set<Class<? extends WebSocketMessageHandler>> handlerClasses = reflections
-                .getSubTypesOf(WebSocketMessageHandler.class);
-
-        // Creates a map of all handlers
-        try {
-            for (Class<? extends WebSocketMessageHandler> handlerClass : handlerClasses) {
-
-                WebSocketMessageHandler<?> handler = handlerClass.getDeclaredConstructor().newInstance();
-                handlers.put(handler.getEvent(), handler);
-            }
-        } catch (Exception e) {
-            System.err.println(e);
-        }
-
+        HandlerRegistry.registerAll(this);
     }
 
     public static MessageDispatcher GetInstance() {
@@ -70,5 +50,10 @@ public class MessageDispatcher {
         Object message = objectMapper.treeToValue(json, handler.getMessageClass());
 
         handler.handle(message);
+    }
+
+    // Adds the handler to the handler hashmap
+    public void register(WebSocketMessageHandler<?> handler) {
+        handlers.put(handler.getEvent(), handler);
     }
 }
