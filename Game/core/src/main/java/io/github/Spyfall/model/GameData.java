@@ -112,6 +112,15 @@ public class GameData {
             greyedOutLocations.add(location);
         }
     }
+
+    /**
+     * Clear all greyed out locations
+     */
+    public void clearGreyedOutLocations() {
+        if (greyedOutLocations != null) {
+            greyedOutLocations.clear();
+        }
+    }
     
     public int getSpyLastAttemptDuration() {
         return spyLastAttemptDuration;
