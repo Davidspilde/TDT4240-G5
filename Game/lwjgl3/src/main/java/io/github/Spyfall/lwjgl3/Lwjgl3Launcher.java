@@ -4,10 +4,14 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
 import io.github.Spyfall.Main;
+import io.github.Spyfall.client.Config;
+import io.github.cdimascio.dotenv.Dotenv;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
+        String uri = getWebSocketUriDesktop();
+        Config.setWebSocketUri(uri);
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
         createApplication();
     }
@@ -30,7 +34,22 @@ public class Lwjgl3Launcher {
         //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
         //// You can change these files; they are in lwjgl3/src/main/resources/ .
         configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
-        configuration.setWindowSizeLimits(720/2,1280/2,720/2,1280/2);
+        configuration.setWindowSizeLimits(720,1280,720,1280);
         return configuration;
+    }
+
+    private static String getWebSocketUriDesktop() {
+        String defaultUri = "ws://localhost:8080/ws/game";
+        try {
+            Dotenv dotenv = Dotenv.configure()
+                .directory("../") // adjust based on your setup
+                .ignoreIfMissing() // important to not crash if not found
+                .load();
+
+            return dotenv.get("SPYFALL_WS_URI", defaultUri); // ✅ fallback inside dotenv
+        } catch (Exception e) {
+            System.out.println("Could not load .env, using default URI");
+            return defaultUri;
+        }
     }
 }

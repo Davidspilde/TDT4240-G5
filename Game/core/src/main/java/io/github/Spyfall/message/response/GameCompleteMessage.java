@@ -10,9 +10,12 @@ public class GameCompleteMessage extends ResponseMessage {
     }
 
     public HashMap<String, Integer> getScoreboard() {
+    public HashMap<String, Integer> getScoreboard() {
         return scoreboard;
     }
 
-
+    public void setScoreboard(HashMap<String, Integer> scoreboard) {
+        this.scoreboard = scoreboard;
+    }
 
 }

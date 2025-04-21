@@ -240,6 +240,7 @@ public class GameplayController {
         // Show dialog with result
 
     }
+    }
 
     private void handleVote(GameVoteMessage message) {
         System.out.println("Vote received: " + message.getVoted() + " was voted");
@@ -264,9 +265,11 @@ public class GameplayController {
         
         //transition back to main menu
         gameModel.setCurrentState(GameState.MAIN_MENU);
-        
+
         return true;
     }
+
+
 
 
 

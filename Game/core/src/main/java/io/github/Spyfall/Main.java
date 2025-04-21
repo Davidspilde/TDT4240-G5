@@ -1,6 +1,8 @@
 package io.github.Spyfall;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -17,6 +19,7 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void create() {
+        Gdx.app.setLogLevel(Application.LOG_DEBUG);
         gameClient = GameLauncher.initGameClient(new ScreenViewport());
     }
 

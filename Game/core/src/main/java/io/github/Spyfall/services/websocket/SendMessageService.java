@@ -1,4 +1,4 @@
-package io.github.Spyfall.services;
+package io.github.Spyfall.services.websocket;
 
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter.OutputType;
