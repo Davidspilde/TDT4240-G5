@@ -1,24 +1,17 @@
+
 package io.github.Spyfall.view;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Value;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.MainMenuController;
@@ -26,169 +19,195 @@ import io.github.Spyfall.services.AudioService;
 
 public class MainMenuStage extends StageView {
     private final MainMenuController controller;
-    private Skin skin;
     private final AudioService audioService;
+    private final Skin skin;
+    private final Table menuTable;
+    private final Table settingsTable;
 
     public MainMenuStage(ScreenViewport viewport, MainMenuController controller) {
         super(viewport);
         this.controller = controller;
-        audioService = AudioService.getInstance();
-        initMainMenu();
+        this.audioService = AudioService.getInstance();
+
+        // Load skin
+        skin = new Skin(Gdx.files.internal(
+                "Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
+
+        // Build main menu table
+        menuTable = new Table(skin);
+        menuTable.setFillParent(true);
+        menuTable.top();
+        menuTable.setBackground(new TextureRegionDrawable(
+                new TextureRegion(new Texture("Background_city.png"))));
+        stage.addActor(menuTable);
+
+        // Build settings icon table
+        settingsTable = new Table(skin);
+        settingsTable.setFillParent(true);
+        settingsTable.bottom().right();
+        stage.addActor(settingsTable);
+
+        // Initial layout
+        layoutMenu();
+        layoutSettings();
+        menuTable.invalidateHierarchy();
+        settingsTable.invalidateHierarchy();
+
+        // Desktop workaround: force layout right before first frame
+        Gdx.app.postRunnable(() -> {
+            viewport.update(
+                    Gdx.graphics.getWidth(),
+                    Gdx.graphics.getHeight(),
+                    true);
+            menuTable.invalidateHierarchy();
+            settingsTable.invalidateHierarchy();
+        });
+
+        // Set input processor
+        Gdx.input.setInputProcessor(stage);
     }
 
-    private void initMainMenu() {
+    private void layoutMenu() {
+        menuTable.clear();
 
-        Gdx.input.setInputProcessor(stage);
-        skin = new Skin(
-                Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
+        float LOGO_H = 0.25f; // 25% of table height
+        float BTN_W = 0.60f; // 60% of table width
+        float BTN_H = 0.08f; // 8% of table height
+        float V_GAP = 0.03f; // 3% of table height gap
 
-        // Create UI Elements
-        TextButton createGameButton = new TextButton("Create game", skin);
-        TextButton joinGameButton = new TextButton("Join game", skin);
-        TextButton howToPlayButton = new TextButton("How to play", skin);
+        // Logo
+        Image logo = new Image(new Texture("logo-Photoroom.png"));
+        menuTable.add(logo)
+                .prefWidth(Value.percentWidth(BTN_W, menuTable))
+                .prefHeight(Value.percentHeight(LOGO_H, menuTable))
+                .padBottom(Value.percentHeight(V_GAP, menuTable))
+                .row();
 
-        // Settings
-        TextureRegion region = new TextureRegion(new Texture("settings-logo.png"));
-        Image settings = new Image(region);
-
-        settings.setSize((float) (viewport.getScreenWidth() * 0.1), (float) (viewport.getScreenHeight() * 0.1));
-        TextureRegionDrawable texture = new TextureRegionDrawable(
-                new TextureRegion(new Texture("Background_city.png")));
-        Table table = new Table();
-        Image image = new Image(new TextureRegion(new Texture("logo-Photoroom.png")));
-
-        // Add callbacks to buttons
-        createGameButton.addListener(new ClickListener() {
+        // Create Game Button
+        TextButton createBtn = new TextButton("Create game", skin);
+        createBtn.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
+            public void clicked(InputEvent e, float x, float y) {
                 audioService.playSound("click");
                 controller.onCreateGame();
             }
         });
+        menuTable.add(createBtn)
+                .prefWidth(Value.percentWidth(BTN_W, menuTable))
+                .prefHeight(Value.percentHeight(BTN_H, menuTable))
+                .padBottom(Value.percentHeight(V_GAP, menuTable))
+                .row();
 
-        joinGameButton.addListener(new ClickListener() {
+        // Join Game Button
+        TextButton joinBtn = new TextButton("Join game", skin);
+        joinBtn.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
+            public void clicked(InputEvent e, float x, float y) {
                 audioService.playSound("click");
                 showJoinGameDialog();
             }
         });
+        menuTable.add(joinBtn)
+                .prefWidth(Value.percentWidth(BTN_W, menuTable))
+                .prefHeight(Value.percentHeight(BTN_H, menuTable))
+                .padBottom(Value.percentHeight(V_GAP, menuTable))
+                .row();
 
-        howToPlayButton.addListener(new ClickListener() {
+        // How to Play Button
+        TextButton howBtn = new TextButton("How to play", skin);
+        howBtn.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
+            public void clicked(InputEvent e, float x, float y) {
+                audioService.playSound("click");
                 controller.onHowToPlay();
             }
         });
+        menuTable.add(howBtn)
+                .prefWidth(Value.percentWidth(BTN_W, menuTable))
+                .prefHeight(Value.percentHeight(BTN_H, menuTable))
+                .row();
+    }
 
-        settings.addListener(new ClickListener() {
+    private void layoutSettings() {
+        settingsTable.clear();
+
+        float ICON_SZ = 0.08f; // 8% of table width
+        float PAD_SZ = 0.02f; // 2% padding
+
+        Image settingsIcon = new Image(new Texture("settings-logo.png"));
+        settingsIcon.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
+            public void clicked(InputEvent e, float x, float y) {
                 audioService.playSound("click");
                 showSettingsDialog();
             }
         });
 
-        // Align Table to Top
-        table.top().setFillParent(true);
-        table.setBackground(texture);
-
-        // Add padding and spacing
-        table.add(image).padBottom((float) viewport.getScreenHeight() / 10)
-                .padLeft((float) viewport.getScreenWidth() / 10).padRight((float) viewport.getScreenWidth() / 10)
-                .padTop((float) viewport.getScreenHeight() / 15);
-        table.row();
-        table.add(createGameButton).padBottom((float) viewport.getScreenHeight() / 10);
-        table.row();
-        table.add(joinGameButton).padBottom((float) viewport.getScreenHeight() / 10);
-        table.row();
-        table.add(howToPlayButton).padBottom((float) viewport.getScreenHeight() / 10);
-
-        Table bottomRightTable = new Table();
-        bottomRightTable.setFillParent(true);
-        bottomRightTable.bottom().right();
-        bottomRightTable.add(settings).width(viewport.getScreenWidth() * 0.15f) // 50% of screen width
-                .height(viewport.getScreenHeight() * 0.075f)
-                .pad(20); // 20% of screen height
-
-        // Add UI to Stage
-        stage.addActor(table);
-        stage.addActor(bottomRightTable);
+        settingsTable.add(settingsIcon)
+                .prefWidth(Value.percentWidth(ICON_SZ, settingsTable))
+                .prefHeight(Value.percentWidth(ICON_SZ, settingsTable))
+                .pad(Value.percentWidth(PAD_SZ, settingsTable));
     }
 
     private void showJoinGameDialog() {
-        final TextField username = new TextField("", skin);
-        final TextField textField = new TextField("", skin);
-        textField.setMessageText("Enter Lobby Code");
-        username.setMessageText("Enter Username");
+        float W = viewport.getWorldWidth();
+        float H = viewport.getWorldHeight();
 
-        Dialog dialog = new Dialog("", skin, "dialog") {
+        TextField lobbyField = new TextField("", skin);
+        lobbyField.setMessageText("Enter Lobby Code");
+        TextField usernameField = new TextField("", skin);
+        usernameField.setMessageText("Enter Username");
+
+        Dialog dialog = new Dialog("Join Lobby", skin, "dialog") {
             @Override
             public void result(Object obj) {
                 audioService.playSound("click");
-                if (obj.equals(true)) { // Only change stage if "Join" is pressed
-                    String lobbyCode = textField.getText();
-                    String usernameString = username.getText();
-                    System.out.println("User typed lobbycode: " + lobbyCode + "\n" + "Username: " + usernameString);
-                    controller.onJoinLobby(usernameString, lobbyCode);
+                if (Boolean.TRUE.equals(obj)) {
+                    controller.onJoinLobby(
+                            usernameField.getText(),
+                            lobbyField.getText());
                 }
             }
         };
 
-        dialog.getTitleTable().padTop(20f);
-        dialog.getTitleTable().padBottom(5f);
+        dialog.getTitleTable()
+                .padTop(H * 0.02f)
+                .padBottom(H * 0.01f);
 
-        Label label = new Label("Join Lobby", skin);
-        label.setAlignment(Align.center);
-        label.setWrap(true);
+        Table ct = dialog.getContentTable();
+        ct.add(new Label("Join an existing game", skin))
+                .padBottom(H * 0.02f)
+                .row();
+        ct.add(lobbyField)
+                .width(W * 0.6f)
+                .padBottom(H * 0.02f)
+                .row();
+        ct.add(usernameField)
+                .width(W * 0.6f)
+                .row();
 
-        ScrollPane scrollPane = new ScrollPane(label, skin);
-        scrollPane.setFadeScrollBars(false);
-        dialog.getContentTable().add(scrollPane).width((viewport.getScreenWidth() * 0.8f))
-                .height((viewport.getScreenWidth() * 0.2f)).row();
-        dialog.getContentTable().add(textField).width(250).center().pad(15).row();
-        dialog.getContentTable().add(username).width(250).center().pad(15);
-
-        dialog.button("Join", true); // Sends "true" when clicked
-        dialog.button("Cancel", false); // Sends "false" when clicked
-        dialog.key(Input.Keys.ENTER, true); // Pressing ENTER is the same as clicking "Yes"
+        dialog.button("Join", true)
+                .button("Cancel", false)
+                .key(Input.Keys.ENTER, true)
+                .key(Input.Keys.ESCAPE, false);
 
         dialog.show(stage);
-        dialog.pack(); // for calculating layout libgdx stuff
-
-        dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
+        dialog.pack();
     }
 
-    // private void showNoLobbyDialog(String lobbyCode) {
-    //     Dialog dialog = new Dialog("No lobby with code " + lobbyCode + " found", skin, "dialog") {
-    //         @Override
-    //         public void result(Object obj) {
-    //             audioService.playSound("click");
-    //         }
-    //     };
-
-    //     dialog.getTitleTable().padTop(20f);
-    //     dialog.getTitleTable().padBottom(5f);
-
-    //     dialog.button("Ok", true);
-    //     dialog.key(Input.Keys.ENTER, true);
-    //     dialog.show(stage);
-    //     dialog.pack();
-    //     dialog.setSize(dialog.getWidth(), dialog.getHeight() + 50);
-    // }
-
     private void showSettingsDialog() {
+        float W = viewport.getWorldWidth();
+        float H = viewport.getWorldHeight();
+
         Dialog dialog = new Dialog("Settings", skin, "dialog") {
             @Override
             public void result(Object obj) {
                 audioService.playSound("click");
-                // Save settings when dialog closes
                 audioService.saveSettings();
             }
         };
 
-        // Music Volume Slider
-        final Slider musicSlider = new Slider(0, 1, 0.05f, false, skin);
+        Slider musicSlider = new Slider(0, 1, 0.05f, false, skin);
         musicSlider.setValue(audioService.getMusicVolume());
         musicSlider.addListener(new ChangeListener() {
             @Override
@@ -197,33 +216,31 @@ public class MainMenuStage extends StageView {
             }
         });
 
-        dialog.getTitleTable().padTop(20f);
-        dialog.getTitleTable().padBottom(5f);
-        // Sound Volume Slider
-        final Slider soundSlider = new Slider(0, 1, 0.05f, false, skin);
+        Slider soundSlider = new Slider(0, 1, 0.05f, false, skin);
         soundSlider.setValue(audioService.getSoundVolume());
         soundSlider.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 audioService.setSoundVolume(soundSlider.getValue());
             }
         });
 
-        // Add components to dialog
-        Table contentTable = dialog.getContentTable();
-        contentTable.pad(20);
+        Table ct = dialog.getContentTable()
+                .pad(H * 0.02f);
+        ct.add(new Label("Music Volume", skin)).left().row();
+        ct.add(musicSlider)
+                .width(W * 0.6f)
+                .padBottom(H * 0.02f)
+                .row();
+        ct.add(new Label("Sound Volume", skin)).left().row();
+        ct.add(soundSlider)
+                .width(W * 0.6f)
+                .row();
 
-        contentTable.add(new Label("Music Volume:", skin)).left().padRight(10).row();
-        contentTable.add(musicSlider).width(200).center().pad(15).row();
-        contentTable.add(new Label("Sound Volume:", skin)).left().padRight(10).row();
-        contentTable.add(soundSlider).width(200).center().pad(15).row();
+        dialog.button("Close", true)
+                .key(Input.Keys.ESCAPE, false);
 
-        dialog.button("Close", true);
-        dialog.key(Input.Keys.ESCAPE, false); // Close with ESC
-        // Center and show dialog
         dialog.show(stage);
-        dialog.setPosition(
-                (stage.getWidth() - dialog.getWidth()) / 2,
-                (stage.getHeight() - dialog.getHeight()) / 2);
+        dialog.pack();
     }
 }
