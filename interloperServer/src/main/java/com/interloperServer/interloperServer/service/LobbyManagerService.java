@@ -13,7 +13,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Class for handling lobby-related logic.
+ * Service for managing lobby-related logic.
+ * <p>
+ * This service handles creating, joining, leaving, and managing lobbies. It
+ * ensures
+ * proper synchronization and broadcasts updates to players when necessary.
  */
 @Service
 public class LobbyManagerService {
@@ -33,6 +37,10 @@ public class LobbyManagerService {
 
     /**
      * Creates a new lobby and assigns the creator as the host.
+     *
+     * @param session  The WebSocket session of the host.
+     * @param username The username of the host.
+     * @return The unique code of the newly created lobby.
      */
     public String createLobby(WebSocketSession session, String username) {
         String lobbyCode;
@@ -60,11 +68,13 @@ public class LobbyManagerService {
         Lobby newLobby = new Lobby(lobbyCode, host, options);
         lobbies.put(lobbyCode, newLobby);
 
+        // Initialize default locations for the lobby
         lobbyHostService.setInitialLocations(newLobby);
 
+        // Notify the host about the lobby creation
         messagingService.sendMessage(session, messageFactory.lobbyCreated(lobbyCode, host.getUsername()));
 
-        // sends the locations for the lobby
+        // Send the locations for the lobby
         messagingService.sendMessage(session, messageFactory.locationsUpdate(newLobby.getLocations()));
 
         return lobbyCode;
@@ -72,6 +82,12 @@ public class LobbyManagerService {
 
     /**
      * Adds a player to an existing lobby.
+     *
+     * @param session   The WebSocket session of the player.
+     * @param lobbyCode The code of the lobby to join.
+     * @param username  The username of the player.
+     * @return {@code true} if the player successfully joined the lobby,
+     *         {@code false} otherwise.
      */
     public boolean joinLobby(WebSocketSession session, String lobbyCode, String username) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
@@ -86,7 +102,7 @@ public class LobbyManagerService {
         // Look for a player with the same username who is disconnected
         Player existingPlayer = lobby.getPlayer(username);
         if (existingPlayer != null && existingPlayer.isDisconnected()) {
-            // This is a reconnect
+            // Handle reconnection
             existingPlayer.cancelDisconnectRemoval();
             existingPlayer.setSession(session);
 
@@ -99,7 +115,7 @@ public class LobbyManagerService {
             return true;
         }
 
-        // check if game is running
+        // Check if the game is already running
         if (lobby.getGameActive()) {
             messagingService.sendMessage(session, messageFactory.error("Cannot join lobby when game started"));
             return false;
@@ -114,16 +130,17 @@ public class LobbyManagerService {
             return false;
         }
 
-        // Player username exists in the lobby but the player is not disconnected
+        // Check if the username is already taken
         if (existingPlayer != null && !existingPlayer.isDisconnected()) {
             messagingService.sendMessage(session, messageFactory.error("Username is taken!"));
             return false;
         }
 
-        // Otherwise, add player to lobby
+        // Add the player to the lobby
         synchronized (lobby) {
             lobby.addPlayer(new Player(session, username));
             messagingService.sendMessage(session, messageFactory.joinedLobby(lobbyCode, lobby.getHost().getUsername()));
+
             // sends the locations for the lobby
             messagingService.sendMessage(session, messageFactory.locationsUpdate(lobby.getLocations()));
         }
@@ -136,6 +153,15 @@ public class LobbyManagerService {
         return true;
     }
 
+    /**
+     * Removes a player from a lobby.
+     *
+     * @param session   The WebSocket session of the player.
+     * @param lobbyCode The code of the lobby to leave.
+     * @param username  The username of the player.
+     * @return {@code true} if the player successfully left the lobby, {@code false}
+     *         otherwise.
+     */
     public boolean leaveLobby(WebSocketSession session, String lobbyCode, String username) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
 
@@ -144,19 +170,23 @@ public class LobbyManagerService {
             messagingService.sendMessage(session, messageFactory.error("Lobby not found!"));
             return false;
         }
+
+        // Prevent leaving if the game is active
         if (lobby.getGameActive()) {
             messagingService.sendMessage(session, messageFactory.error("Cannot leave while game is active"));
             return false;
         }
 
         removeUser(session);
-
         return true;
-
     }
 
     /**
      * Checks if the user is the host of the lobby.
+     *
+     * @param lobbyCode The code of the lobby.
+     * @param username  The username of the player.
+     * @return {@code true} if the user is the host, {@code false} otherwise.
      */
     public boolean isHost(String lobbyCode, String username) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
@@ -165,6 +195,8 @@ public class LobbyManagerService {
 
     /**
      * Removes a user by their session and updates the lobby accordingly.
+     *
+     * @param session The WebSocket session of the player to remove.
      */
     public void removeUser(WebSocketSession session) {
         Lobby targetLobby = null;
@@ -210,6 +242,8 @@ public class LobbyManagerService {
 
     /**
      * Sends the current member list to all players in the lobby.
+     *
+     * @param lobbyCode The code of the lobby.
      */
     public void broadcastPlayerList(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
@@ -218,7 +252,7 @@ public class LobbyManagerService {
 
         List<Player> players;
         synchronized (lobby) {
-            players = new ArrayList<>(lobby.getPlayers()); // copy to safely iterate
+            players = new ArrayList<>(lobby.getPlayers()); // Copy to safely iterate
         }
 
         List<String> usernames = players.stream().map(Player::getUsername).toList();
@@ -227,12 +261,23 @@ public class LobbyManagerService {
 
     /**
      * Gets the players in a lobby.
+     *
+     * @param lobbyCode The code of the lobby.
+     * @return A list of players in the lobby, or an empty list if the lobby does
+     *         not exist.
      */
     public List<Player> getPlayersInLobby(String lobbyCode) {
         Lobby lobby = getLobbyFromLobbyCode(lobbyCode);
         return (lobby != null) ? lobby.getPlayers() : new ArrayList<>();
     }
 
+    /**
+     * Retrieves a lobby by its code.
+     *
+     * @param lobbyCode The code of the lobby.
+     * @return The {@link Lobby} associated with the code, or {@code null} if not
+     *         found.
+     */
     public Lobby getLobbyFromLobbyCode(String lobbyCode) {
         return lobbies.get(lobbyCode);
     }
