@@ -7,7 +7,9 @@ import java.util.Set;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
@@ -57,29 +59,50 @@ public class LocationsListComponent extends GameComponent {
 
     @Override
     public void update() {
-        int childCount = rootTable.getChildren().size;
-        if (childCount > 3) { // Header takes 3 cells (label + colspan)
-            rootTable.clearChildren();
-            
-            Label locationsHeader = new Label("Possible Locations", skin);
-            locationsHeader.setAlignment(Align.center);
-            locationsHeader.setFontScale(1.2f);
-            rootTable.add(locationsHeader).colspan(3).padBottom(20).row();
-        }
-        
+
+        rootTable.clear();
+        rootTable.top();
+
+        Table headerTable = new Table();
+
+        Label locationsHeader = new Label("Possible Locations", skin);
+        locationsHeader.setAlignment(Align.center);
+        locationsHeader.setFontScale(1f);
+
+        headerTable.add(locationsHeader).expandX().fillX().padBottom(10);
+        rootTable.add(headerTable).fillX().expandX().row();
+
         if (locations == null || locations.isEmpty()) {
             Label noLocationsLabel = new Label("No locations available", skin);
-            rootTable.add(noLocationsLabel).colspan(3).center();
+            noLocationsLabel.setAlignment(Align.center);
+            noLocationsLabel.setFontScale(0.8f);
+            rootTable.add(noLocationsLabel).expandX().fillX().padTop(20);
             return;
         }
-        
+
+        ScrollPane scrollPane = new ScrollPane(null, skin);
+        Table locationsTable = new Table();
+        locationsTable.top();
+        locationsTable.defaults().pad(5);
+
+        float availableWidth = rootTable.getWidth();
+        if (availableWidth <= 0) {
+            availableWidth = 400f;
+        }
+
+        float locationColWidth = availableWidth * 0.6f; 
+        float toggleColWidth = availableWidth * 0.15f;  
+        float guessColWidth = availableWidth * 0.25f;  
+
         for (String location : locations) {
             boolean isGreyedOut = greyedOutLocations.contains(location);
-            Label locationLabel = new Label(location, skin);
-
+            
+            Label locationLabel = new Label(isGreyedOut ? "[" + location + "]" : location, skin);
+            locationLabel.setWrap(true);
+            locationLabel.setAlignment(Align.left);
+            
             if (isGreyedOut) {
                 locationLabel.setColor(Color.GRAY);
-                locationLabel.setText("[" + location + "]");
             }
             
             TextButton toggleButton = new TextButton(isGreyedOut ? "✓" : "✗", skin);
@@ -97,16 +120,24 @@ public class LocationsListComponent extends GameComponent {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     if (controller != null) {
-                        // TODO:
+                        // TODO: Implement spy guess
                         //controller.spyGuessLocation(location);
                     }
                 }
             });
             
-            rootTable.add(locationLabel).width(150).left().padRight(5);
-            rootTable.add(toggleButton).width(40).padRight(5);
-            rootTable.add(guessButton).width(70).right().row();
+            locationsTable.add(locationLabel).width(locationColWidth).fillX().left();
+            locationsTable.add(toggleButton).width(toggleColWidth).fillX().center();
+            locationsTable.add(guessButton).width(guessColWidth).fillX().right().row();
         }
+
+        scrollPane.setActor(locationsTable);
+        scrollPane.setScrollingDisabled(true, false); 
+        scrollPane.setFadeScrollBars(false);
+        scrollPane.setForceScroll(false, true);
+        scrollPane.setSmoothScrolling(true);
+
+        rootTable.add(scrollPane).expand().fill();
     }
 
 }
