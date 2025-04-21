@@ -6,8 +6,8 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
-import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.stages.lobby.LobbyStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class LobbyController {
@@ -62,9 +62,9 @@ public class LobbyController {
         gameModel.getLobbyData().addPlayer(gameModel.getUsername());
         System.out.println("Handling lobby created: " + lobbyCode);
 
-        // transition to game config state
-        if (gameModel.getCurrentState() != GameState.GAME_CONFIG) {
-            gameModel.setCurrentState(GameState.GAME_CONFIG);
+        // transition to Lobby Stage
+        if (gameModel.getCurrentState() != GameState.LOBBY) {
+            gameModel.setCurrentState(GameState.LOBBY);
         } else {
             System.out.println("WRONG STATE: " + gameModel.getCurrentState());
         }

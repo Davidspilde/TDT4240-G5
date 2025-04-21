@@ -7,8 +7,8 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 import io.github.Spyfall.view.GameConfigStage;
 import io.github.Spyfall.view.GameLobbyStage;
-import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.stages.lobby.LobbyStage;
 import io.github.Spyfall.view.stages.mainmenu.MainMenuStage;
 
 public class MainController implements GameStateObserver {
@@ -83,10 +83,6 @@ public class MainController implements GameStateObserver {
                 case LOBBY -> {
                     System.out.println("State: LOBBY");
                     setLobbyStage();
-                }
-                case GAME_CONFIG -> {
-                    System.out.println("State: Game-Config");
-                    setGameConfigStage(); // runs safely on the render thread
                 }
                 case IN_GAME -> {
                     System.out.println("State: IN-GAME");
