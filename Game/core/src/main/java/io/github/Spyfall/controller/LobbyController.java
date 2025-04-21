@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.LobbyStage;
@@ -141,5 +142,10 @@ public class LobbyController {
             System.err.println("An error occurred while leaving the lobby: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void updateLocations(List<Location> locations) {
+        gameModel.getLobbyData().setLocations(locations);
+        updateCurrentLobbyStage();
     }
 }

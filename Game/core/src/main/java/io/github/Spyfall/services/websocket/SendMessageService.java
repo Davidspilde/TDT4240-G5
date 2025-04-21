@@ -2,12 +2,20 @@ package io.github.Spyfall.services.websocket;
 
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter.OutputType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.Spyfall.message.request.CreateLobbyMessage;
+import io.github.Spyfall.message.request.LobbyOptionsMessage;
+import io.github.Spyfall.message.request.RequestMessage;
+import io.github.Spyfall.message.request.UpdateLocationsMessage;
+import io.github.Spyfall.message.request.VoteMessage;
+import io.github.Spyfall.model.Location;
 
-import io.github.Spyfall.message.request.*;
+import java.util.List;
 
 public class SendMessageService {
     private LocalWebSocketClient wsClient;
     private static SendMessageService instance;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private SendMessageService() {
         // the server url must be set before sendMessageService is
@@ -53,14 +61,12 @@ public class SendMessageService {
     public boolean spyVote(String username, String Location, String lobbyCode) {
         String type = "spyVote";
         VoteMessage msg = new VoteMessage(type, username, Location, lobbyCode);
-
         return sendMessage(msg);
     }
 
     public boolean startNextRound(String username, String lobbyCode) {
         String type = "advanceRound";
         RequestMessage msg = new RequestMessage(type, username, lobbyCode);
-
         return sendMessage(msg);
     }
 
@@ -71,6 +77,18 @@ public class SendMessageService {
         return sendMessage(msg);
     }
 
+    public void sendUpdateLocations(String username, String lobbyCode, List<Location> locations) {
+        UpdateLocationsMessage message = new UpdateLocationsMessage(username, lobbyCode, locations);
+        try {
+            // Use Jackson's ObjectMapper for serialization
+            String jsonMessage = objectMapper.writeValueAsString(message);
+            System.out.println("Sending locations update: " + jsonMessage);
+            wsClient.send(jsonMessage);
+        } catch (Exception e) {
+            System.out.println("Error sending locations update: " + e);
+        }
+    }
+
     private boolean sendMessage(Object message) {
         try {
             wsClient.send(convertMessageToJson(message));
@@ -78,7 +96,6 @@ public class SendMessageService {
             System.out.println("Error sending Message: " + e);
             return false;
         }
-
         return true;
     }
 

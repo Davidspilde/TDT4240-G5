@@ -10,6 +10,7 @@ public class LobbyData {
     private int locationCount = 10;
     private int maxPlayers = 8;
     private int timePerRound = 180; // seconds
+    private List<Location> locations = new ArrayList<>();
     
     public List<String> getPlayers() {
         return players;
@@ -65,5 +66,13 @@ public class LobbyData {
     
     public void setTimePerRound(int timePerRound) {
         this.timePerRound = timePerRound;
+    }
+
+    public List<Location> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
     }
 }
