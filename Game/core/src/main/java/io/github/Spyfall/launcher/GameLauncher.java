@@ -12,6 +12,7 @@ public class GameLauncher {
         AudioService audioService = AudioService.getInstance();
         audioService.loadMusic("background", "audio/music/683507__sergequadrado__sad-loop.wav");
         audioService.loadSound("click", "audio/sounffx/333916__lextrack__cat-meowing.mp3");
+        audioService.loadMusic("victory", "audio/music/725452__lovescotch__stalking.wav");
         return new GameClient(viewport);
     }
 }

@@ -1,4 +1,4 @@
-package io.github.Spyfall.view;
+package io.github.Spyfall.view.mainMenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.view.StageView;
 
 public class GameRulesStage extends StageView {
     private final MainMenuController controller;

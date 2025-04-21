@@ -1,18 +1,18 @@
 package io.github.Spyfall.message.response;
 
+import java.util.HashMap;
+
 public class GameCompleteMessage extends ResponseMessage {
-    private String scoreboard;
+    private HashMap<String, Integer> scoreboard;
 
     public GameCompleteMessage() {
 
     }
 
-    public String getScoreboard() {
+    public HashMap<String, Integer> getScoreboard() {
         return scoreboard;
     }
 
-    public void setScoreboard(String scoreboard) {
-        this.scoreboard = scoreboard;
-    }
+
 
 }

@@ -1,4 +1,4 @@
-package io.github.Spyfall.view;
+package io.github.Spyfall.view.createGame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.controller.StageManager;
+import io.github.Spyfall.view.StageView;
 
 public class CreateGameStage extends StageView {
     private LobbyController controller;

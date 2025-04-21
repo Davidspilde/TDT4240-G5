@@ -1,4 +1,4 @@
-package io.github.Spyfall.view;
+package io.github.Spyfall.view.mainMenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -25,6 +25,7 @@ import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.controller.StageManager;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.view.StageView;
 
 public class MainMenuStage extends StageView {
     private MainMenuController controller;

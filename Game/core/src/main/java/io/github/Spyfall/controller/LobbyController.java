@@ -11,8 +11,8 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
-import io.github.Spyfall.view.LobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.lobby.LobbyStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class LobbyController {
@@ -71,14 +71,13 @@ public class LobbyController {
         gameModel.getLobbyData().setHostPlayer(message.getHost());
         gameModel.getLobbyData().getPlayers().clear();
         gameModel.getLobbyData().addPlayer(gameModel.getUsername());
-        System.out.println("Handling lobby created: " + message.getLobbyCode());
+        System.out.println("Lobby created: " + message.getLobbyCode());
         
         Gdx.app.postRunnable(() -> {
-            // transition to game config state
             if (gameModel.getCurrentState() != GameState.GAME_CONFIG) {
                 gameModel.setCurrentState(GameState.GAME_CONFIG);
             } else {
-                System.out.println("WRONG STATE: " + gameModel.getCurrentState());
+                System.out.println("Cannot already be in Game config state: " + gameModel.getCurrentState());
             }
             
         });
@@ -94,13 +93,8 @@ public class LobbyController {
         }
         gameModel.setUsername(username);
 
-        boolean success = sendMessageService.createLobby(username);
-        if (success) {
-            gameModel.setCurrentState(GameState.GAME_CONFIG);
-            System.out.println("State is: " + gameModel.getCurrentState());
-        } else {
-            System.out.println("something failed on the backend");
-        }
+        sendMessageService.createLobby(username);
+        System.out.println("Sent createLobby request to server");
     }
 
     public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
@@ -115,7 +109,6 @@ public class LobbyController {
                 spyLastAttemptTime);
 
         if (success) {
-            // Update local model immediately, it will be confirmed by server response
             gameModel.getLobbyData().setRoundLimit(roundLimit);
             gameModel.getLobbyData().setLocationCount(locationNumber);
             gameModel.getLobbyData().setMaxPlayers(maxPlayers);

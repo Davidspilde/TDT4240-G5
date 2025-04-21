@@ -14,15 +14,20 @@ import io.github.Spyfall.message.response.LobbyJoinedMessage;
 import io.github.Spyfall.message.response.LobbyNewHostMessage;
 import io.github.Spyfall.message.response.LobbyPlayersMessage;
 import io.github.Spyfall.message.response.ResponseMessage;
+import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 import io.github.Spyfall.services.RecieveMessageService;
-import io.github.Spyfall.view.CreateGameStage;
-import io.github.Spyfall.view.GameConfigStage;
-import io.github.Spyfall.view.GameLobbyStage;
-import io.github.Spyfall.view.LobbyStage;
-import io.github.Spyfall.view.MainMenuStage;
+// import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.createGame.CreateGameStage;
+import io.github.Spyfall.view.createGame.GameConfigStage;
+import io.github.Spyfall.view.game.BaseGameStage;
+import io.github.Spyfall.view.game.GameOverStage;
+import io.github.Spyfall.view.game.PlayerGameStage;
+import io.github.Spyfall.view.game.SpyGameStage;
+import io.github.Spyfall.view.lobby.LobbyStage;
+import io.github.Spyfall.view.mainMenu.MainMenuStage;
 
 public class MainController implements GameStateObserver, MessageHandler {
     private static MainController instance;
@@ -92,13 +97,27 @@ public class MainController implements GameStateObserver, MessageHandler {
         stageManager.setStage(gameConfigStage);
     }
     
-    public void setGameLobbyStage() {
-        GameLobbyStage gameLobbyStage = new GameLobbyStage(
-            gameModel.getGameData().isSpy(),
-            gameModel.getGameData().getLocation(), 
-            gameModel.getGameData().getRole(),
-            viewport);
-        stageManager.setStage(gameLobbyStage);
+    // public void setGameLobbyStage() {
+    //     GameLobbyStage gameLobbyStage = new GameLobbyStage(
+    //         gameModel.getGameData().isSpy(),
+    //         gameModel.getGameData().getLocation(), 
+    //         gameModel.getGameData().getRole(),
+    //         viewport);
+    //     stageManager.setStage(gameLobbyStage);
+    // }
+    public void setGameOverStage() {
+        GameOverStage gameOverStage = new GameOverStage(gameModel.getGameData().getScoreboard(), viewport);
+        stageManager.setStage(gameOverStage);
+    }
+
+    public void setSpyStage() {
+        SpyGameStage spyGameStage = new SpyGameStage(gameModel.getGameData().getRole(), viewport);
+        stageManager.setStage(spyGameStage);
+    }
+
+    public void setPlayerStage() {
+        PlayerGameStage playerGameStage = new PlayerGameStage(gameModel.getGameData().getLocation(),gameModel.getGameData().getRole(), viewport);
+        stageManager.setStage(playerGameStage);
     }
     
     // implementation of GameStateObserver
@@ -121,8 +140,22 @@ public class MainController implements GameStateObserver, MessageHandler {
                 setGameConfigStage();
                 break;
             case IN_GAME:
-                System.out.println("State: IN-GAME");
-                setGameLobbyStage();
+                GameData gameData = gameModel.getGameData();
+                boolean isSpy = gameData.isSpy();
+                
+                if (isSpy) {
+                    setSpyStage();
+                } else {
+                    setPlayerStage();
+                }
+                
+                if (gameData.getTimeRemaining() > 0) {
+                    ((BaseGameStage) StageManager.getInstance().getStage()).startTimer(gameData.getTimeRemaining());
+                }
+                break;
+            case GAME_OVER:
+                System.out.println("State: GAME OVER");
+                setGameOverStage();
                 break;
             default:
                 System.out.println("Something went wrong with state");

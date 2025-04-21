@@ -17,8 +17,9 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
-import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.game.BaseGameStage;
+import io.github.Spyfall.view.game.SpyGameStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class GameplayController {
@@ -55,15 +56,23 @@ public class GameplayController {
     }
 
     private void handleGameComplete(GameCompleteMessage message) {
-    System.out.println("Game complete received: " + message.getScoreboard());
-    Gdx.app.postRunnable(()->{
+        // Update the game data with the final scoreboard
+        GameData gameData = gameModel.getGameData();
+        gameData.setRoundEnded(true);
         
-        AudioService.getInstance().playSound("click");
+        if (message.getScoreboard() != null) {
+            gameData.setScoreboard(message.getScoreboard());
+        }
         
-        ErrorPopup.getInstance().showClientError("Game Complete fucker!");
-    });
+        Gdx.app.postRunnable(() -> {
+            AudioService.getInstance().playMusic("victory", true);
+            
+            if (gameModel.getCurrentState() != GameState.GAME_OVER) {
+                gameModel.setCurrentState(GameState.GAME_OVER);
+            }
+        });
     
-}
+    }
 
 private void handleNewRound(GameNewRoundMessage message) {
     
@@ -71,24 +80,14 @@ private void handleNewRound(GameNewRoundMessage message) {
     
     // Update game data
     gameModel.getGameData().setCurrentRound(message.getRoundNumber());
-    gameModel.getGameData().setSpy(message.getRole().equals("spy"));
+    gameModel.getGameData().setSpy(message.getRole().equals("Spy"));
     gameModel.getGameData().setLocation(message.getLocation());
     gameModel.getGameData().setRole(message.getRole());
-    gameModel.getGameData().setTimeRemaining(message.getRoundDuration()); //
-    gameModel.getGameData().setRole(message.getRole());
-
+    gameModel.getGameData().setTimeRemaining(message.getRoundDuration());
     gameModel.getGameData().setRoundEnded(false);
     
-    // test locations
-    if (message.getRole().equals("spy")) {
-        List<String> defaultLocations = Arrays.asList(
-            "Airplane", "Bank", "Beach", "Casino", "Hospital", 
-            "Hotel", "Military Base", "Movie Studio", "Ocean Liner", 
-            "Passenger Train", "Restaurant", "School", "Space Station", 
-            "Submarine", "Supermarket", "University"
-        );
-        gameModel.getGameData().setPossibleLocations(defaultLocations);
-    }
+    // If message has possible locations for spy, set them
+    
 
     Gdx.app.postRunnable(() -> {
         // Change game state if not already in game
@@ -96,27 +95,27 @@ private void handleNewRound(GameNewRoundMessage message) {
             gameModel.setCurrentState(GameState.IN_GAME);
         }
 
+        // Handle with the appropriate stage type
         StageView currentStage = StageManager.getInstance().getStage();
-        if (currentStage instanceof GameLobbyStage) {
-            ((GameLobbyStage) currentStage).resetRoundEndUI();
-
-            ((GameLobbyStage) currentStage).startTimer(message.getRoundDuration()); 
+        if (currentStage instanceof BaseGameStage) {
+            ((BaseGameStage) currentStage).resetRoundEndUI();
+            ((BaseGameStage) currentStage).startTimer(message.getRoundDuration()); 
         }
     });
 }
 
+
+
 private void handleRoundEnded(GameRoundEndedMessage message) {
-    System.out.println("HELLLOOOOO: Spy was " + message.getSpy());
+    System.out.println("Round ended: Spy was " + message.getSpy());
     
     // Update game model with round end information
     GameData gameData = gameModel.getGameData();
     gameData.setRoundEnded(true);
     gameData.setIsSpyUsername(message.getSpy());
-
     gameData.setLocation(message.getLocation());
     gameData.setCurrentRound(message.getRoundNumber());
     
-
     if (message.getScoreboard() != null) {
         gameData.setScoreboard(message.getScoreboard());
     }
@@ -124,24 +123,25 @@ private void handleRoundEnded(GameRoundEndedMessage message) {
     Gdx.app.postRunnable(() -> {
         try {
             StageView currentStage = StageManager.getInstance().getStage();
-            if (currentStage instanceof GameLobbyStage) {
-
-                ((GameLobbyStage) currentStage).handleRoundEnded(
-                    message.getRoundNumber(),  // Round number from message
-                    message.getReason(),       // Reason for round end (e.g., "TIMEOUT")
-                    message.getSpy(),          // Spy player name
-                    message.getLocation(),     // Location from message
-                    message.getScoreboard()    // Scoreboard
+            if (currentStage instanceof BaseGameStage) {
+                BaseGameStage gameStage = (BaseGameStage) currentStage;
+                
+                gameStage.handleRoundEnded(
+                    message.getRoundNumber(),
+                    message.getReason(),
+                    message.getSpy(),
+                    message.getLocation(),
+                    message.getScoreboard()
                 );
-
-                ((GameLobbyStage) currentStage).updateTimerDisplay(0);
+                
+                gameStage.stopTimer();
+                gameStage.updateTimerDisplay(0);
             }
         } catch (Exception e) {
-            // TODO: handle exception
+            e.printStackTrace();
         }
-        
     });
-    
+ 
     
 }
 
@@ -205,9 +205,7 @@ private void handleVote(GameVoteMessage message) {
             gameModel.getLobbyCode()
         );
         
-        if (!success) {
-            System.out.println("Failed to send vote request");
-        }
+        System.out.println("player voted: " + targetPlayer);
         
         return success;
     }
@@ -249,27 +247,23 @@ private void handleVote(GameVoteMessage message) {
 
     /**
      * Start the next round of the game
-     * @return Whether the request was sent successfully
      */
-    public boolean startNextRound() {
-        AudioService.getInstance().playSound("click");
-        
-        // Only the host can start the next round
-        if (!gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer())) {
-            System.out.println("Only the host can start the next round");
-            return false;
+    public void startNextRound() {
+        // Check if any player is in the final guess state and block advancement if so
+        StageView currentStage = StageManager.getInstance().getStage();
+        if (currentStage instanceof SpyGameStage) {
+            SpyGameStage spyStage = (SpyGameStage)currentStage;
+            if (spyStage.isFinalGuessActive()) {
+                // Show message to host that they need to wait for spy's final guess
+                ErrorPopup.getInstance().showClientError("Please wait for spy to make final guess");
+                return;
+            }
         }
         
-        boolean success = sendMessageService.startNextRound(
-            gameModel.getUsername(),
-            gameModel.getLobbyCode()
-        );
-        
-        if (!success) {
-            System.out.println("Failed to send start next round request");
-        }
-        
-        return success;
+        // Proceed with next round
+        String lobbyCode = gameModel.getLobbyCode();
+        String username = gameModel.getUsername();
+        sendMessageService.startNextRound(username, lobbyCode);
     }
     
 

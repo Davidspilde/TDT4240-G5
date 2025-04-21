@@ -12,6 +12,7 @@ public class GameData {
     private String location;
     private String role;
     private int currentRound = 1;
+    private int spyLastAttemptDuration = 45;
     private int totalRounds;
     private int timeRemaining;
     private List<String> possibleLocations = new ArrayList<>();
@@ -105,11 +106,18 @@ public class GameData {
     }
 
     public void toggleLocationGreyout(String location) {
-    if (greyedOutLocations.contains(location)) {
-        greyedOutLocations.remove(location);
-    } else {
-        greyedOutLocations.add(location);
+        if (greyedOutLocations.contains(location)) {
+            greyedOutLocations.remove(location);
+        } else {
+            greyedOutLocations.add(location);
+        }
     }
-
-}
+    
+    public int getSpyLastAttemptDuration() {
+        return spyLastAttemptDuration;
+    }
+    
+    public void setSpyLastAttemptDuration(int duration) {
+        this.spyLastAttemptDuration = duration;
+    }
 }
