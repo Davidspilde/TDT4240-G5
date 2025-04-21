@@ -4,10 +4,14 @@ package io.github.Spyfall.view.stages.lobby;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.Location;
+import io.github.Spyfall.view.ui.UIConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +21,17 @@ public class LocationsEditorDialog extends Dialog {
     private final LobbyController lobbyController;
     private ScrollPane scrollPane;
 
-    public LocationsEditorDialog(Skin skin, LobbyController lobbyController) {
+    public LocationsEditorDialog(Skin skin, LobbyController lobbyController, Stage stage) {
         super("Edit Locations", skin);
         this.lobbyController = lobbyController;
         this.locationsTable = new Table(skin);
         locationsTable.top().left();
+        // Makes backgorund transparent when used
+        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+        dim.setMinWidth(stage.getViewport().getWorldWidth());
+        dim.setMinHeight(stage.getViewport().getWorldHeight());
+
+        getStyle().stageBackground = dim;
 
         initDialog();
         pack();
