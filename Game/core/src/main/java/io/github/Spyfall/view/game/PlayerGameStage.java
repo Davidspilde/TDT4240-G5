@@ -1,25 +1,9 @@
 package io.github.Spyfall.view.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.view.game.ui.PlayersList;
 
@@ -29,7 +13,10 @@ public class PlayerGameStage extends BaseGameStage {
     
     public PlayerGameStage(String locationName, String roleName, ScreenViewport viewport) {
         super(viewport);
+        System.out.println("CREATING PlayerGameStage: location=" + locationName + ", role=" + roleName);
         initStage(locationName, roleName);
+
+        System.out.println("PlayerGameStage initialized with " + getStage().getActors().size + " root actors");
     }
     
     protected void initStage(String locationName, String roleName) {

@@ -110,15 +110,17 @@ public class MainController implements GameStateObserver, MessageHandler {
         stageManager.setStage(gameOverStage);
     }
 
-    public void setSpyStage() {
-        SpyGameStage spyGameStage = new SpyGameStage(gameModel.getGameData().getRole(), viewport);
-        stageManager.setStage(spyGameStage);
-    }
+    // public void setSpyStage() {
+    //     SpyGameStage spyGameStage = new SpyGameStage(gameModel.getGameData().getRole(), viewport);
+    //     stageManager.setStage(spyGameStage);
+    // }
 
-    public void setPlayerStage() {
-        PlayerGameStage playerGameStage = new PlayerGameStage(gameModel.getGameData().getLocation(),gameModel.getGameData().getRole(), viewport);
-        stageManager.setStage(playerGameStage);
-    }
+    // public void setPlayerStage() {
+    //     GameData gameData = gameModel.getGameData();
+
+    //     PlayerGameStage playerGameStage = new PlayerGameStage(gameData.getLocation(),gameData.getRole(), viewport);
+    //     stageManager.setStage(playerGameStage);
+    // }
     
     // implementation of GameStateObserver
     @Override
@@ -140,18 +142,7 @@ public class MainController implements GameStateObserver, MessageHandler {
                 setGameConfigStage();
                 break;
             case IN_GAME:
-                GameData gameData = gameModel.getGameData();
-                boolean isSpy = gameData.isSpy();
-                
-                if (isSpy) {
-                    setSpyStage();
-                } else {
-                    setPlayerStage();
-                }
-                
-                if (gameData.getTimeRemaining() > 0) {
-                    ((BaseGameStage) StageManager.getInstance().getStage()).startTimer(gameData.getTimeRemaining());
-                }
+                System.out.println("State changed to IN_GAME (warning: stages should be created via GameplayController)");
                 break;
             case GAME_OVER:
                 System.out.println("State: GAME OVER");

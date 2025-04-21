@@ -42,11 +42,11 @@ public class RoundEndOverlay extends GameComponent {
         this.isHost = isHost;
         this.contentWidth = contentWidth;
         
-        scoreboard = new Scoreboard(skin, currentUsername, contentWidth);
     }
 
     @Override
     protected void create() {
+        this.scoreboard = new Scoreboard(skin, currentUsername, contentWidth);
         rootTable.setFillParent(true);
         
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -105,8 +105,10 @@ public class RoundEndOverlay extends GameComponent {
         spyLabel.setText("The Spy was: " + (spy != null ? spy : "Unknown"));
         
         locationLabel.setText("Location: " + (location != null ? location : "Unknown"));
-        
-        this.scoreboard.setScoreboard(scoreboard);
+
+        HashMap<String, Integer> safeScoreboard = scoreboard != null ? 
+                                           scoreboard : new HashMap<>();
+        this.scoreboard.setScoreboard(safeScoreboard);
         
         update();
     }

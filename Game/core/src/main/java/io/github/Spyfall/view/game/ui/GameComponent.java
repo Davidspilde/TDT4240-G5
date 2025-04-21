@@ -14,6 +14,9 @@ public abstract class GameComponent {
     public GameComponent(Skin skin) {
         this.skin = skin;
         this.rootTable = new Table();
+
+        this.rootTable.setDebug(true);
+        
         create();
     }
     

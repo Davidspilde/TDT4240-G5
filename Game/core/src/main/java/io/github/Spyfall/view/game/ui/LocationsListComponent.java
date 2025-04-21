@@ -97,7 +97,8 @@ public class LocationsListComponent extends GameComponent {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     if (controller != null) {
-                        controller.spyGuessLocation(location);
+                        // TODO:
+                        //controller.spyGuessLocation(location);
                     }
                 }
             });

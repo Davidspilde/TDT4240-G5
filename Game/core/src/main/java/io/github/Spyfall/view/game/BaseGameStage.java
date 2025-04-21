@@ -84,11 +84,26 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
     @Override
     public void update() {
+        System.out.println("StageView.update() for " + this.getClass().getSimpleName());
         // Update components
         if (timerComponent != null) {
             timerComponent.update();
         }
-        // Other component updates
+        
+        if (playerInfoComponent != null) {
+            playerInfoComponent.update();
+        }
+        
+        if (gameControlsComponent != null) {
+            gameControlsComponent.update();
+        }
+        
+        if (roundEndOverlay != null && isRoundEnded) {
+            roundEndOverlay.update();
+        }
+
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
     }
     
     public void startTimer(float seconds) {
@@ -124,7 +139,8 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
     @Override
     public void onEndGameClicked() {
-        controller.endGame();
+        // TODO
+        //controller.endGame();
     }
     
     @Override
@@ -135,7 +151,7 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
     @Override
     public void onNextRoundClicked() {
         resetRoundEndUI();
-        controller.startNextRound();
+        //controller.startNextRound();
     }
 
     public void handleRoundEnded(int roundNumber, String reason, String spy, 
@@ -148,7 +164,9 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         }
         
         if (roundEndOverlay != null) {
-            roundEndOverlay.setRoundEndData(roundNumber, reason, spy, location, scoreboard);
+            HashMap<String, Integer> safeScoreboard = scoreboard != null ? 
+                                               scoreboard : new HashMap<>();
+            roundEndOverlay.setRoundEndData(roundNumber, reason, spy, location, safeScoreboard);
             roundEndOverlay.getActor().setVisible(true);
         }
     }

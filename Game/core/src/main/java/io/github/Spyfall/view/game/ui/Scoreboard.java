@@ -8,6 +8,7 @@ import java.util.Map;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Align;
 
 /**
@@ -18,6 +19,7 @@ public class Scoreboard extends GameComponent {
     private String currentUsername;
     private String title = "SCOREBOARD";
     private float contentWidth;
+    private boolean highlightWinner = false;
 
     public Scoreboard(Skin skin, String currentUsername, float contentWidth) {
         super(skin);
@@ -28,10 +30,11 @@ public class Scoreboard extends GameComponent {
     @Override
     protected void create() {
         rootTable.top();
+        rootTable.defaults().expand().fill();
     }
     
     public void setScoreboard(HashMap<String, Integer> scoreboard) {
-        this.scoreboard = scoreboard;
+        this.scoreboard = scoreboard != null ? scoreboard : new HashMap<>();
         update();
     }
     
@@ -40,28 +43,56 @@ public class Scoreboard extends GameComponent {
         update();
     }
 
+    /**
+     * Set whether to highlight the winner with trophy icon and gold color
+     */
+    public void setHighlightWinner(boolean highlight) {
+        this.highlightWinner = highlight;
+        update();
+    }
+
     @Override
     public void update() {
         rootTable.clear();
         
         if (scoreboard == null || scoreboard.isEmpty()) {
+            Label titleLabel = new Label(title, skin);
+            titleLabel.setAlignment(Align.center);
+            rootTable.add(titleLabel).colspan(3).padBottom(10).row();
+            
+            Label noDataLabel = new Label("No scores available", skin);
+            noDataLabel.setAlignment(Align.center);
+            rootTable.add(noDataLabel).colspan(3).padBottom(10);
             return;
         }
 
-        float playerColWidth = contentWidth * 0.6f;
-        float scoreColWidth = contentWidth * 0.2f;
-        float rankColWidth = contentWidth * 0.1f;
+        float availableWidth = rootTable.getWidth();
+        if (availableWidth <= 0) {
+            // If width isn't available yet, use the provided contentWidth as fallback
+            availableWidth = contentWidth;
+        }
+
+        float rankColWidth = availableWidth * 0.15f;
+        float playerColWidth = availableWidth * 0.55f;
+        float scoreColWidth = availableWidth * 0.3f;
 
         Label titleLabel = new Label(title, skin);
         titleLabel.setAlignment(Align.center);
-        rootTable.add(titleLabel).colspan(2).padBottom(10).row();
+        rootTable.add(titleLabel).colspan(3).padBottom(10).fillX().row();
+
+        Table headerTable = new Table();
+        headerTable.defaults().expand().fill();
 
         Label rankHeader = new Label("#", skin);
         Label playerHeader = new Label("Player", skin);
         Label scoreHeader = new Label("Score", skin);
-        rootTable.add(rankHeader).width(rankColWidth).left().padBottom(8);
-        rootTable.add(playerHeader).width(playerColWidth).left().padBottom(8);
-        rootTable.add(scoreHeader).width(scoreColWidth).right().padBottom(8).row();
+
+        headerTable.add(rankHeader).width(rankColWidth).padRight(10);
+        headerTable.add(playerHeader).width(playerColWidth).padRight(10).left();
+        headerTable.add(scoreHeader).width(scoreColWidth).left();
+
+        rootTable.add(headerTable).colspan(3).fillX().padBottom(10).row();
+
 
         List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(scoreboard.entrySet());
         sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
@@ -85,11 +116,23 @@ public class Scoreboard extends GameComponent {
             playerLabel.setWrap(true);
             Label scoreLabel = new Label(Integer.toString(entry.getValue()), skin);
 
-            if (entry.getKey().equals(currentUsername)) {
+            boolean isCurrentPlayer = entry.getKey().equals(currentUsername);
+            boolean isWinner = i == 0;
+
+            if (isCurrentPlayer) {
                 playerLabel.setText("→ " + entry.getKey());
                 playerLabel.setColor(Color.YELLOW);
                 scoreLabel.setColor(Color.YELLOW);
                 rankLabel.setColor(Color.YELLOW);
+            }
+
+            if (highlightWinner && isWinner) {
+                playerLabel.setText("🏆 " + (isCurrentPlayer ? "→ " : "") + entry.getKey());
+                
+                Color goldColor = new Color(1f, 0.84f, 0f, 1f);
+                playerLabel.setColor(goldColor);
+                scoreLabel.setColor(goldColor);
+                rankLabel.setColor(goldColor);
             }
 
             boolean isTied = (i < sortedEntries.size() - 1) && 
@@ -99,10 +142,21 @@ public class Scoreboard extends GameComponent {
                 rankText += "*"; // tie
                 rankLabel.setText(rankText);
             }
+
+            Table rowTable = new Table();
+            rowTable.defaults().expand().fill();
             
-            rootTable.add(rankLabel).width(rankColWidth).left().padBottom(5);
-            rootTable.add(playerLabel).width(playerColWidth).left().fillX().padBottom(5);
-            rootTable.add(scoreLabel).width(scoreColWidth).right().padBottom(5).row();
+            // Center-align rank numbers
+            rowTable.add(rankLabel).width(rankColWidth).left();
+            
+            // Add padding between columns for better readability
+            rowTable.add(playerLabel).width(playerColWidth).left().padLeft(10).padRight(10);
+            
+            // Center-align scores
+            rowTable.add(scoreLabel).width(scoreColWidth).left();
+            
+            // Add the entire row to the root table
+            rootTable.add(rowTable).colspan(3).fillX().padBottom(8).row();
         }
 
         if (sortedEntries.size() > 1) {

@@ -22,7 +22,7 @@ public class SpyGameStage extends BaseGameStage {
         super.init();
         
         playerInfoComponent.setRole(roleName);
-        playerInfoComponent.setLocation(""); // spy doesn't know location
+        playerInfoComponent.setLocation("???"); // spy doesn't know location
         
         locationsComponent = new LocationsListComponent(skin, controller);
         updateLocationsList();
@@ -40,6 +40,20 @@ public class SpyGameStage extends BaseGameStage {
         rootTable.row().padTop(20);
         rootTable.add(gameControlsComponent.getActor());
     }
+
+    /**
+     * Initialize locations list once at the start of the round
+     */
+    private void initializeLocationsList() {
+        GameData gameData = gameModel.getGameData();
+        locationsComponent.setLocations(gameData.getPossibleLocations());
+        
+        // Set any previously greyed out locations (if applicable)
+        locationsComponent.setGreyedOutLocations(gameData.getGreyedOutLocations());
+        
+        System.out.println("Initialized spy locations list with " + 
+                          gameData.getPossibleLocations().size() + " locations");
+    }
     
     
     private void updateLocationsList() {
@@ -52,13 +66,14 @@ public class SpyGameStage extends BaseGameStage {
     public void update() {
         super.update();
     
-        updateLocationsList();
+        if (finalGuessActive) {
+            // Update the final guess UI if active
+        }
     }
     
     @Override
     public void onTimerEnd() {
         // TODO:
-        // showFinalSpyGuessUI();
     }
 
     private void showFinalSpyGuessUI() {
@@ -68,6 +83,17 @@ public class SpyGameStage extends BaseGameStage {
     
     private void removeFinalGuessUI() {
         finalGuessActive = false;
+    }
+
+    /**
+     * Called when a new round starts (to reset the UI for the new round)
+     */
+    public void handleNewRound() {
+        // Re-initialize locations for the new round
+        initializeLocationsList();
+        
+        // Reset other UI elements
+        removeFinalGuessUI();
     }
 
     @Override

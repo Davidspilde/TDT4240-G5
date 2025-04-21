@@ -76,7 +76,8 @@ public class PlayersList extends GameComponent {
         setListener(new PlayerActionListener() {
             @Override
             public void onVotePlayer(String playerName) {
-                controller.votePlayer(playerName);
+                // TODO:
+                //controller.votePlayer(playerName);
             }
         });
     }

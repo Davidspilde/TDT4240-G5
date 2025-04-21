@@ -1,9 +1,11 @@
 package io.github.Spyfall.controller;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.message.response.GameCompleteMessage;
 import io.github.Spyfall.message.response.GameNewRoundMessage;
@@ -19,6 +21,7 @@ import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.SendMessageService;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.BaseGameStage;
+import io.github.Spyfall.view.game.PlayerGameStage;
 import io.github.Spyfall.view.game.SpyGameStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
@@ -127,18 +130,43 @@ public class GameplayController {
             data.setTimeRemaining(message.getRoundDuration());
             data.setRoundEnded(false);
             
+            if (data.getScoreboard() == null) {
+                data.setScoreboard(new HashMap<>());
+            }
         });
 
         Gdx.app.postRunnable(() -> {
-            if (gameModel.getCurrentState() != GameState.IN_GAME) {
-                gameModel.setCurrentState(GameState.IN_GAME);
-            }
-            
-            StageView currentStage = StageManager.getInstance().getStage();
-            if (currentStage instanceof BaseGameStage) {
-                BaseGameStage gameStage = (BaseGameStage) currentStage;
-                gameStage.resetRoundEndUI();
-                gameStage.startTimer(message.getRoundDuration());
+            try {
+                System.out.println("Creating proper game stage for round " + message.getRoundNumber());
+                
+                // Always create a new stage for each round since roles can change
+                ScreenViewport viewport = new ScreenViewport();
+                BaseGameStage newStage;
+                
+                if (isSpy) {
+                    System.out.println("Creating new SPY stage for round " + message.getRoundNumber());
+                    newStage = new SpyGameStage(message.getRole(), viewport);
+                } else {
+                    System.out.println("Creating new PLAYER stage for round " + message.getRoundNumber());
+                    newStage = new PlayerGameStage(message.getLocation(), message.getRole(), viewport);
+                }
+                
+                // Set the new stage
+                StageManager.getInstance().setStage(newStage);
+                
+                // Start timer
+                newStage.startTimer(message.getRoundDuration());
+                
+                System.out.println("Round " + message.getRoundNumber() + " stage created and activated");
+                
+                // For first round only, trigger state change
+                if (gameModel.getCurrentState() != GameState.IN_GAME) {
+                    gameModel.setCurrentState(GameState.IN_GAME);
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error in handleNewRound: " + e.getMessage());
+                e.printStackTrace();
             }
         });
         
