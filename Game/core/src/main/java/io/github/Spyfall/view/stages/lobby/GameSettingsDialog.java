@@ -1,4 +1,4 @@
-package io.github.Spyfall.view;
+package io.github.Spyfall.view.stages.lobby;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -10,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import io.github.Spyfall.model.GameModel;
-import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.websocket.SendMessageService;
 
 public class GameSettingsDialog extends Dialog {
@@ -23,8 +22,8 @@ public class GameSettingsDialog extends Dialog {
     private String lobbyCode;
     private GameModel gameModel;
 
-    public GameSettingsDialog(String title, Skin skin, String username, String lobbyCode) {
-        super(title, skin);
+    public GameSettingsDialog(Skin skin, String username, String lobbyCode) {
+        super("", skin);
         this.sendMessageService = SendMessageService.getInstance();
         this.gameModel = GameModel.getInstance();
         this.username = username;
@@ -65,7 +64,6 @@ public class GameSettingsDialog extends Dialog {
         // Add buttons
         TextButton saveButton = new TextButton("Save", getSkin());
         TextButton cancelButton = new TextButton("Cancel", getSkin());
-        TextButton startGameButton = new TextButton("Start Game", getSkin());
 
         saveButton.addListener(new ClickListener() {
             @Override
@@ -81,16 +79,8 @@ public class GameSettingsDialog extends Dialog {
             }
         });
 
-        startGameButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                startGame();
-            }
-        });
-
         button(saveButton);
         button(cancelButton);
-        button(startGameButton);
     }
 
     private void saveSettings() {
@@ -116,19 +106,5 @@ public class GameSettingsDialog extends Dialog {
             // Handle invalid input
             System.out.println("Invalid input: Please enter valid numbers");
         }
-    }
-
-    private void startGame() {
-        // First save the settings
-        saveSettings();
-
-        // Send start game message
-        sendMessageService.startGame(username, lobbyCode);
-
-        // Update game state
-        gameModel.setCurrentState(GameState.IN_GAME);
-
-        // Hide the dialog
-        hide();
     }
 }

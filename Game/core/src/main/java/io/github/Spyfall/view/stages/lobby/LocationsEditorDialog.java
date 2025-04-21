@@ -1,4 +1,4 @@
-package io.github.Spyfall.view;
+package io.github.Spyfall.view.stages.lobby;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -16,14 +16,12 @@ import io.github.Spyfall.services.websocket.SendMessageService;
 
 public class LocationsEditorDialog extends Dialog {
     private Skin skin;
-    private String lobbyCode;
     private SendMessageService sendMsgService;
     private VerticalGroup locationsGroup;
 
-    public LocationsEditorDialog(Skin skin, String lobbyCode) {
+    public LocationsEditorDialog(Skin skin) {
         super("Edit Locations", skin);
         this.skin = skin;
-        this.lobbyCode = lobbyCode;
         this.sendMsgService = SendMessageService.getInstance();
 
         initDialog();

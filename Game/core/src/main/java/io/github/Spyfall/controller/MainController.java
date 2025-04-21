@@ -5,7 +5,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
-import io.github.Spyfall.view.GameConfigStage;
 import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.stages.lobby.LobbyStage;
@@ -51,14 +50,6 @@ public class MainController implements GameStateObserver {
         LobbyStage lobbyStage = new LobbyStage(viewport);
         System.out.println("We initialize lobbystage");
         stageManager.setStage(lobbyStage);
-    }
-
-    public void setGameConfigStage() {
-        System.out.println(gameModel.getLobbyCode());
-        GameConfigStage gameConfigStage = new GameConfigStage(
-                viewport,
-                gameModel.getLobbyCode());
-        stageManager.setStage(gameConfigStage);
     }
 
     public void setGameLobbyStage() {

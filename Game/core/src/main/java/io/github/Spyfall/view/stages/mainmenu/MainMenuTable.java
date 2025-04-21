@@ -23,7 +23,7 @@ public class MainMenuTable extends Table {
         // Logo
         Image logo = new Image(new Texture("logo-Photoroom.png"));
         add(logo)
-                .prefWidth(Value.percentWidth(UIConstants.BUTTON_WIDTH_PERCENT, this))
+                .prefWidth(Value.percentWidth(UIConstants.LOGO_WIDTH_PERCENT, this))
                 .prefHeight(Value.percentHeight(UIConstants.LOGO_HEIGHT_PERCENT, this))
                 .padBottom(Value.percentHeight(UIConstants.VERTICAL_GAP_PERCENT, this))
                 .row();

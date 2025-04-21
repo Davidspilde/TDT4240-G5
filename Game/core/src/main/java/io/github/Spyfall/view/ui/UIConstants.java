@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color;
  */
 public class UIConstants {
     public static final float LOGO_HEIGHT_PERCENT = 0.25f;
+    public static final float LOGO_WIDTH_PERCENT = 1f;
     public static final float BUTTON_WIDTH_PERCENT = 0.6f;
     public static final float BUTTON_HEIGHT_PERCENT = 0.08f;
     public static final float VERTICAL_GAP_PERCENT = 0.03f;

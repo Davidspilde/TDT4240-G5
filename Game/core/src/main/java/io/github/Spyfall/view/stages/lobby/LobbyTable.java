@@ -31,7 +31,7 @@ public class LobbyTable extends Table {
         // Subcomponents
         lobbyInfoTable = new LobbyInfoTable(skin, gameModel, H);
         playersTable = new LobbyPlayersTable(skin, gameModel, W, H);
-        buttonsTable = new LobbyButtonsTable(skin, controller, gameModel);
+        buttonsTable = new LobbyButtonsTable(skin, controller, stage, gameModel);
 
         // Layout
         add(lobbyInfoTable).padBottom(H * UIConstants.VERTICAL_GAP_PERCENT).row();
