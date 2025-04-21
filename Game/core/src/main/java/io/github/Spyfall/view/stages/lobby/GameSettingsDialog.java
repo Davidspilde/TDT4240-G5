@@ -9,53 +9,63 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
-import io.github.Spyfall.model.GameModel;
-import io.github.Spyfall.services.websocket.SendMessageService;
+import io.github.Spyfall.controller.LobbyController;
+import io.github.Spyfall.model.LobbyData;
 
 public class GameSettingsDialog extends Dialog {
     private TextField roundTimeField;
-    private TextField spyCountField;
+    private TextField spyLastAttemptField;
     private TextField roundLimitField;
     private TextField maxPlayersField;
-    private SendMessageService sendMessageService;
-    private String username;
-    private String lobbyCode;
-    private GameModel gameModel;
+    private TextField locationLimitField;
+    private LobbyController lobbyController;
 
-    public GameSettingsDialog(Skin skin, String username, String lobbyCode) {
+    public GameSettingsDialog(Skin skin, LobbyController lobbyController) {
         super("", skin);
-        this.sendMessageService = SendMessageService.getInstance();
-        this.gameModel = GameModel.getInstance();
-        this.username = username;
-        this.lobbyCode = lobbyCode;
+        this.lobbyController = lobbyController;
         initDialog();
     }
 
     private void initDialog() {
+
+        LobbyData lobbyData = lobbyController.getLobbyData();
+        // The Current settings
+        String CurrentRoundTime = Integer.toString(lobbyData.getTimePerRound() / 60);
+        String CurrentRoundLimit = Integer.toString(lobbyData.getRoundLimit());
+        String currentMaxPlayers = Integer.toString(lobbyData.getMaxPlayers());
+        String currentLocationLimit = Integer.toString(lobbyData.getLocationLimit());
+        String currentSpyLastAttemptTime = Integer.toString(lobbyData.getSpyLastAttemptTime());
+
         Table settingsTable = new Table();
         settingsTable.pad(10);
 
-        // Round time input (1-10 minutes)
+        // Round time input
         settingsTable.add(new Label("Round Time (minutes):", getSkin())).left().pad(5).row();
-        roundTimeField = new TextField("2", getSkin());
+        roundTimeField = new TextField(CurrentRoundTime, getSkin());
         roundTimeField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
         settingsTable.add(roundTimeField).width(200).pad(5).row();
 
-        // Spy count input (1-5 spies)
-        settingsTable.add(new Label("Number of Spies:", getSkin())).left().pad(5).row();
-        spyCountField = new TextField("1", getSkin());
-        spyCountField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        settingsTable.add(spyCountField).width(200).pad(5).row();
+        // Spy last attempt time input
+        settingsTable.add(new Label("Spy Last Attempt Time (Seconds):", getSkin())).left().pad(5).row();
+        spyLastAttemptField = new TextField(currentSpyLastAttemptTime, getSkin());
+        spyLastAttemptField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
+        settingsTable.add(spyLastAttemptField).width(200).pad(5).row();
 
-        // Round limit input (1-10 rounds)
+        // Locations limit input
+        settingsTable.add(new Label("Locations limit:", getSkin())).left().pad(5).row();
+        locationLimitField = new TextField(currentLocationLimit, getSkin());
+        locationLimitField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
+        settingsTable.add(locationLimitField).width(200).pad(5).row();
+
+        // Round limit input
         settingsTable.add(new Label("Round Limit:", getSkin())).left().pad(5).row();
-        roundLimitField = new TextField("3", getSkin());
+        roundLimitField = new TextField(CurrentRoundLimit, getSkin());
         roundLimitField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
         settingsTable.add(roundLimitField).width(200).pad(5).row();
 
-        // Max players input (4-10 players)
+        // Max players input
         settingsTable.add(new Label("Maximum Players:", getSkin())).left().pad(5).row();
-        maxPlayersField = new TextField("6", getSkin());
+        maxPlayersField = new TextField(currentMaxPlayers, getSkin());
         maxPlayersField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
         settingsTable.add(maxPlayersField).width(200).pad(5).row();
 
@@ -85,21 +95,13 @@ public class GameSettingsDialog extends Dialog {
 
     private void saveSettings() {
         try {
-            int roundTime = Integer.parseInt(roundTimeField.getText());
-            int spyCount = Integer.parseInt(spyCountField.getText());
+            int roundTime = Integer.parseInt(roundTimeField.getText()) * 60;
+            int spyLastAttemptTime = Integer.parseInt(spyLastAttemptField.getText());
             int roundLimit = Integer.parseInt(roundLimitField.getText());
             int maxPlayers = Integer.parseInt(maxPlayersField.getText());
+            int locationLimit = Integer.parseInt(locationLimitField.getText());
 
-            // Need to make setting for spylastAttemptTime
-            int spyLastAttemptTime = 60;
-
-            // Validate input ranges
-            roundTime = Math.max(1, Math.min(10, roundTime));
-            spyCount = Math.max(1, Math.min(5, spyCount));
-            roundLimit = Math.max(1, Math.min(10, roundLimit));
-            maxPlayers = Math.max(4, Math.min(10, maxPlayers));
-
-            sendMessageService.updateLobbyOptions(username, lobbyCode, roundLimit, spyCount, maxPlayers, roundTime * 60,
+            lobbyController.updateLobbyOptions(roundLimit, locationLimit, maxPlayers, roundTime,
                     spyLastAttemptTime);
             hide();
         } catch (NumberFormatException e) {

@@ -1,6 +1,7 @@
 package io.github.Spyfall.controller;
 
 import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.model.LobbyData;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.GameRulesStage;

@@ -59,7 +59,7 @@ public class LobbyButtonsTable extends Table {
         editGameSettingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                new GameSettingsDialog(skin, gameModel.getUsername(), gameModel.getLobbyCode()).show(stage);
+                new GameSettingsDialog(skin, controller).show(stage);
             }
         });
 

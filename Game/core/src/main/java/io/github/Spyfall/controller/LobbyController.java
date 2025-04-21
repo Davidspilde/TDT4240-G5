@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.model.LobbyData;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
@@ -68,28 +69,23 @@ public class LobbyController {
         } else {
             System.out.println("WRONG STATE: " + gameModel.getCurrentState());
         }
+        // Send default lobby settings to backend
+        int roundLimit = gameModel.getLobbyData().getRoundLimit();
+        int locationCount = gameModel.getLobbyData().getLocationLimit();
+        int maxPlayers = gameModel.getLobbyData().getMaxPlayers();
+        int timePerRound = gameModel.getLobbyData().getTimePerRound();
+        int spyLastAttemptTime = gameModel.getLobbyData().getSpyLastAttemptTime();
+
+        updateLobbyOptions(roundLimit, locationCount, maxPlayers, timePerRound, spyLastAttemptTime);
     }
 
     public void handleGameStarted() {
 
     }
 
-    public void createLobby(String username) {
-        AudioService.getInstance().playSound("click");
-
-        // validate username
-        if (username == null || username.trim().isEmpty()) {
-            System.out.println("Username is empty");
-            return;
-        }
-        gameModel.setUsername(username);
-        gameModel.getLobbyData().setHostPlayer(username);
-
-        sendMessageService.createLobby(username);
-    }
-
-    public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
+    public void updateLobbyOptions(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
             int spyLastAttemptTime) {
+
         boolean success = sendMessageService.updateLobbyOptions(
                 gameModel.getUsername(),
                 gameModel.getLobbyCode(),
@@ -98,7 +94,6 @@ public class LobbyController {
                 maxPlayers,
                 timePerRound,
                 spyLastAttemptTime);
-
         if (success) {
             // Update local model immediately, it will be confirmed by server response
             gameModel.getLobbyData().setRoundLimit(roundLimit);
@@ -142,4 +137,9 @@ public class LobbyController {
             e.printStackTrace();
         }
     }
+
+    public LobbyData getLobbyData() {
+        return GameModel.getInstance().getLobbyData();
+    }
+
 }
