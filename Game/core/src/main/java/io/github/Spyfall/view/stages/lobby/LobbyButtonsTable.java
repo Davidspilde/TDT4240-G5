@@ -52,7 +52,7 @@ public class LobbyButtonsTable extends Table {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("Edit Locations");
-                new LocationsEditorDialog(skin).show(stage);
+                new LocationsEditorDialog(skin, controller).show(stage);
             }
         });
 

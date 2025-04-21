@@ -38,6 +38,7 @@ public class MessageDispatcher {
                 System.out.println("No handler registered for event type: " + event);
                 return;
             }
+            System.out.println("Handler with event: " + event);
             dispatchToHandler(handler, json);
         } catch (Exception e) {
             System.err.println(e);
