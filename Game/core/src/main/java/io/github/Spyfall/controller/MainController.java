@@ -13,7 +13,7 @@ import io.github.Spyfall.view.createGame.GameConfigStage;
 import io.github.Spyfall.view.game.GameOverStage;
 import io.github.Spyfall.view.lobby.LobbyStage;
 import io.github.Spyfall.view.mainMenu.MainMenuStage;
-public class MainController implements GameStateObserver, MessageHandler {
+public class MainController implements GameStateObserver {
     private static MainController instance;
     private StageManager stageManager;
     private GameModel gameModel;
@@ -60,7 +60,7 @@ public class MainController implements GameStateObserver, MessageHandler {
 
     public void setLobbyStage() {
         // lobby is where players join before game starts
-        System.out.println("We also get to setLobbStage");
+        System.out.println("We also get to setLobbyStage");
         LobbyStage lobbyStage = new LobbyStage(viewport);
         System.out.println("We initialize lobbystage");
         stageManager.setStage(lobbyStage);
@@ -75,30 +75,11 @@ public class MainController implements GameStateObserver, MessageHandler {
         stageManager.setStage(gameConfigStage);
     }
     
-    // public void setGameLobbyStage() {
-    //     GameLobbyStage gameLobbyStage = new GameLobbyStage(
-    //         gameModel.getGameData().isSpy(),
-    //         gameModel.getGameData().getLocation(), 
-    //         gameModel.getGameData().getRole(),
-    //         viewport);
-    //     stageManager.setStage(gameLobbyStage);
-    // }
     public void setGameOverStage() {
         GameOverStage gameOverStage = new GameOverStage(gameModel.getGameData().getScoreboard(), viewport);
         stageManager.setStage(gameOverStage);
     }
 
-    // public void setSpyStage() {
-    //     SpyGameStage spyGameStage = new SpyGameStage(gameModel.getGameData().getRole(), viewport);
-    //     stageManager.setStage(spyGameStage);
-    // }
-
-    // public void setPlayerStage() {
-    //     GameData gameData = gameModel.getGameData();
-
-    //     PlayerGameStage playerGameStage = new PlayerGameStage(gameData.getLocation(),gameData.getRole(), viewport);
-    //     stageManager.setStage(playerGameStage);
-    // }
     
     // implementation of GameStateObserver
     @Override

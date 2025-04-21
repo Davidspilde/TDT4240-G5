@@ -17,7 +17,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.StageManager;
-import io.github.Spyfall.services.SendMessageService;
+import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.controller.MainController;

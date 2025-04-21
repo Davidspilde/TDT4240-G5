@@ -18,7 +18,9 @@ public class LobbyLocationsUpdateHandler implements WebSocketMessageHandler<Lobb
 
     @Override
     public void handle(LobbyLocationsUpdateMessage message) {
-        LobbyController lobbyController = LobbyController.getInstance();
+        LobbyController controller = LobbyController.getInstance();
+
+        controller.handleLocationsUpdate(message.getLocations());
 
     }
 

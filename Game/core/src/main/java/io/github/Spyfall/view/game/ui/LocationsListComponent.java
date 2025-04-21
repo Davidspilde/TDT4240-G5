@@ -15,14 +15,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.controller.GameplayController;
+import io.github.Spyfall.model.Location;
 
 /**
  * Component for displaying possible locations list for the spy
  */
 public class LocationsListComponent extends GameComponent {
 
-    private List<String> locations;
-    private Set<String> greyedOutLocations = new HashSet<>();
+    private List<Location> locations;
+    private Set<Location> greyedOutLocations = new HashSet<>();
     private GameplayController controller;
     
     public LocationsListComponent(Skin skin, GameplayController controller) {
@@ -43,7 +44,7 @@ public class LocationsListComponent extends GameComponent {
     /**
      * Set possible locations list
      */
-    public void setLocations(List<String> locations) {
+    public void setLocations(List<Location> locations) {
         this.locations = locations;
         update();
     }
@@ -51,7 +52,7 @@ public class LocationsListComponent extends GameComponent {
     /**
      * Set greyed out locations
      */
-    public void setGreyedOutLocations(Set<String> greyedOutLocations) {
+    public void setGreyedOutLocations(Set<Location> greyedOutLocations) {
         this.greyedOutLocations = greyedOutLocations != null ? 
                                   greyedOutLocations : new HashSet<>();
         update();
@@ -94,10 +95,10 @@ public class LocationsListComponent extends GameComponent {
         float toggleColWidth = availableWidth * 0.15f;  
         float guessColWidth = availableWidth * 0.25f;  
 
-        for (String location : locations) {
+        for (Location location : locations) {
             boolean isGreyedOut = greyedOutLocations.contains(location);
             
-            Label locationLabel = new Label(isGreyedOut ? "[" + location + "]" : location, skin);
+            Label locationLabel = new Label(isGreyedOut ? "[" + location.getName() + "]" : location.getName(), skin);
             locationLabel.setWrap(true);
             locationLabel.setAlignment(Align.left);
             

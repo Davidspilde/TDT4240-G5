@@ -10,7 +10,6 @@ public class GameCompleteMessage extends ResponseMessage {
     }
 
     public HashMap<String, Integer> getScoreboard() {
-    public HashMap<String, Integer> getScoreboard() {
         return scoreboard;
     }
 

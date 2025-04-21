@@ -15,8 +15,8 @@ public class GameData {
     private int spyLastAttemptDuration = 45;
     private int totalRounds;
     private int timeRemaining;
-    private List<String> possibleLocations = new ArrayList<>();
-    private Set<String> greyedOutLocations = new HashSet<>();
+    private List<Location> possibleLocations = new ArrayList<>();
+    private Set<Location> greyedOutLocations = new HashSet<>();
     private boolean roundEnded;
     private String isSpyUsername;
     private HashMap<String, Integer> scoreboard;
@@ -93,19 +93,19 @@ public class GameData {
         this.timeRemaining = timeRemaining;
     }
     
-    public List<String> getPossibleLocations() {
+    public List<Location> getPossibleLocations() {
         return possibleLocations;
     }
     
-    public void setPossibleLocations(List<String> possibleLocations) {
+    public void setPossibleLocations(List<Location> possibleLocations) {
         this.possibleLocations = possibleLocations;
     }
 
-    public Set<String> getGreyedOutLocations() {
+    public Set<Location> getGreyedOutLocations() {
         return greyedOutLocations;
     }
 
-    public void toggleLocationGreyout(String location) {
+    public void toggleLocationGreyout(Location location) {
         if (greyedOutLocations.contains(location)) {
             greyedOutLocations.remove(location);
         } else {
