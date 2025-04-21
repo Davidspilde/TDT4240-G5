@@ -128,6 +128,7 @@ www-test/
 /headless/dist/
 /server/dist/
 /shared/dist/
+.env
 
 /nbdist/
 /android/nbdist/
