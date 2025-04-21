@@ -5,21 +5,17 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
-import io.github.Spyfall.view.CreateGameStage;
 import io.github.Spyfall.view.GameConfigStage;
 import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.LobbyStage;
-import io.github.Spyfall.view.MainMenuStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.stages.mainmenu.MainMenuStage;
 
 public class MainController implements GameStateObserver {
     private static MainController instance;
     private StageManager stageManager;
     private GameModel gameModel;
     private ScreenViewport viewport;
-
-    // sub-controllers
-    private MainMenuController mainMenuController;
 
     private MainController(ScreenViewport viewport) {
         this.viewport = viewport;
@@ -28,9 +24,6 @@ public class MainController implements GameStateObserver {
 
         // register as observer
         gameModel.addObserver(this);
-
-        // Init sub-controllers
-        this.mainMenuController = MainMenuController.getInstance();
 
         // Initial state is main menu
         setMainMenuStage();
@@ -48,13 +41,8 @@ public class MainController implements GameStateObserver {
     }
 
     public void setMainMenuStage() {
-        MainMenuStage mainMenuStage = new MainMenuStage(viewport, mainMenuController);
+        MainMenuStage mainMenuStage = new MainMenuStage(viewport);
         stageManager.setStage(mainMenuStage);
-    }
-
-    public void setCreateGameStage() {
-        CreateGameStage createGameStage = new CreateGameStage(viewport);
-        stageManager.setStage(createGameStage);
     }
 
     public void setLobbyStage() {
@@ -68,9 +56,8 @@ public class MainController implements GameStateObserver {
     public void setGameConfigStage() {
         System.out.println(gameModel.getLobbyCode());
         GameConfigStage gameConfigStage = new GameConfigStage(
-            viewport,
-            gameModel.getLobbyCode()
-        );
+                viewport,
+                gameModel.getLobbyCode());
         stageManager.setStage(gameConfigStage);
     }
 
@@ -88,27 +75,26 @@ public class MainController implements GameStateObserver {
     public void onGameStateChanged(GameModel model) {
         // update view based on model state
         Gdx.app.postRunnable(() -> {
-        switch (model.getCurrentState()) {
-            case MAIN_MENU -> {
-                System.out.println("State: MAIN MENU");
-                setMainMenuStage();
+            switch (model.getCurrentState()) {
+                case MAIN_MENU -> {
+                    System.out.println("State: MAIN MENU");
+                    setMainMenuStage();
+                }
+                case LOBBY -> {
+                    System.out.println("State: LOBBY");
+                    setLobbyStage();
+                }
+                case GAME_CONFIG -> {
+                    System.out.println("State: Game-Config");
+                    setGameConfigStage(); // runs safely on the render thread
+                }
+                case IN_GAME -> {
+                    System.out.println("State: IN-GAME");
+                    setGameLobbyStage();
+                }
+                default -> System.out.println("Something went wrong with state");
             }
-            case CREATE_GAME -> setCreateGameStage();
-            case LOBBY -> {
-                System.out.println("State: LOBBY");
-                setLobbyStage();
-            }
-            case GAME_CONFIG -> {
-                System.out.println("State: Game-Config");
-                setGameConfigStage();  // runs safely on the render thread
-            }
-            case IN_GAME -> {
-                System.out.println("State: IN-GAME");
-                setGameLobbyStage();
-            }
-            default -> System.out.println("Something went wrong with state");
-        }
-    });
+        });
     }
 
     public GameModel getGameModel() {

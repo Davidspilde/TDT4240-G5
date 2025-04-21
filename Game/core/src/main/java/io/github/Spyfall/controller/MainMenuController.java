@@ -1,7 +1,6 @@
 package io.github.Spyfall.controller;
 
 import io.github.Spyfall.model.GameModel;
-import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.GameRulesStage;
@@ -21,10 +20,18 @@ public class MainMenuController {
         return (instance == null) ? (instance = new MainMenuController()) : instance;
     }
 
-    public void onCreateGame() {
+    public void onCreateLobby(String username) {
         AudioService.getInstance().playSound("click");
-        gameModel.setCurrentState(GameState.CREATE_GAME);
-        System.out.println("state:" + gameModel.getCurrentState());
+
+        // validate username
+        if (username == null || username.trim().isEmpty()) {
+            System.out.println("Username is empty");
+            return;
+        }
+        gameModel.setUsername(username);
+        gameModel.getLobbyData().setHostPlayer(username);
+
+        sendMessageService.createLobby(username);
     }
 
     public void onJoinLobby(String username, String lobbyCode) {
