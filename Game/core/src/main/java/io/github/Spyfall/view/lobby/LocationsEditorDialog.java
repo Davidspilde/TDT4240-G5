@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.Location;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.ui.UIConstants;
 
 import java.util.ArrayList;
@@ -19,10 +20,12 @@ import java.util.List;
 public class LocationsEditorDialog extends Dialog {
     private final Table locationsTable;
     private final LobbyController lobbyController;
+    private final AudioService audioService;
     private ScrollPane scrollPane;
 
-    public LocationsEditorDialog(Skin skin, LobbyController lobbyController, Stage stage) {
+    public LocationsEditorDialog(Skin skin, LobbyController lobbyController, Stage stage, AudioService audioService) {
         super("Edit Locations", skin);
+        this.audioService = audioService;
         this.lobbyController = lobbyController;
         this.locationsTable = new Table(skin);
         locationsTable.top().left();
@@ -55,6 +58,7 @@ public class LocationsEditorDialog extends Dialog {
         addBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
+                audioService.playSound("click");
                 String name = newLoc.getText().trim();
                 if (!name.isEmpty()) {
                     addLocation(new Location(name, new ArrayList<>()));
@@ -81,7 +85,7 @@ public class LocationsEditorDialog extends Dialog {
     }
 
     private void addLocation(Location loc) {
-        LocationRow row = new LocationRow(loc, getSkin(), this);
+        LocationRow row = new LocationRow(loc, getSkin(), this, audioService);
         locationsTable.add(row).expandX().fillX().row();
     }
 
@@ -108,7 +112,10 @@ public class LocationsEditorDialog extends Dialog {
     // Runs if save is clicked
     @Override
     protected void result(Object obj) {
+
+        audioService.playSound("click");
         if ((Boolean) obj) {
+
             List<Location> updated = getAllLocations();
             lobbyController.updateLobbyLocations(updated);
         }

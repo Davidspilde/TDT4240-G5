@@ -22,6 +22,8 @@ public class LobbyStage extends StageView {
 
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
+        // Resets the music
+        AudioService.getInstance().playMusic("background", true);
         // Add main UI
         lobbyTable = new LobbyTable(skin, controller, gameModel, stage);
         stage.addActor(lobbyTable);

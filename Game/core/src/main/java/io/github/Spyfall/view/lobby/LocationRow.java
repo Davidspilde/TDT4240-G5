@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import io.github.Spyfall.model.Location;
+import io.github.Spyfall.services.AudioService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +18,13 @@ public class LocationRow extends Table {
     private final Table rolesListTable;
     private final List<TextField> roleFields = new ArrayList<>();
     private final LocationsEditorDialog parentDialog;
+    private final AudioService audioService;
     private boolean expanded = false;
 
-    public LocationRow(Location location, Skin skin, LocationsEditorDialog parentDialog) {
+    public LocationRow(Location location, Skin skin, LocationsEditorDialog parentDialog, AudioService audioService) {
         super(skin);
         this.skin = skin;
+        this.audioService = audioService;
         this.parentDialog = parentDialog;
         this.padBottom(10);
 
@@ -34,6 +37,8 @@ public class LocationRow extends Table {
         expandButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+
+                audioService.playSound("click");
                 toggleRoles();
             }
         });
@@ -42,6 +47,8 @@ public class LocationRow extends Table {
         deleteButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
+
+                audioService.playSound("click");
                 parentDialog.removeLocationRow(LocationRow.this);
                 pack();
             }
@@ -107,6 +114,8 @@ public class LocationRow extends Table {
             removeBtn.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent e, float x, float y) {
+
+                    audioService.playSound("click");
                     roleFields.remove(tf);
                     rebuildRolesUI();
                     parentDialog.pack();
@@ -130,6 +139,8 @@ public class LocationRow extends Table {
         addRoleBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
+
+                audioService.playSound("click");
                 TextField newField = new TextField("", skin);
                 newField.setMessageText("Role name");
                 roleFields.add(newField);

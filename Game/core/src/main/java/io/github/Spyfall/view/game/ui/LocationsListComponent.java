@@ -1,11 +1,12 @@
+
 package io.github.Spyfall.view.game.ui;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -16,124 +17,111 @@ import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.model.Location;
+import io.github.Spyfall.services.AudioService;
 
-/**
- * Component for displaying possible locations list for the spy
- */
 public class LocationsListComponent extends GameComponent {
 
     private List<Location> locations;
-    private Set<Location> greyedOutLocations = new HashSet<>();
-    private GameplayController controller;
+    private final GameplayController controller;
+    private final Stage stage;
+    private final AudioService audioService;
 
-    public LocationsListComponent(Skin skin, GameplayController controller) {
+    public LocationsListComponent(Skin skin, GameplayController controller, Stage stage, AudioService audioService) {
         super(skin);
         this.controller = controller;
+        this.stage = stage;
+        this.audioService = audioService;
     }
 
     @Override
     protected void create() {
         rootTable.top();
 
-        Label locationsHeader = new Label("Possible Locations", skin);
-        locationsHeader.setAlignment(Align.center);
-        locationsHeader.setFontScale(1.2f);
-        rootTable.add(locationsHeader).colspan(3).padBottom(20).row();
+        Label header = new Label("Possible Locations", skin);
+        header.setAlignment(Align.center);
+        header.setFontScale(1.2f);
+        rootTable.add(header).colspan(3).padBottom(20).row();
     }
 
-    /**
-     * Set possible locations list
-     */
     public void setLocations(List<Location> locations) {
         this.locations = locations;
         update();
     }
 
-    /**
-     * Set greyed out locations
-     */
-    public void setGreyedOutLocations(Set<Location> greyedOutLocations) {
-        this.greyedOutLocations = greyedOutLocations != null ? greyedOutLocations : new HashSet<>();
-        update();
-    }
-
     @Override
     public void update() {
-
         rootTable.clear();
         rootTable.top();
 
-        Table headerTable = new Table();
-
-        Label locationsHeader = new Label("Possible Locations", skin);
-        locationsHeader.setAlignment(Align.center);
-        locationsHeader.setFontScale(1f);
-
-        headerTable.add(locationsHeader).expandX().fillX().padBottom(10);
-        rootTable.add(headerTable).fillX().expandX().row();
+        Label header = new Label("Possible Locations", skin);
+        header.setAlignment(Align.center);
+        header.setFontScale(1.2f);
+        rootTable.add(header).colspan(3).padBottom(20).row();
 
         if (locations == null || locations.isEmpty()) {
             Label noLocationsLabel = new Label("No locations available", skin);
             noLocationsLabel.setAlignment(Align.center);
             noLocationsLabel.setFontScale(0.8f);
-            rootTable.add(noLocationsLabel).expandX().fillX().padTop(20);
+            rootTable.add(noLocationsLabel).colspan(3).padTop(20).row();
             return;
         }
 
-        ScrollPane scrollPane = new ScrollPane(null, skin);
         Table locationsTable = new Table();
-        locationsTable.top();
-        locationsTable.defaults().pad(5);
+        locationsTable.top().pad(10);
+        locationsTable.defaults().pad(8).width(200).height(70);
 
-        float availableWidth = rootTable.getWidth();
-        if (availableWidth <= 0) {
-            availableWidth = 400f;
-        }
-
-        float locationColWidth = availableWidth * 0.6f;
-        float toggleColWidth = availableWidth * 0.15f;
-        float guessColWidth = availableWidth * 0.25f;
+        int itemsPerRow = 3;
+        int colCount = 0;
 
         for (Location location : locations) {
-            boolean isGreyedOut = greyedOutLocations.contains(location);
+            TextButton locationButton = new TextButton(location.getName(), skin);
+            locationButton.getLabel().setWrap(true);
+            locationButton.getLabel().setAlignment(Align.center);
+            locationButton.getLabel().setFontScale(1.0f);
 
-            Label locationLabel = new Label(isGreyedOut ? "[" + location.getName() + "]" : location.getName(), skin);
-            locationLabel.setWrap(true);
-            locationLabel.setAlignment(Align.left);
+            locationButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    audioService.playSound("click");
+                    showConfirmationPopup(location.getName());
+                }
+            });
 
-            if (isGreyedOut) {
-                locationLabel.setColor(Color.GRAY);
+            locationsTable.add(locationButton).expand().fill();
+
+            colCount++;
+            if (colCount % itemsPerRow == 0) {
+                locationsTable.row();
             }
-
-            TextButton toggleButton = new TextButton(isGreyedOut ? "✓" : "✗", skin);
-            toggleButton.addListener(new ClickListener() {
-                @Override
-                public void clicked(InputEvent event, float x, float y) {
-                    controller.toggleLocationGreyout(location);
-                }
-            });
-
-            TextButton guessButton = new TextButton("Guess", skin);
-            guessButton.addListener(new ClickListener() {
-                @Override
-                public void clicked(InputEvent event, float x, float y) {
-                    System.out.println("spyguessed");
-                    controller.onSpyGuess(location.getName());
-                }
-            });
-
-            locationsTable.add(locationLabel).width(locationColWidth).fillX().left();
-            locationsTable.add(toggleButton).width(toggleColWidth).fillX().center();
-            locationsTable.add(guessButton).width(guessColWidth).fillX().right().row();
         }
 
-        scrollPane.setActor(locationsTable);
+        ScrollPane scrollPane = new ScrollPane(locationsTable, skin);
         scrollPane.setScrollingDisabled(true, false);
         scrollPane.setFadeScrollBars(false);
         scrollPane.setForceScroll(false, true);
         scrollPane.setSmoothScrolling(true);
 
-        rootTable.add(scrollPane).expand().fill();
+        Table scrollWrapper = new Table();
+        scrollWrapper.padLeft(8).padRight(8);
+        scrollWrapper.add(scrollPane).expand().fill();
+
+        rootTable.add(scrollWrapper).expand().fill().colspan(3).row();
     }
 
+    private void showConfirmationPopup(String locationName) {
+        Dialog confirmDialog = new Dialog("Confirm Guess", skin) {
+            @Override
+            protected void result(Object object) {
+                audioService.playSound("click");
+                if (Boolean.TRUE.equals(object)) {
+                    controller.onSpyGuess(locationName);
+                }
+            }
+        };
+
+        confirmDialog.text("Guess location \"" + locationName + "\"?");
+        confirmDialog.button("Yes", true);
+        confirmDialog.button("Cancel", false);
+        confirmDialog.show(stage);
+    }
 }

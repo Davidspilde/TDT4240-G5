@@ -7,8 +7,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.ui.UIConstants;
 
 public class LobbyTable extends Table {
@@ -22,7 +24,7 @@ public class LobbyTable extends Table {
         setFillParent(true);
         top();
 
-        setBackground(new TextureRegionDrawable(new TextureRegion(new Texture("Background_city.png"))));
+        setBackground(new TextureRegionDrawable(new TextureRegion(AssetLoader.mainBackground)));
 
         float W = stage.getViewport().getWorldWidth();
         float H = stage.getViewport().getWorldHeight();
@@ -30,7 +32,7 @@ public class LobbyTable extends Table {
         // Subcomponents
         lobbyInfoTable = new LobbyInfoTable(skin, gameModel, H);
         playersTable = new LobbyPlayersTable(skin, gameModel, W, H);
-        buttonsTable = new LobbyButtonsTable(skin, controller, stage, gameModel);
+        buttonsTable = new LobbyButtonsTable(skin, controller, stage, gameModel, AudioService.getInstance());
 
         // Layout
         add(lobbyInfoTable).padBottom(H * UIConstants.VERTICAL_GAP_PERCENT).row();

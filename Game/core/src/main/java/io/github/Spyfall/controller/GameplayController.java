@@ -15,6 +15,7 @@ import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.GameOverStage;
 import io.github.Spyfall.view.game.GameStage;
+import io.github.Spyfall.view.lobby.LobbyStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 /**
@@ -26,7 +27,7 @@ public class GameplayController {
 
     // services
     private SendMessageService sendMessageService;
-    private AudioService audioService;
+    private StageManager stageManager;
 
     // model reference
     private GameModel gameModel;
@@ -36,8 +37,8 @@ public class GameplayController {
      */
     private GameplayController() {
         this.gameModel = GameModel.getInstance();
+        this.stageManager = StageManager.getInstance();
         this.sendMessageService = SendMessageService.getInstance();
-        this.audioService = AudioService.getInstance();
     }
 
     /**
@@ -64,8 +65,6 @@ public class GameplayController {
                 data.setScoreboard(scoreboard);
             }
         });
-
-        audioService.playMusic("victory", true);
 
         if (gameModel.getCurrentState() != GameState.GAME_OVER) {
             gameModel.setCurrentState(GameState.GAME_OVER);
@@ -240,37 +239,17 @@ public class GameplayController {
         if (user.equals(target)) {
             ErrorPopup.getInstance().showClientError("Cannot vote for yourself");
         } else {
-            audioService.playSound("click");
             System.out.println(user + " voted for player: " + target);
             sendMessageService.vote(user, target, lobbyCode);
         }
 
     }
 
-    /**
-     * Leave the current game and return to main menu
-     * this is not allowed
-     * public void leaveGame() {
-     * audioService.playSound("click");
-     *
-     * sendMessageService.leaveLobby(gameModel.getUsername(),
-     * gameModel.getLobbyCode());
-     *
-     * // transition back to main menu
-     * gameModel.setCurrentState(GameState.MAIN_MENU);
-     * }
-     *
-     */
-
-    /**
-     * Toggle greying out a location as a spy
-     *
-     * @param location
-     */
-    public void toggleLocationGreyout(Location location) {
-        gameModel.getGameData().toggleLocationGreyout(location);
-        System.out.println("Greyed out location: " + location);
-
+    // Only after game_over
+    public void backTolobby() {
+        ScreenViewport viewport = new ScreenViewport();
+        LobbyStage lobbyStage = new LobbyStage(viewport);
+        stageManager.setStage(lobbyStage);
     }
 
     /**

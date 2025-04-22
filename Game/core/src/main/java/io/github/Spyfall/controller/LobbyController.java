@@ -127,7 +127,6 @@ public class LobbyController {
      * @param username
      */
     public void createLobby(String username) {
-        AudioService.getInstance().playSound("click");
 
         // validate username
         if (username == null || username.trim().isEmpty()) {
@@ -173,7 +172,6 @@ public class LobbyController {
      * Send startGame request
      */
     public void startGame() {
-        AudioService.getInstance().playSound("click");
 
         // only the host can start the game
         if (!gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer())) {
@@ -196,7 +194,6 @@ public class LobbyController {
      */
     public void leaveLobby() {
         try {
-            AudioService.getInstance().playSound("click");
             SendMessageService.getInstance().leaveLobby(gameModel.getUsername(), gameModel.getLobbyCode());
             gameModel.setCurrentState(GameState.MAIN_MENU); // transitition to main menu
 

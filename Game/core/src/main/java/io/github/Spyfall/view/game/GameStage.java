@@ -38,13 +38,12 @@ public class GameStage extends BaseGameStage {
         playerInfoComponent.setRole(roleName);
         playerInfoComponent.setLocation(isSpy ? "???" : locationName);
 
-        playersListComponent = new PlayersList(skin, gameModel.getUsername(), controller);
+        playersListComponent = new PlayersList(skin, gameModel.getUsername(), controller, AudioService.getInstance());
         playersListComponent.setPlayers(gameModel.getLobbyData().getPlayers());
 
         if (isSpy) {
-            locationsComponent = new LocationsListComponent(skin, controller);
+            locationsComponent = new LocationsListComponent(skin, controller, stage, AudioService.getInstance());
             locationsComponent.setLocations(gameModel.getGameData().getPossibleLocations());
-            locationsComponent.setGreyedOutLocations(gameModel.getGameData().getGreyedOutLocations());
         }
 
         spyRevealLabel = new Label("", skin);
@@ -94,7 +93,6 @@ public class GameStage extends BaseGameStage {
         if (isSpy && locationsComponent != null) {
             GameData gameData = gameModel.getGameData();
             locationsComponent.setLocations(gameData.getPossibleLocations());
-            locationsComponent.setGreyedOutLocations(gameData.getGreyedOutLocations());
         }
 
         // Reset reveal label
