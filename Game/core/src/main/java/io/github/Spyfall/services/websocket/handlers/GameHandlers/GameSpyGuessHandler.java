@@ -20,7 +20,7 @@ public class GameSpyGuessHandler implements WebSocketMessageHandler<GameSpyGuess
     public void handle(GameSpyGuessMessage message) {
         GameplayController gameplayController = GameplayController.getInstance();
 
-        gameplayController.handleSpyGuess(message.getSpy(), message.getLocation());
+        // gameplayController.handleSpyGuess(message.getSpy(), message.getLocation());
 
     }
 

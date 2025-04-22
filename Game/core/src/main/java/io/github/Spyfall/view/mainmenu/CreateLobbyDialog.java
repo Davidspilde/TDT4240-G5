@@ -1,7 +1,6 @@
-package io.github.Spyfall.view.stages.mainmenu;
+package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -14,14 +13,15 @@ import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.ui.UIConstants;
 
-public class JoinLobbyDialog extends Dialog {
-    private TextField usernameField;
-    private TextField lobbyField;
-    private MainMenuController mainMenuController;
+public class CreateLobbyDialog extends Dialog {
+    private final TextField usernameField;
+    private final MainMenuController mainMenuController;
+    private final AudioService audioService;
 
-    public JoinLobbyDialog(Skin skin, AudioService audioService, MainMenuController mainMenuController, Stage stage) {
+    public CreateLobbyDialog(Skin skin, AudioService audioService, MainMenuController mainMenuController, Stage stage) {
         super("", skin, "dialog");
         this.mainMenuController = mainMenuController;
+        this.audioService = audioService;
 
         // Makes backgorund transparent when used
         Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
@@ -33,20 +33,21 @@ public class JoinLobbyDialog extends Dialog {
         float W = stage.getViewport().getWorldWidth();
         float H = stage.getViewport().getWorldHeight();
 
-        lobbyField = new TextField("", skin);
-        lobbyField.setMessageText("Enter Lobby Code");
-
         usernameField = new TextField("", skin);
         usernameField.setMessageText("Enter Username");
 
-        getTitleTable().padTop(H * UIConstants.TITLE_TOP_PAD).padBottom(H * UIConstants.TITLE_BOTTOM_PAD);
+        getTitleTable()
+                .padTop(H * UIConstants.TITLE_TOP_PAD)
+                .padBottom(H * UIConstants.TITLE_BOTTOM_PAD);
 
         Table ct = getContentTable();
-        ct.add(new Label("Join lobby", skin)).padBottom(H * UIConstants.DIALOG_PADDING).row();
-        ct.add(lobbyField).width(W * UIConstants.DIALOG_WIDTH_PERCENT).padBottom(H * UIConstants.DIALOG_PADDING).row();
-        ct.add(usernameField).width(W * UIConstants.DIALOG_WIDTH_PERCENT).row();
+        ct.add(new Label("Create a new lobby", skin)).padBottom(H * UIConstants.DIALOG_PADDING).row();
+        ct.add(usernameField)
+                .width(W * UIConstants.DIALOG_WIDTH_PERCENT)
+                .padBottom(H * UIConstants.DIALOG_PADDING)
+                .row();
 
-        button("Join", true);
+        button("Create", true);
         button("Cancel", false);
         key(Input.Keys.ENTER, true);
         key(Input.Keys.ESCAPE, false);
@@ -57,9 +58,9 @@ public class JoinLobbyDialog extends Dialog {
 
     @Override
     protected void result(Object obj) {
+        audioService.playSound("click");
         if (Boolean.TRUE.equals(obj)) {
-
-            mainMenuController.onJoinLobby(usernameField.getText(), lobbyField.getText());
+            mainMenuController.onCreateLobby(usernameField.getText());
         }
     }
 }

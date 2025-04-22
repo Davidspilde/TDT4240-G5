@@ -20,7 +20,7 @@ public class GameSpyLastAttemptHandler implements WebSocketMessageHandler<GameSp
     public void handle(GameSpyLastAttemptMessage message) {
         GameplayController gameplayController = GameplayController.getInstance();
 
-        gameplayController.handleSpyLastAttempt(message.getSpy(), message.getLastAttemptDuration());
+        gameplayController.handleSpyLastAttempt(message.getSpyUsername(), message.getLastAttemptDuration());
 
     }
 

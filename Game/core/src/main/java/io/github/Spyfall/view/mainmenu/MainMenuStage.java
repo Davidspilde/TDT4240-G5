@@ -1,4 +1,4 @@
-package io.github.Spyfall.view.stages.mainmenu;
+package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;

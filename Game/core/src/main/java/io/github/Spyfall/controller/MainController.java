@@ -5,10 +5,10 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
-import io.github.Spyfall.view.GameLobbyStage;
+
 import io.github.Spyfall.view.StageView;
-import io.github.Spyfall.view.stages.lobby.LobbyStage;
-import io.github.Spyfall.view.stages.mainmenu.MainMenuStage;
+import io.github.Spyfall.view.lobby.LobbyStage;
+import io.github.Spyfall.view.mainmenu.MainMenuStage;
 
 public class MainController implements GameStateObserver {
     private static MainController instance;
@@ -46,19 +46,9 @@ public class MainController implements GameStateObserver {
 
     public void setLobbyStage() {
         // lobby is where players join before game starts
-        System.out.println("We also get to setLobbStage");
         LobbyStage lobbyStage = new LobbyStage(viewport);
         System.out.println("We initialize lobbystage");
         stageManager.setStage(lobbyStage);
-    }
-
-    public void setGameLobbyStage() {
-        GameLobbyStage gameLobbyStage = new GameLobbyStage(
-                gameModel.getGameData().isSpy(),
-                gameModel.getGameData().getLocation(),
-                gameModel.getGameData().getRole(),
-                viewport);
-        stageManager.setStage(gameLobbyStage);
     }
 
     // implementation of GameStateObserver
@@ -67,19 +57,27 @@ public class MainController implements GameStateObserver {
         // update view based on model state
         Gdx.app.postRunnable(() -> {
             switch (model.getCurrentState()) {
-                case MAIN_MENU -> {
+                case MAIN_MENU: {
                     System.out.println("State: MAIN MENU");
                     setMainMenuStage();
+                    break;
                 }
-                case LOBBY -> {
+                case LOBBY: {
                     System.out.println("State: LOBBY");
                     setLobbyStage();
+                    break;
                 }
-                case IN_GAME -> {
-                    System.out.println("State: IN-GAME");
-                    setGameLobbyStage();
-                }
-                default -> System.out.println("Something went wrong with state");
+                case IN_GAME:
+                    System.out.println(
+                            "State changed to IN_GAME (warning: stages should be created via GameplayController)");
+                    break;
+                // case GAME_OVER:
+                // System.out.println("State: GAME OVER");
+                // setGameOverStage();
+                // break;
+                default:
+                    System.out.println("Something went wrong with state");
+                    break;
             }
         });
     }

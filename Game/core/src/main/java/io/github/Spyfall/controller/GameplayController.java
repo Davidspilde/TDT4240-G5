@@ -1,263 +1,289 @@
 package io.github.Spyfall.controller;
 
 import java.util.HashMap;
+import java.util.List;
+
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
-import io.github.Spyfall.view.GameLobbyStage;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.game.GameStage;
+import io.github.Spyfall.view.ui.ErrorPopup;
 
+/**
+ * Controller for gameplay-related actions and server message handling
+ */
 public class GameplayController {
+    // singleton
     private static GameplayController instance;
+
+    // services
     private SendMessageService sendMessageService;
+    private AudioService audioService;
+
+    // model reference
     private GameModel gameModel;
 
+    /**
+     * Private constructor for singleton pattern
+     */
     private GameplayController() {
         this.gameModel = GameModel.getInstance();
         this.sendMessageService = SendMessageService.getInstance();
+        this.audioService = AudioService.getInstance();
     }
 
+    /**
+     * Get the singleton instance
+     */
     public static GameplayController getInstance() {
         return (instance == null) ? (instance = new GameplayController()) : instance;
     }
 
+    // ==================================================
+    // SERVER MESSAGE HANDLING (responses)
+    // ==================================================
+
+    /**
+     * Handle game complete message
+     */
     public void handleGameComplete(HashMap<String, Integer> scoreboard) {
-        System.out.println("Game complete received: " + scoreboard);
+        System.out.println("Game complete received");
 
-        // Play sound
-        AudioService.getInstance().playSound("click");
+        updateGameData(data -> {
+            data.setRoundEnded(true);
 
-        // TODO: Show scoreboard in a dialog or screen
+            if (scoreboard != null) {
+                data.setScoreboard(scoreboard);
+            }
+        });
 
-        // Return to lobby after game ends
-        gameModel.setCurrentState(GameState.LOBBY);
+        audioService.playMusic("victory", true);
+
+        if (gameModel.getCurrentState() != GameState.GAME_OVER) {
+            gameModel.setCurrentState(GameState.GAME_OVER);
+        }
+
     }
 
-    public void handleNewRound(int roundNumber, String role, String location, int roundDuration) {
-
+    /**
+     * Handle new round message
+     */
+    public void handleNewRound(int roundNumber, int roundDuration, String role, String location,
+            String firstQuestioneer) {
         System.out.println("New round received: Round " + roundNumber);
+        System.out.println("Role from server: '" + roundDuration);
 
-        // Update game data
-        gameModel.getGameData().setCurrentRound(roundNumber);
-        gameModel.getGameData().setSpy(role.equals("spy"));
-        gameModel.getGameData().setLocation(location);
-        gameModel.getGameData().setRole(role);
-        gameModel.getGameData().setTimeRemaining(roundDuration);
-        gameModel.getGameData().setRoundEnded(false);
+        boolean isSpy = role.equalsIgnoreCase("spy");
+        System.out.println("Is player spy: " + isSpy);
 
-        // Change game state if not already in game
-        if (gameModel.getCurrentState() != GameState.IN_GAME) {
-            gameModel.setCurrentState(GameState.IN_GAME);
-        }
+        updateGameData(data -> {
+            data.setCurrentRound(roundNumber);
+            data.setSpy(isSpy);
+            data.setLocation(location);
+            data.setRole(role);
+            data.setTimeRemaining(roundDuration);
+            data.setRoundEnded(false);
 
-        StageView currentStage = StageManager.getInstance().getStage();
-        if (currentStage instanceof GameLobbyStage) {
-            ((GameLobbyStage) currentStage).resetRoundEndUI();
+            if (data.getScoreboard() == null) {
+                data.setScoreboard(new HashMap<>());
+            }
+        });
 
-            ((GameLobbyStage) currentStage).startTimer(roundDuration);
+        try {
+            System.out.println("Creating proper game stage for round " + roundNumber);
+
+            // Always create a new stage for each round since roles can change
+            ScreenViewport viewport = new ScreenViewport();
+            GameStage newStage;
+
+            newStage = new GameStage(role, location, isSpy, viewport);
+
+            // Set the new stage
+            StageManager.getInstance().setStage(newStage);
+
+            // Start timer
+            newStage.startTimer(roundDuration);
+
+            System.out.println("Round " + roundNumber + " stage created and activated");
+
+            // For first round only, trigger state change
+            if (gameModel.getCurrentState() != GameState.IN_GAME) {
+                gameModel.setCurrentState(GameState.IN_GAME);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error in handleNewRound: " + e.getMessage());
+            e.printStackTrace();
         }
 
     }
 
+    /**
+     * Handle round ended message
+     */
     public void handleRoundEnded(String spy, String location, HashMap<String, Integer> scoreboard, int roundNumber,
             String reason) {
-        System.out.println("HELLLOOOOO: Spy was " + spy);
+        System.out.println("Round ended: Spy was " + spy);
 
-        // Update game model with round end information
-        GameData gameData = gameModel.getGameData();
-        gameData.setRoundEnded(true);
-        gameData.setIsSpyUsername(spy);
+        updateGameData(data -> {
+            data.setRoundEnded(true);
+            data.setIsSpyUsername(spy);
+            data.setLocation(location);
+            data.setCurrentRound(roundNumber);
 
-        gameData.setLocation(location);
-        gameData.setCurrentRound(roundNumber);
-
-        if (scoreboard != null) {
-            gameData.setScoreboard(scoreboard);
-        }
+            if (scoreboard != null) {
+                data.setScoreboard(scoreboard);
+            }
+        });
 
         try {
             StageView currentStage = StageManager.getInstance().getStage();
-            if (currentStage instanceof GameLobbyStage) {
+            GameStage gameStage = (GameStage) currentStage;
 
-                ((GameLobbyStage) currentStage).handleRoundEnded(
-                        roundNumber, // Round number from message
-                        reason, // Reason for round end (e.g., "TIMEOUT")
-                        spy, // Spy player name
-                        location, // Location from message
-                        scoreboard // Scoreboard
-                );
+            gameStage.handleRoundEnded(
+                    roundNumber,
+                    reason,
+                    spy,
+                    location,
+                    scoreboard);
 
-                ((GameLobbyStage) currentStage).updateTimerDisplay(0);
-            }
+            // Stop the timer
+            gameStage.stopTimer();
+            gameStage.updateTimerDisplay(0); // in case of latency issues between server and client, set the display
+                                             // to 00:00
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println("Error updating UI for round end: " + e.getMessage());
+            e.printStackTrace();
         }
 
     }
 
-    public void handleSpyLastAttempt(String spy, int duration) {
-        System.out.println("Spy caught: " + spy + " and has " + duration + " seconds to guess the location");
+    public void handleSpyLastAttempt(String spy, int spyLastAttemptDuration) {
+        System.out.println(spy);
+        System.out.println(spyLastAttemptDuration);
+        updateGameData(data -> {
 
-        // Show dialog with result
-        // This might be better handled in the view
-    }
+            data.setIsSpyUsername(spy);
+            data.setTimeRemaining(spyLastAttemptDuration);
+        });
 
-    public void handleSpyGuess(String spy, String location) {
-        System.out.println("Spy " + spy + " guessed location: " + location);
+        try {
+            StageView currentStage = StageManager.getInstance().getStage();
+            if (currentStage instanceof GameStage gameStage) {
+                gameStage.startTimer(spyLastAttemptDuration);
 
-        // Play sound
-        AudioService.getInstance().playSound("click");
+                gameStage.showSpyReveal(spy); // this now includes fade-in!
+            }
+        } catch (Exception e) {
 
-        // Show dialog with result
+            e.printStackTrace();
+        }
 
     }
 
     public void handleVote() {
-        System.out.println("Vote has been added successfully");
+        System.out.println("VOTE HAPPENED");
 
-        // Update UI if this stage is active
-        // Could trigger an update in the GameLobbyStage
+    }
+
+    // ==================================================
+    // PLAYER ACTIONS (requests)
+    // ==================================================
+
+    /**
+     * Send startNewRound request
+     */
+    public void onStartNewRound() {
+
+        if (gameModel.getLobbyData().getHostPlayer() != null && gameModel.getUsername() != null) {
+            sendMessageService.startNextRound(gameModel.getUsername(), gameModel.getLobbyCode());
+            System.out.println("Sent startNewRound request to server");
+        } else {
+            ErrorPopup.getInstance().showClientError("Only the host can advance the round");
+        }
     }
 
     /**
-     * Vote for a player being the spy
+     * Handle spy guess of location
      *
-     * @param targetPlayer The username of the player to vote for
-     * @return Whether the vote was sent successfully
+     * @param spy
+     * @param location
      */
-    public boolean votePlayer(String targetPlayer) {
-        AudioService.getInstance().playSound("click");
-
-        // validate target
-        if (targetPlayer == null || targetPlayer.trim().isEmpty()) {
-            System.out.println("Target player is empty");
-            return false;
-        }
-
-        // can't vote for yourself idiot
-        if (targetPlayer.equals(gameModel.getUsername())) {
-            System.out.println("Can't vote for yourself");
-            return false;
-        }
-
-        boolean success = sendMessageService.vote(
-                gameModel.getUsername(),
-                targetPlayer,
-                gameModel.getLobbyCode());
-
-        if (!success) {
-            System.out.println("Failed to send vote request");
-        }
-
-        return success;
+    public void onSpyGuess(String location) {
+        System.out.println("SPYVOTE LOCATION");
+        sendMessageService.spyGuess(gameModel.getUsername(), location, gameModel.getLobbyCode());
     }
 
     /**
-     * Spy guesses the location
+     * Vote a player you suspect is a spy (as a player)
      *
-     * @param location The location the spy is guessing
-     * @return Whether the guess was sent successfully
+     * @param target
      */
-    public boolean spyGuessLocation(String location) {
-        AudioService.getInstance().playSound("click");
+    public void onVotePlayer(String target) {
+        System.out.println("WE GET TO VOTING");
+        String user = gameModel.getUsername();
+        String lobbyCode = gameModel.getLobbyCode();
 
-        // validate location
-        if (location == null || location.trim().isEmpty()) {
-            System.out.println("Location is empty");
-            return false;
+        if (user.equals(target)) {
+            ErrorPopup.getInstance().showClientError("Cannot vote for yourself");
+        } else {
+            audioService.playSound("click");
+            System.out.println(user + " voted for player: " + target);
+            sendMessageService.vote(user, target, lobbyCode);
         }
 
-        // only the spy can guess
-        if (!gameModel.getGameData().isSpy()) {
-            System.out.println("Only the spy can guess the location");
-            return false;
-        }
-
-        boolean success = sendMessageService.spyVote(
-                gameModel.getUsername(),
-                location,
-                gameModel.getLobbyCode());
-
-        if (!success) {
-            System.out.println("Failed to send spy guess request");
-        }
-
-        return success;
-    }
-
-    /**
-     * Start the next round of the game
-     *
-     * @return Whether the request was sent successfully
-     */
-    public boolean startNextRound() {
-        AudioService.getInstance().playSound("click");
-
-        // Only the host can start the next round
-        if (!gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer())) {
-            System.out.println("Only the host can start the next round");
-            return false;
-        }
-
-        boolean success = sendMessageService.startNextRound(
-                gameModel.getUsername(),
-                gameModel.getLobbyCode());
-
-        if (!success) {
-            System.out.println("Failed to send start next round request");
-        }
-
-        return success;
-    }
-
-    /**
-     * End the current game and return to lobby
-     */
-    public boolean endGame() {
-        AudioService.getInstance().playSound("click");
-
-        // Only the host can end the game
-        if (!gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer())) {
-            System.out.println("Only the host can end the game");
-            return false;
-        }
-
-        // TODO: Send end game request to server
-        // For now, just transition back to lobby
-        gameModel.setCurrentState(GameState.LOBBY);
-
-        return true;
     }
 
     /**
      * Leave the current game and return to main menu
+     * this is not allowed
+     * public void leaveGame() {
+     * audioService.playSound("click");
+     *
+     * sendMessageService.leaveLobby(gameModel.getUsername(),
+     * gameModel.getLobbyCode());
+     *
+     * // transition back to main menu
+     * gameModel.setCurrentState(GameState.MAIN_MENU);
+     * }
+     *
      */
-    public boolean leaveGame() {
-        AudioService.getInstance().playSound("click");
 
-        // TODO: Send leave game request to server
+    /**
+     * Toggle greying out a location as a spy
+     *
+     * @param location
+     */
+    public void toggleLocationGreyout(Location location) {
+        gameModel.getGameData().toggleLocationGreyout(location);
+        System.out.println("Greyed out location: " + location);
 
-        // For now, just transition back to main menu
-        gameModel.setCurrentState(GameState.MAIN_MENU);
-
-        return true;
     }
 
     /**
-     * Update the timer (libgdx timer)
-     *
-     * @param delta Time passed in seconds
+     * Interface for model data updates
      */
-    public void updateTimer(float delta) {
-        int currentTime = gameModel.getGameData().getTimeRemaining();
-        if (currentTime > 0) {
-            currentTime -= Math.round(delta);
-            if (currentTime < 0)
-                currentTime = 0;
-            gameModel.getGameData().setTimeRemaining(currentTime);
+    private interface GameDataUpdater {
+        void update(GameData data);
+    }
+
+    /**
+     * Update the game data in a thread-safe manner
+     */
+    private void updateGameData(GameDataUpdater updater) {
+        if (updater == null)
+            return;
+
+        GameData data = gameModel.getGameData();
+        if (data != null) {
+            updater.update(data);
         }
     }
 

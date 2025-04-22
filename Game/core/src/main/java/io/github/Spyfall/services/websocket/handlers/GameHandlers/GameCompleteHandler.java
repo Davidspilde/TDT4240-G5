@@ -8,7 +8,7 @@ public class GameCompleteHandler implements WebSocketMessageHandler<GameComplete
 
     @Override
     public String getEvent() {
-        return "newRound";
+        return "gameComplete";
     }
 
     @Override

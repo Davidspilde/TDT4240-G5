@@ -2,7 +2,9 @@ package io.github.Spyfall.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class GameData {
@@ -10,9 +12,11 @@ public class GameData {
     private String location;
     private String role;
     private int currentRound = 1;
+    private int spyLastAttemptDuration = 45;
     private int totalRounds;
     private int timeRemaining;
-    private List<String> possibleLocations = new ArrayList<>();
+    private List<Location> possibleLocations = new ArrayList<>();
+    private Set<Location> greyedOutLocations = new HashSet<>();
     private boolean roundEnded;
     private String isSpyUsername;
     private HashMap<String, Integer> scoreboard;
@@ -89,11 +93,40 @@ public class GameData {
         this.timeRemaining = timeRemaining;
     }
     
-    public List<String> getPossibleLocations() {
+    public List<Location> getPossibleLocations() {
         return possibleLocations;
     }
     
-    public void setPossibleLocations(List<String> possibleLocations) {
+    public void setPossibleLocations(List<Location> possibleLocations) {
         this.possibleLocations = possibleLocations;
+    }
+
+    public Set<Location> getGreyedOutLocations() {
+        return greyedOutLocations;
+    }
+
+    public void toggleLocationGreyout(Location location) {
+        if (greyedOutLocations.contains(location)) {
+            greyedOutLocations.remove(location);
+        } else {
+            greyedOutLocations.add(location);
+        }
+    }
+
+    /**
+     * Clear all greyed out locations
+     */
+    public void clearGreyedOutLocations() {
+        if (greyedOutLocations != null) {
+            greyedOutLocations.clear();
+        }
+    }
+    
+    public int getSpyLastAttemptDuration() {
+        return spyLastAttemptDuration;
+    }
+    
+    public void setSpyLastAttemptDuration(int duration) {
+        this.spyLastAttemptDuration = duration;
     }
 }

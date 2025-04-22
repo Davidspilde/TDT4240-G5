@@ -53,8 +53,8 @@ public class SendMessageService {
         return sendMessage(msg);
     }
 
-    public boolean spyVote(String username, String Location, String lobbyCode) {
-        String type = "spyVote";
+    public boolean spyGuess(String username, String Location, String lobbyCode) {
+        String type = "spyGuess";
         VoteMessage msg = new VoteMessage(type, username, Location, lobbyCode);
 
         return sendMessage(msg);

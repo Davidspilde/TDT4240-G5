@@ -1,16 +1,15 @@
-package io.github.Spyfall.view;
+package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.view.StageView;
 
 public class GameRulesStage extends StageView {
     private final MainMenuController controller;
@@ -30,8 +29,9 @@ public class GameRulesStage extends StageView {
         super(new ScreenViewport());
         this.controller = controller;
         this.gameModel = GameModel.getInstance();
-        this.skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
-        
+        this.skin = new Skin(
+                Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
+
         // Create root table
         rootTable = new Table();
         rootTable.setFillParent(true);
@@ -43,7 +43,7 @@ public class GameRulesStage extends StageView {
         contentLabel = new Label("", skin, "default");
         contentLabel.setWrap(true);
         pageLabel = new Label("", skin, "default");
-        
+
         // Create navigation buttons
         prevButton = new TextButton("Prev", skin);
         nextButton = new TextButton("Next", skin);
@@ -84,19 +84,19 @@ public class GameRulesStage extends StageView {
         rootTable.add(titleLabel).padBottom(10).row();
         rootTable.add(contentLabel).width(Gdx.graphics.getWidth() - 100).padBottom(20).row();
         rootTable.add(pageLabel).padBottom(10).row();
-        
+
         // Create button table with proper spacing
         Table buttonTable = new Table();
         buttonTable.defaults().pad(5).width(100).height(40);
         buttonTable.add(prevButton);
         buttonTable.add(nextButton);
         buttonTable.add(backButton);
-        
+
         rootTable.add(buttonTable).pad(10);
 
         // Initialize content
         updateContent();
-        
+
         // Set input processor
         Gdx.input.setInputProcessor(stage);
     }
@@ -104,21 +104,24 @@ public class GameRulesStage extends StageView {
     private void updateContent() {
         // Reset font scale to default
         contentLabel.setFontScale(1.0f);
-        
+
         switch (currentPage) {
             case 0:
                 titleLabel.setText("Background");
-                contentLabel.setText("You are a spy in a foreign country. Your mission is to gather intelligence about a secret meeting while avoiding detection.");
+                contentLabel.setText(
+                        "You are a spy in a foreign country. Your mission is to gather intelligence about a secret meeting while avoiding detection.");
                 break;
             case 1:
                 titleLabel.setText("Objective");
-                contentLabel.setText("As a spy, you must identify the location of the secret meeting.\n\nAs a regular player, you must identify the spy.");
+                contentLabel.setText(
+                        "As a spy, you must identify the location of the secret meeting.\n\nAs a regular player, you must identify the spy.");
                 break;
             case 2:
                 titleLabel.setText("Game Flow - Setup");
-                contentLabel.setText("1. Each player receives a location card, except the spy who gets a 'SPY' card\n\n" +
-                        "2. Players take turns asking questions about the location\n\n" +
-                        "3. All players must answer truthfully, except the spy who can lie");
+                contentLabel
+                        .setText("1. Each player receives a location card, except the spy who gets a 'SPY' card\n\n" +
+                                "2. Players take turns asking questions about the location\n\n" +
+                                "3. All players must answer truthfully, except the spy who can lie");
                 break;
             case 3:
                 titleLabel.setText("Game Flow - Actions (1/2)");
@@ -151,7 +154,7 @@ public class GameRulesStage extends StageView {
                 break;
         }
         pageLabel.setText(String.format("Page %d of %d", currentPage + 1, totalPages));
-        
+
         // Update button states
         prevButton.setDisabled(currentPage == 0);
         nextButton.setDisabled(currentPage == totalPages - 1);
@@ -173,4 +176,4 @@ public class GameRulesStage extends StageView {
     public void dispose() {
         stage.dispose();
     }
-} 
+}

@@ -9,7 +9,7 @@ import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
-import io.github.Spyfall.view.stages.lobby.LobbyStage;
+import io.github.Spyfall.view.lobby.LobbyStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class LobbyController {
@@ -29,10 +29,18 @@ public class LobbyController {
         return instance;
     }
 
+    // ==================================================
+    // SERVER MESSAGE HANDLING (responses)
+    // ==================================================
+
+    /**
+     * Handle an incoming update to the lobby
+     *
+     * @param players
+     */
     public void handleLobbyUpdate(List<String> players) {
         gameModel.getLobbyData().setPlayers(players);
         System.out.println("PLAYERS: " + gameModel.getLobbyData().getPlayers());
-
         updateCurrentLobbyStage();
     }
 
@@ -48,11 +56,17 @@ public class LobbyController {
     }
 
     public void handleLobbyNewHost(String host) {
-        // TODO Auto-generated method stub
         gameModel.getLobbyData().setHostPlayer(host);
     }
 
+    /**
+     * Handle joinLobby request
+     *
+     * @param host
+     * @param lobbyCode
+     */
     public void handleLobbyJoined(String host, String lobbyCode) {
+
         gameModel.getLobbyData().setHostPlayer(host);
         if (gameModel.getCurrentState() != GameState.LOBBY) {
             gameModel.setCurrentState(GameState.LOBBY);
@@ -61,6 +75,12 @@ public class LobbyController {
         }
     }
 
+    /**
+     * Handle createLobby message
+     *
+     * @param host
+     * @param lobbyCode
+     */
     public void handleLobbyCreated(String host, String lobbyCode) {
         gameModel.setLobbyCode(lobbyCode);
         gameModel.getLobbyData().setHostPlayer(host);
@@ -72,7 +92,7 @@ public class LobbyController {
         if (gameModel.getCurrentState() != GameState.LOBBY) {
             gameModel.setCurrentState(GameState.LOBBY);
         } else {
-            System.out.println("WRONG STATE: " + gameModel.getCurrentState());
+            System.out.println("Cannot already be in Game config state: " + gameModel.getCurrentState());
         }
         // Send default lobby settings to backend
         int roundLimit = gameModel.getLobbyData().getRoundLimit();
@@ -84,10 +104,50 @@ public class LobbyController {
         updateLobbyOptions(roundLimit, locationCount, maxPlayers, timePerRound, spyLastAttemptTime);
     }
 
+    /**
+     * Handle gameStarted request
+     */
     public void handleGameStarted() {
+        // temp
+        gameModel.getGameData().setPossibleLocations(gameModel.getLobbyData().getLocations());
 
+        System.out.println("Server sent game started response");
+        if (gameModel.getCurrentState() != GameState.IN_GAME) {
+            gameModel.setCurrentState(GameState.IN_GAME);
+        }
     }
 
+    // ==================================================
+    // PLAYER ACTIONS (requests)
+    // ==================================================
+
+    /**
+     * Send createLobby request
+     *
+     * @param username
+     */
+    public void createLobby(String username) {
+        AudioService.getInstance().playSound("click");
+
+        // validate username
+        if (username == null || username.trim().isEmpty()) {
+            System.out.println("Username is empty");
+            ErrorPopup.getInstance().showClientError("username is empty");
+        }
+        gameModel.setUsername(username);
+        sendMessageService.createLobby(username);
+        System.out.println("Sent createLobby request to server");
+    }
+
+    /**
+     * Update lobbySettings
+     *
+     * @param roundLimit
+     * @param locationNumber
+     * @param maxPlayers
+     * @param timePerRound
+     * @param spyLastAttemptTime
+     */
     public void updateLobbyOptions(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
             int spyLastAttemptTime) {
 
@@ -100,7 +160,6 @@ public class LobbyController {
                 timePerRound,
                 spyLastAttemptTime);
         if (success) {
-            // Update local model immediately, it will be confirmed by server response
             gameModel.getLobbyData().setRoundLimit(roundLimit);
             gameModel.getLobbyData().setLocationCount(locationNumber);
             gameModel.getLobbyData().setMaxPlayers(maxPlayers);
@@ -110,6 +169,9 @@ public class LobbyController {
         }
     }
 
+    /**
+     * Send startGame request
+     */
     public void startGame() {
         AudioService.getInstance().playSound("click");
 
@@ -129,13 +191,14 @@ public class LobbyController {
         // do stuff here
     }
 
+    /**
+     * Leave lobby and inform the server
+     */
     public void leaveLobby() {
         try {
             AudioService.getInstance().playSound("click");
-            // Send leave lobby request to server
-
             SendMessageService.getInstance().leaveLobby(gameModel.getUsername(), gameModel.getLobbyCode());
-            gameModel.setCurrentState(GameState.MAIN_MENU);
+            gameModel.setCurrentState(GameState.MAIN_MENU); // transitition to main menu
 
         } catch (Exception e) {
             System.err.println("An error occurred while leaving the lobby: " + e.getMessage());

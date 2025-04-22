@@ -1,5 +1,4 @@
-
-package io.github.Spyfall.view.stages.lobby;
+package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;

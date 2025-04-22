@@ -1,5 +1,4 @@
-
-package io.github.Spyfall.view.stages.lobby;
+package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.scenes.scene2d.Actor;
