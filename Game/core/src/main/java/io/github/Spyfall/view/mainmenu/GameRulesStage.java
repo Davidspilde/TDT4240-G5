@@ -2,17 +2,22 @@ package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.ui.SettingsIcon;
 
 public class GameRulesStage extends StageView {
-    private final MainMenuController controller;
+    private final AudioService audioService;
+    private Texture bgTexture;
     private final Skin skin;
     private final Table rootTable;
     private int currentPage = 0;
@@ -25,17 +30,22 @@ public class GameRulesStage extends StageView {
     private final TextButton backButton;
     private final GameModel gameModel;
 
-    public GameRulesStage(MainMenuController controller) {
-        super(new ScreenViewport());
-        this.controller = controller;
+    public GameRulesStage(ScreenViewport viewport) {
+        super(viewport);
         this.gameModel = GameModel.getInstance();
         this.skin = new Skin(
                 Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
+        audioService = AudioService.getInstance();
 
         // Create root table
         rootTable = new Table();
         rootTable.setFillParent(true);
         stage.addActor(rootTable);
+
+        // Load background texture and set it
+        bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
+        TextureRegionDrawable bgDrawable = new TextureRegionDrawable(new TextureRegion(bgTexture));
+        rootTable.setBackground(bgDrawable);
 
         // Create labels for content
         titleLabel = new Label("", skin, "default");
@@ -47,13 +57,13 @@ public class GameRulesStage extends StageView {
         // Create navigation buttons
         prevButton = new TextButton("Prev", skin);
         nextButton = new TextButton("Next", skin);
-        backButton = new TextButton("Back", skin);
+        backButton = new TextButton("Menu", skin);
 
         // Add button listeners with debug output
         prevButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Prev button clicked");
+                audioService.playSound("click");
                 if (currentPage > 0) {
                     currentPage--;
                     updateContent();
@@ -64,7 +74,8 @@ public class GameRulesStage extends StageView {
         nextButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Next button clicked");
+
+                audioService.playSound("click");
                 if (currentPage < totalPages - 1) {
                     currentPage++;
                     updateContent();
@@ -74,8 +85,10 @@ public class GameRulesStage extends StageView {
 
         backButton.addListener(new ClickListener() {
             @Override
+
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Back button clicked");
+
+                audioService.playSound("click");
                 gameModel.setCurrentState(GameState.MAIN_MENU);
             }
         });
@@ -93,6 +106,17 @@ public class GameRulesStage extends StageView {
         buttonTable.add(backButton);
 
         rootTable.add(buttonTable).pad(10);
+
+        // Add floating settings icon
+        SettingsIcon settingsIcon = new SettingsIcon(skin, AudioService.getInstance(), stage);
+        stage.addActor(settingsIcon);
+
+        // Position it in bottom-right corner (after stage size is valid)
+        Gdx.app.postRunnable(() -> {
+            float x = viewport.getWorldWidth() - settingsIcon.getWidth() - 20f;
+            float y = 20f;
+            settingsIcon.setPosition(x, y);
+        });
 
         // Initialize content
         updateContent();
@@ -140,13 +164,13 @@ public class GameRulesStage extends StageView {
             case 5:
                 titleLabel.setText("Win Condition - Regular Players");
                 contentLabel.setText("As a regular player, you can win by:\n\n" +
-                        "✓ Correctly identifying the spy while hiding the location");
+                        "Correctly identifying the spy while hiding the location");
                 break;
             case 6:
                 titleLabel.setText("Win Condition - Spy");
                 contentLabel.setText("As the spy, you win by:\n\n" +
-                        "✓ Correctly guessing the location\n\n" +
-                        "✓ Successfully avoiding detection");
+                        "Correctly guessing the location\n\n" +
+                        "Successfully avoiding detection");
                 break;
         }
         pageLabel.setText(String.format("Page %d of %d", currentPage + 1, totalPages));

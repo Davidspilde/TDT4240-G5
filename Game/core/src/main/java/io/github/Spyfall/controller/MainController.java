@@ -1,6 +1,7 @@
 package io.github.Spyfall.controller;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameModel;
@@ -8,6 +9,7 @@ import io.github.Spyfall.model.GameStateObserver;
 
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.lobby.LobbyStage;
+import io.github.Spyfall.view.mainmenu.GameRulesStage;
 import io.github.Spyfall.view.mainmenu.MainMenuStage;
 
 public class MainController implements GameStateObserver {
@@ -24,8 +26,21 @@ public class MainController implements GameStateObserver {
         // register as observer
         gameModel.addObserver(this);
 
-        // Initial state is main menu
-        setMainMenuStage();
+        // The first time a user opens the app they should be presented with the rules
+        Preferences prefs = Gdx.app.getPreferences("GameSettings");
+        boolean hasSeenTutorial = prefs.getBoolean("hasSeenTutorial", false);
+
+        if (!hasSeenTutorial) {
+            // Launch GameRulesStage
+            setGameRulesStage();
+
+            // Set flag for future launches
+            prefs.putBoolean("hasSeenTutorial", true);
+            prefs.flush();
+        } else {
+            // Normal flow (Main Menu, etc.)
+            setMainMenuStage();
+        }
     }
 
     public static MainController getInstance(ScreenViewport viewport) {
@@ -47,8 +62,14 @@ public class MainController implements GameStateObserver {
     public void setLobbyStage() {
         // lobby is where players join before game starts
         LobbyStage lobbyStage = new LobbyStage(viewport);
-        System.out.println("We initialize lobbystage");
         stageManager.setStage(lobbyStage);
+    }
+
+    public void setGameRulesStage() {
+
+        GameRulesStage gameRulesStage = new GameRulesStage(viewport);
+        stageManager.setStage(gameRulesStage);
+
     }
 
     // implementation of GameStateObserver
@@ -71,6 +92,9 @@ public class MainController implements GameStateObserver {
                     System.out.println(
                             "State changed to IN_GAME (warning: stages should be created via GameplayController)");
                     break;
+
+                case GAME_RULES:
+                    setGameRulesStage();
                 default:
                     System.out.println("State changed");
                     break;
