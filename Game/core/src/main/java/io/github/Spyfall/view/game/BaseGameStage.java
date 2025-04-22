@@ -15,7 +15,6 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.ui.GameControls;
 import io.github.Spyfall.view.game.ui.GameControls.GameControlListener;
-import io.github.Spyfall.view.game.ui.PlayersList.PlayerActionListener;
 import io.github.Spyfall.view.game.ui.PlayerInfo;
 import io.github.Spyfall.view.game.ui.RoundEndOverlay;
 import io.github.Spyfall.view.game.ui.RoundEndOverlay.RoundEndListener;

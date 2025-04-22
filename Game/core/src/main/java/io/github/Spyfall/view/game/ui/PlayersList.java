@@ -1,6 +1,9 @@
+
 package io.github.Spyfall.view.game.ui;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -13,33 +16,32 @@ import com.badlogic.gdx.utils.Align;
 import io.github.Spyfall.controller.GameplayController;
 
 /**
- * Component for displaying players list with vote buttons
+ * Component for displaying players list with vote buttons.
+ * Only one player can be voted for at a time.
  */
 public class PlayersList extends GameComponent {
 
-    public interface PlayerActionListener {
-        void onVotePlayer(String playerName);
-    }
-
     private List<String> players;
     private String currentUsername;
-    private boolean showVoteButtons = true;
-    private PlayerActionListener listener;
+    private GameplayController controller;
 
-    /**
-     * Create players list component
-     */
-    public PlayersList(Skin skin, String currentUsername) {
+    // Track player UI elements
+    private final Map<String, Label> playerLabels = new HashMap<>();
+    private final Map<String, TextButton> voteButtons = new HashMap<>();
+
+    // Track the currently voted player
+    private String currentVotedPlayer = null;
+
+    public PlayersList(Skin skin, String currentUsername, GameplayController controller) {
         super(skin);
+        this.controller = controller;
         this.currentUsername = currentUsername;
     }
 
     @Override
     protected void create() {
-        // Initialize empty table
         rootTable.top();
 
-        // Add header
         Label playersHeader = new Label("Players", skin);
         playersHeader.setAlignment(Align.center);
         playersHeader.setFontScale(1.2f);
@@ -47,91 +49,89 @@ public class PlayersList extends GameComponent {
     }
 
     /**
-     * Set the list of players to display
+     * Sets the list of players and builds the UI once.
      */
     public void setPlayers(List<String> players) {
         this.players = players;
-        update();
+        buildPlayerList();
     }
 
     /**
-     * Control whether to show vote buttons
+     * Builds the player list UI. Each row contains the player's name
+     * and a vote button, unless it's the current player.
      */
-    public void setShowVoteButtons(boolean show) {
-        this.showVoteButtons = show;
-        update();
-    }
+    private void buildPlayerList() {
+        if (players == null || players.isEmpty())
+            return;
 
-    /**
-     * Set action listener
-     */
-    public void setListener(PlayerActionListener listener) {
-        this.listener = listener;
-    }
+        for (String playerName : players) {
+            final String player = playerName;
 
-    /**
-     * Convenience method to set controller directly
-     */
-    public void setController(GameplayController controller) {
-        setListener(new PlayerActionListener() {
-            @Override
-            public void onVotePlayer(String playerName) {
-                controller.onVotePlayer(playerName);
+            Label playerLabel = new Label(player, skin);
+            playerLabel.setColor(Color.WHITE);
+
+            boolean isCurrentPlayer = player.equals(currentUsername);
+            if (isCurrentPlayer) {
+                playerLabel.setText("→ " + player);
+                playerLabel.setColor(Color.YELLOW);
+                rootTable.add(playerLabel).colspan(2).left().row();
+                continue;
             }
-        });
+
+            TextButton voteButton = new TextButton("Vote", skin);
+
+            voteButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    System.out.println("Votes: " + player);
+                    controller.onVotePlayer(player);
+                    markPlayerVoted(player);
+                }
+            });
+
+            playerLabels.put(player, playerLabel);
+            voteButtons.put(player, voteButton);
+
+            rootTable.add(playerLabel).width(150).padRight(10).left();
+            rootTable.add(voteButton).width(80).right().row();
+        }
+    }
+
+    /**
+     * Marks a player as voted for. Clears the highlight from the previous one.
+     */
+    public void markPlayerVoted(String playerName) {
+        // Reset the previous vote (if any)
+        if (currentVotedPlayer != null && !currentVotedPlayer.equals(playerName)) {
+            Label previousLabel = playerLabels.get(currentVotedPlayer);
+            if (previousLabel != null) {
+                previousLabel.setColor(Color.WHITE);
+            }
+
+            TextButton previousButton = voteButtons.get(currentVotedPlayer);
+            if (previousButton != null) {
+                previousButton.setDisabled(false);
+                previousButton.getLabel().setColor(Color.WHITE);
+            }
+        }
+
+        currentVotedPlayer = playerName;
+
+        // Highlight the newly voted player
+        Label label = playerLabels.get(playerName);
+        if (label != null) {
+            label.setColor(Color.GRAY);
+        }
+
+        TextButton button = voteButtons.get(playerName);
+        if (button != null) {
+            button.setDisabled(true);
+            button.getLabel().setColor(Color.GRAY);
+        }
     }
 
     @Override
     public void update() {
-
-        int childCount = rootTable.getChildren().size;
-        if (childCount > 2) { // label + colspan
-            rootTable.clearChildren();
-
-            Label playersHeader = new Label("Players", skin);
-            playersHeader.setAlignment(Align.center);
-            playersHeader.setFontScale(1.2f);
-            rootTable.add(playersHeader).colspan(2).padBottom(20).row();
-        }
-
-        // no players to show
-        if (players == null || players.isEmpty()) {
-            return;
-        }
-
-        for (String playerName : players) {
-            Label playerLabel = new Label(playerName, skin);
-
-            boolean isCurrentPlayer = playerName.equals(currentUsername);
-            if (isCurrentPlayer) {
-                playerLabel.setText("→ " + playerName);
-                playerLabel.setColor(Color.YELLOW);
-            }
-
-            if (showVoteButtons) {
-                TextButton voteButton = new TextButton("Vote", skin);
-
-                if (isCurrentPlayer) {
-                    voteButton.setDisabled(true);
-                    voteButton.getLabel().setColor(Color.GRAY);
-                }
-
-                voteButton.addListener(new ClickListener() {
-                    @Override
-                    public void clicked(InputEvent event, float x, float y) {
-                        if (!isCurrentPlayer && listener != null) {
-                            listener.onVotePlayer(playerName);
-                        }
-                    }
-                });
-
-                rootTable.add(playerLabel).width(150).padRight(10).left();
-                rootTable.add(voteButton).width(80).right().row();
-            } else {
-                rootTable.add(playerLabel).colspan(2).left().row();
-            }
-        }
-
+        // No-op for now
     }
-
 }
