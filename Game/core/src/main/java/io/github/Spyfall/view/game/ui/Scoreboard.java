@@ -32,12 +32,12 @@ public class Scoreboard extends GameComponent {
         rootTable.top();
         rootTable.defaults().expand().fill();
     }
-    
+
     public void setScoreboard(HashMap<String, Integer> scoreboard) {
         this.scoreboard = scoreboard != null ? scoreboard : new HashMap<>();
         update();
     }
-    
+
     public void setTitle(String title) {
         this.title = title;
         update();
@@ -54,12 +54,12 @@ public class Scoreboard extends GameComponent {
     @Override
     public void update() {
         rootTable.clear();
-        
+
         if (scoreboard == null || scoreboard.isEmpty()) {
             Label titleLabel = new Label(title, skin);
             titleLabel.setAlignment(Align.center);
             rootTable.add(titleLabel).colspan(3).padBottom(10).row();
-            
+
             Label noDataLabel = new Label("No scores available", skin);
             noDataLabel.setAlignment(Align.center);
             rootTable.add(noDataLabel).colspan(3).padBottom(10);
@@ -92,7 +92,6 @@ public class Scoreboard extends GameComponent {
         headerTable.add(scoreHeader).width(scoreColWidth).left();
 
         rootTable.add(headerTable).colspan(3).fillX().padBottom(10).row();
-
 
         List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(scoreboard.entrySet());
         sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
@@ -127,16 +126,16 @@ public class Scoreboard extends GameComponent {
             }
 
             if (highlightWinner && isWinner) {
-                playerLabel.setText("🏆 " + (isCurrentPlayer ? "→ " : "") + entry.getKey());
-                
+                playerLabel.setText((isCurrentPlayer ? "→ " : "") + entry.getKey());
+
                 Color goldColor = new Color(1f, 0.84f, 0f, 1f);
                 playerLabel.setColor(goldColor);
                 scoreLabel.setColor(goldColor);
                 rankLabel.setColor(goldColor);
             }
 
-            boolean isTied = (i < sortedEntries.size() - 1) && 
-                        entry.getValue().equals(sortedEntries.get(i+1).getValue());
+            boolean isTied = (i < sortedEntries.size() - 1) &&
+                    entry.getValue().equals(sortedEntries.get(i + 1).getValue());
 
             if (isTied) {
                 rankText += "*"; // tie
@@ -145,16 +144,16 @@ public class Scoreboard extends GameComponent {
 
             Table rowTable = new Table();
             rowTable.defaults().expand().fill();
-            
+
             // Center-align rank numbers
             rowTable.add(rankLabel).width(rankColWidth).left();
-            
+
             // Add padding between columns for better readability
             rowTable.add(playerLabel).width(playerColWidth).left().padLeft(10).padRight(10);
-            
+
             // Center-align scores
             rowTable.add(scoreLabel).width(scoreColWidth).left();
-            
+
             // Add the entire row to the root table
             rootTable.add(rowTable).colspan(3).fillX().padBottom(8).row();
         }
@@ -162,7 +161,7 @@ public class Scoreboard extends GameComponent {
         if (sortedEntries.size() > 1) {
             boolean hasTies = false;
             Integer lastScore = null;
-            
+
             for (Map.Entry<String, Integer> entry : sortedEntries) {
                 if (lastScore != null && entry.getValue().equals(lastScore)) {
                     hasTies = true;
@@ -170,7 +169,7 @@ public class Scoreboard extends GameComponent {
                 }
                 lastScore = entry.getValue();
             }
-            
+
             if (hasTies) {
                 Label tieLabel = new Label("* Tied scores", skin);
                 tieLabel.setFontScale(0.8f);

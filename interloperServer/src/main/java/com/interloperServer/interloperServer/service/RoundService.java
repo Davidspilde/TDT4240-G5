@@ -53,6 +53,9 @@ public class RoundService {
 
         // Check if there are not more rounds
         if (!game.hasMoreRounds()) {
+            game.getLobby().setGameActive(false);
+            gameManagerService.removeGame(lobbyCode);
+
             // Broadcast game completion message with scores
             messagingService.broadcastMessage(game.getLobby(), messageFactory.gameComplete(game.getScoreboard()));
 
