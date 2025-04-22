@@ -38,7 +38,7 @@ public class PlayersList extends GameComponent {
     protected void create() {
         // Initialize empty table
         rootTable.top();
-        
+
         // Add header
         Label playersHeader = new Label("Players", skin);
         playersHeader.setAlignment(Align.center);
@@ -53,7 +53,7 @@ public class PlayersList extends GameComponent {
         this.players = players;
         update();
     }
-    
+
     /**
      * Control whether to show vote buttons
      */
@@ -61,14 +61,14 @@ public class PlayersList extends GameComponent {
         this.showVoteButtons = show;
         update();
     }
-    
+
     /**
      * Set action listener
      */
     public void setListener(PlayerActionListener listener) {
         this.listener = listener;
     }
-    
+
     /**
      * Convenience method to set controller directly
      */
@@ -76,8 +76,7 @@ public class PlayersList extends GameComponent {
         setListener(new PlayerActionListener() {
             @Override
             public void onVotePlayer(String playerName) {
-                // TODO:
-                //controller.votePlayer(playerName);
+                controller.onVotePlayer(playerName);
             }
         });
     }
@@ -88,7 +87,7 @@ public class PlayersList extends GameComponent {
         int childCount = rootTable.getChildren().size;
         if (childCount > 2) { // label + colspan
             rootTable.clearChildren();
-            
+
             Label playersHeader = new Label("Players", skin);
             playersHeader.setAlignment(Align.center);
             playersHeader.setFontScale(1.2f);
@@ -102,21 +101,21 @@ public class PlayersList extends GameComponent {
 
         for (String playerName : players) {
             Label playerLabel = new Label(playerName, skin);
-            
+
             boolean isCurrentPlayer = playerName.equals(currentUsername);
             if (isCurrentPlayer) {
                 playerLabel.setText("→ " + playerName);
                 playerLabel.setColor(Color.YELLOW);
             }
-            
+
             if (showVoteButtons) {
                 TextButton voteButton = new TextButton("Vote", skin);
-                
+
                 if (isCurrentPlayer) {
                     voteButton.setDisabled(true);
                     voteButton.getLabel().setColor(Color.GRAY);
                 }
-                
+
                 voteButton.addListener(new ClickListener() {
                     @Override
                     public void clicked(InputEvent event, float x, float y) {
@@ -125,7 +124,7 @@ public class PlayersList extends GameComponent {
                         }
                     }
                 });
-                
+
                 rootTable.add(playerLabel).width(150).padRight(10).left();
                 rootTable.add(voteButton).width(80).right().row();
             } else {
@@ -133,9 +132,6 @@ public class PlayersList extends GameComponent {
             }
         }
 
-
     }
-
-
 
 }

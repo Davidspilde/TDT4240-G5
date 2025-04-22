@@ -1,29 +1,19 @@
 package io.github.Spyfall.view.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.model.GameModel;
-import io.github.Spyfall.model.GameState;
-import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.ui.Scoreboard;
 
@@ -69,39 +59,27 @@ public class GameOverStage extends StageView {
 
         Label titleLabel = new Label("GAME ENDED", skin);
         titleLabel.setFontScale(1.5f);
-        titleLabel.setAlignment(Align.center); 
+        titleLabel.setAlignment(Align.center);
         contentTable.add(titleLabel).colspan(2).fillX().row();
-        
+
         // Create scoreboard component
         scoreboardComponent = new Scoreboard(
-            skin, 
-            gameModel.getUsername(),
-            contentWidth
-        );
+                skin,
+                gameModel.getUsername(),
+                contentWidth);
         scoreboardComponent.setTitle("FINAL STANDINGS");
         scoreboardComponent.setScoreboard(scoreboard);
         scoreboardComponent.setHighlightWinner(true); // Enable trophy icon and gold color for winner
-        
-        contentTable.add(scoreboardComponent.getActor()).colspan(2).fillX().padTop(20).row();
-        
-        TextButton returnToLobbyButton = new TextButton("Return to Main Menu", skin);
-        returnToLobbyButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                AudioService.getInstance().playSound("click");
-                controller.leaveGame();
-            }
-        });
 
-        contentTable.add(returnToLobbyButton).colspan(2).padTop(20);
+        contentTable.add(scoreboardComponent.getActor()).colspan(2).fillX().padTop(20).row();
 
         rootTable.add(contentTable).expand().center();
-    
+
     }
 
     @Override
     public void update() {
-        
+
         // Regular stage updates
         stage.act();
         stage.draw();

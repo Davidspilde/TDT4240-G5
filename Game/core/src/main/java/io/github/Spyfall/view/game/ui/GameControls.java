@@ -12,14 +12,13 @@ public class GameControls extends GameComponent {
 
     public interface GameControlListener {
         void onEndGameClicked();
-        void onLeaveGameClicked();
     }
 
     private TextButton endGameButton;
     private TextButton leaveGameButton;
     private GameControlListener listener;
     private boolean isHost;
-    
+
     public GameControls(Skin skin, boolean isHost) {
         super(skin);
         this.isHost = isHost;
@@ -38,16 +37,6 @@ public class GameControls extends GameComponent {
             }
         });
         endGameButton.setVisible(isHost);
-        
-        leaveGameButton = new TextButton("Leave Game", skin);
-        leaveGameButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                if (listener != null) {
-                    listener.onLeaveGameClicked();
-                }
-            }
-        });
 
         rootTable.add(endGameButton).padRight(20);
         rootTable.add(leaveGameButton);
@@ -56,12 +45,12 @@ public class GameControls extends GameComponent {
     public void setListener(GameControlListener listener) {
         this.listener = listener;
     }
-    
+
     public void setIsHost(boolean isHost) {
         this.isHost = isHost;
         endGameButton.setVisible(isHost);
     }
-    
+
     @Override
     public void update() {
         // don't need updates here

@@ -23,11 +23,11 @@ import io.github.Spyfall.view.game.ui.Timer;
 import io.github.Spyfall.view.game.ui.Timer.TimerListener;
 
 public abstract class BaseGameStage extends StageView implements TimerListener, GameControlListener, RoundEndListener {
-    
+
     protected Skin skin;
     protected GameplayController controller;
     protected GameModel gameModel;
-    
+
     // UI Components
     protected Table rootTable;
     protected Texture bgTexture;
@@ -35,18 +35,18 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
     protected PlayerInfo playerInfoComponent;
     protected GameControls gameControlsComponent;
     protected RoundEndOverlay roundEndOverlay;
-    
+
     // isRoundEnded
     protected boolean isRoundEnded = false;
-    
+
     public BaseGameStage(ScreenViewport viewport) {
         super(viewport);
         this.controller = GameplayController.getInstance();
         this.gameModel = GameModel.getInstance();
     }
-    
+
     protected void init() {
-        // init 
+        // init
         bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
@@ -70,16 +70,15 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
         float contentWidth = Math.min(500, Gdx.graphics.getWidth() * 0.85f);
         roundEndOverlay = new RoundEndOverlay(
-            skin, 
-            gameModel.getUsername(), 
-            isHost, 
-            contentWidth
-        );
+                skin,
+                gameModel.getUsername(),
+                isHost,
+                contentWidth);
         roundEndOverlay.setListener(this);
         roundEndOverlay.getActor().setVisible(false);
 
         stage.addActor(rootTable);
-        
+
         stage.addActor(roundEndOverlay.getActor());
     }
 
@@ -89,15 +88,15 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         if (timerComponent != null) {
             timerComponent.update();
         }
-        
+
         if (playerInfoComponent != null) {
             playerInfoComponent.update();
         }
-        
+
         if (gameControlsComponent != null) {
             gameControlsComponent.update();
         }
-        
+
         if (roundEndOverlay != null && isRoundEnded) {
             roundEndOverlay.update();
         }
@@ -105,13 +104,13 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
     }
-    
+
     public void startTimer(float seconds) {
         if (timerComponent != null) {
             timerComponent.start(seconds);
         }
     }
-    
+
     /**
      * Stop the timer
      */
@@ -123,15 +122,16 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
     /**
      * Update the timer display with a specific time value
-     * 
+     *
      * @param seconds Time in seconds
      */
     public void updateTimerDisplay(float seconds) {
         if (timerComponent != null) {
-            timerComponent.setText(seconds <= 0 ? "00:00" : String.format("%02d:%02d", (int)(seconds / 60), (int)(seconds % 60)));
+            timerComponent.setText(
+                    seconds <= 0 ? "00:00" : String.format("%02d:%02d", (int) (seconds / 60), (int) (seconds % 60)));
         }
     }
-    
+
     @Override
     public void onTimerEnd() {
         // subclasses should implement
@@ -140,33 +140,26 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
     @Override
     public void onEndGameClicked() {
         // TODO
-        //controller.endGame();
+        // controller.endGame();
     }
-    
-    @Override
-    public void onLeaveGameClicked() {
-        controller.leaveGame();
-    }
-    
+
     @Override
     public void onNextRoundClicked() {
         resetRoundEndUI();
-        controller.startNewRound();
+        controller.onStartNewRound();
     }
 
-
-    public void handleRoundEnded(int roundNumber, String reason, String spy, 
-                               String location, HashMap<String, Integer> scoreboard) {
+    public void handleRoundEnded(int roundNumber, String reason, String spy,
+            String location, HashMap<String, Integer> scoreboard) {
         isRoundEnded = true;
-        
+
         if (timerComponent != null) {
             timerComponent.stop();
             timerComponent.setText("ROUND ENDED");
         }
-        
+
         if (roundEndOverlay != null) {
-            HashMap<String, Integer> safeScoreboard = scoreboard != null ? 
-                                               scoreboard : new HashMap<>();
+            HashMap<String, Integer> safeScoreboard = scoreboard != null ? scoreboard : new HashMap<>();
             roundEndOverlay.setRoundEndData(roundNumber, reason, spy, location, safeScoreboard);
             roundEndOverlay.getActor().setVisible(true);
         }
@@ -179,17 +172,16 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         isRoundEnded = false;
     }
 
-    
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
-    
+
     public void dispose() {
         if (bgTexture != null) {
             bgTexture.dispose();
         }
-        
+
         if (roundEndOverlay != null) {
             roundEndOverlay.dispose();
         }
