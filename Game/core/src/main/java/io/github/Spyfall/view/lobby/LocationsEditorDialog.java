@@ -1,5 +1,6 @@
 package io.github.Spyfall.view.lobby;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -111,6 +112,7 @@ public class LocationsEditorDialog extends Dialog {
             List<Location> updated = getAllLocations();
             lobbyController.updateLobbyLocations(updated);
         }
+        Gdx.input.setOnscreenKeyboardVisible(false);
         hide();
     }
 }

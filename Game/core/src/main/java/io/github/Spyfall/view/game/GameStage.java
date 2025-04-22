@@ -3,14 +3,17 @@ package io.github.Spyfall.view.game;
 
 import java.util.HashMap;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameData;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.game.ui.LocationsListComponent;
 import io.github.Spyfall.view.game.ui.PlayersList;
+import io.github.Spyfall.view.ui.SettingsIcon;
 
 public class GameStage extends BaseGameStage {
     private PlayersList playersListComponent;
@@ -68,6 +71,18 @@ public class GameStage extends BaseGameStage {
 
         rootTable.row().padTop(20);
         rootTable.add(gameControlsComponent.getActor());
+
+        // Add floating settings icon
+        SettingsIcon settingsIcon = new SettingsIcon(skin, AudioService.getInstance(), stage);
+        stage.addActor(settingsIcon);
+
+        // Position it in bottom-right corner (after stage size is valid)
+        Gdx.app.postRunnable(() -> {
+            float x = viewport.getWorldWidth() - settingsIcon.getWidth() - 20f;
+            float y = 20f;
+            settingsIcon.setPosition(x, y);
+        });
+
     }
 
     @Override

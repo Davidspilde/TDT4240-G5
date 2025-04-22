@@ -1,5 +1,6 @@
 package io.github.Spyfall.view.lobby;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -88,6 +89,8 @@ public class GameSettingsDialog extends Dialog {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 saveSettings();
+
+                Gdx.input.setOnscreenKeyboardVisible(false);
             }
         });
 
@@ -95,6 +98,8 @@ public class GameSettingsDialog extends Dialog {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 hide();
+
+                Gdx.input.setOnscreenKeyboardVisible(false);
             }
         });
 

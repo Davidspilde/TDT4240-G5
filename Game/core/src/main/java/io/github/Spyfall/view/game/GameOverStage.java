@@ -19,8 +19,10 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.ui.Scoreboard;
+import io.github.Spyfall.view.ui.SettingsIcon;
 
 public class GameOverStage extends StageView {
 
@@ -90,6 +92,18 @@ public class GameOverStage extends StageView {
         contentTable.add(backToLobbyButton).colspan(2).padTop(20).center().row();
 
         rootTable.add(contentTable).expand().center();
+
+        // Add floating settings icon
+        SettingsIcon settingsIcon = new SettingsIcon(skin, AudioService.getInstance(), stage);
+        stage.addActor(settingsIcon);
+
+        // Position it in bottom-right corner (after stage size is valid)
+        Gdx.app.postRunnable(() -> {
+            float x = viewport.getWorldWidth() - settingsIcon.getWidth() - 20f;
+            float y = 20f;
+            settingsIcon.setPosition(x, y);
+        });
+
     }
 
     @Override

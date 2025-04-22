@@ -1,5 +1,6 @@
 package io.github.Spyfall.view.mainmenu;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -61,5 +62,7 @@ public class JoinLobbyDialog extends Dialog {
 
             mainMenuController.onJoinLobby(usernameField.getText(), lobbyField.getText());
         }
+
+        Gdx.input.setOnscreenKeyboardVisible(false);
     }
 }

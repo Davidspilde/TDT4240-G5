@@ -1,5 +1,6 @@
 package io.github.Spyfall.view.mainmenu;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -62,5 +63,6 @@ public class CreateLobbyDialog extends Dialog {
         if (Boolean.TRUE.equals(obj)) {
             mainMenuController.onCreateLobby(usernameField.getText());
         }
+        Gdx.input.setOnscreenKeyboardVisible(false);
     }
 }
