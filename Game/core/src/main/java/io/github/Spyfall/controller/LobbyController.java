@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import io.github.Spyfall.message.response.ResponseMessage;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
+import io.github.Spyfall.model.LobbyData;
 import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
@@ -91,14 +92,22 @@ public class LobbyController {
         gameModel.getLobbyData().setHostPlayer(host);
         gameModel.getLobbyData().getPlayers().clear();
         gameModel.getLobbyData().addPlayer(gameModel.getUsername());
-        System.out.println("Lobby created: " + lobbyCode);
-        
-        if (gameModel.getCurrentState() != GameState.GAME_CONFIG) {
-            gameModel.setCurrentState(GameState.GAME_CONFIG);
+        System.out.println("Handling lobby created: " + lobbyCode);
+
+        // transition to Lobby Stage
+        if (gameModel.getCurrentState() != GameState.LOBBY) {
+            gameModel.setCurrentState(GameState.LOBBY);
         } else {
             System.out.println("Cannot already be in Game config state: " + gameModel.getCurrentState());
         }
+        // Send default lobby settings to backend
+        int roundLimit = gameModel.getLobbyData().getRoundLimit();
+        int locationCount = gameModel.getLobbyData().getLocationLimit();
+        int maxPlayers = gameModel.getLobbyData().getMaxPlayers();
+        int timePerRound = gameModel.getLobbyData().getTimePerRound();
+        int spyLastAttemptTime = gameModel.getLobbyData().getSpyLastAttemptTime();
 
+        updateLobbyOptions(roundLimit, locationCount, maxPlayers, timePerRound, spyLastAttemptTime);
     }
 
     /**
@@ -143,6 +152,7 @@ public class LobbyController {
      */
     public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
             int spyLastAttemptTime) {
+
         boolean success = sendMessageService.updateLobbyOptions(
                 gameModel.getUsername(),
                 gameModel.getLobbyCode(),
@@ -151,7 +161,6 @@ public class LobbyController {
                 maxPlayers,
                 timePerRound,
                 spyLastAttemptTime);
-
         if (success) {
             gameModel.getLobbyData().setRoundLimit(roundLimit);
             gameModel.getLobbyData().setLocationCount(locationNumber);
@@ -198,4 +207,9 @@ public class LobbyController {
             e.printStackTrace();
         }
     }
+
+    public LobbyData getLobbyData() {
+        return GameModel.getInstance().getLobbyData();
+    }
+
 }

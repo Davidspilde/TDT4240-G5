@@ -19,9 +19,6 @@ public class MainController implements GameStateObserver {
     private GameModel gameModel;
     private ScreenViewport viewport;
 
-    // sub-controllers
-    private MainMenuController mainMenuController;
-
     private MainController(ScreenViewport viewport) {
         this.viewport = viewport;
         this.stageManager = StageManager.getInstance();
@@ -29,9 +26,6 @@ public class MainController implements GameStateObserver {
 
         // register as observer
         gameModel.addObserver(this);
-
-        // Init sub-controllers
-        this.mainMenuController = MainMenuController.getInstance();
 
         // Initial state is main menu
         setMainMenuStage();
@@ -49,13 +43,8 @@ public class MainController implements GameStateObserver {
     }
 
     public void setMainMenuStage() {
-        MainMenuStage mainMenuStage = new MainMenuStage(viewport, mainMenuController);
+        MainMenuStage mainMenuStage = new MainMenuStage(viewport);
         stageManager.setStage(mainMenuStage);
-    }
-
-    public void setCreateGameStage() {
-        CreateGameStage createGameStage = new CreateGameStage(viewport);
-        stageManager.setStage(createGameStage);
     }
 
     public void setLobbyStage() {
@@ -66,18 +55,13 @@ public class MainController implements GameStateObserver {
         stageManager.setStage(lobbyStage);
     }
 
-    public void setGameConfigStage() {
-        System.out.println(gameModel.getLobbyCode());
-        GameConfigStage gameConfigStage = new GameConfigStage(
-            viewport,
-            gameModel.getLobbyCode()
-        );
-        stageManager.setStage(gameConfigStage);
-    }
-    
-    public void setGameOverStage() {
-        GameOverStage gameOverStage = new GameOverStage(gameModel.getGameData().getScoreboard(), viewport);
-        stageManager.setStage(gameOverStage);
+    public void setGameLobbyStage() {
+        GameLobbyStage gameLobbyStage = new GameLobbyStage(
+                gameModel.getGameData().isSpy(),
+                gameModel.getGameData().getLocation(),
+                gameModel.getGameData().getRole(),
+                viewport);
+        stageManager.setStage(gameLobbyStage);
     }
 
     
