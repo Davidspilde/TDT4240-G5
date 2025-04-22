@@ -12,6 +12,15 @@ import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.services.AudioService;
 
 public class CreateLobbyDialog extends Dialog {
+
+    // Layout constants
+    private final float DIALOG_WIDTH = 400f;
+    private final float FIELD_HEIGHT = 60f;
+    private final float FIELD_FONT_SCALE = 1.3f;
+    private final float TITLE_PAD_BOTTOM = 20f;
+    private final float FIELD_PAD_BOTTOM = 25f;
+    private final float BUTTON_HEIGHT = 55f;
+
     private final TextField usernameField;
     private final MainMenuController mainMenuController;
     private final AudioService audioService;
@@ -21,36 +30,32 @@ public class CreateLobbyDialog extends Dialog {
         this.mainMenuController = mainMenuController;
         this.audioService = audioService;
 
-        // Semi-transparent background
+        // Semi-transparent dim background
         Drawable dim = skin.newDrawable("white", new Color(0, 0, 0, 0.75f));
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
         getStyle().stageBackground = dim;
 
-        float dialogWidth = 400f;
-        float fieldHeight = 60f;
-
-        // Create field
+        // Username field
         usernameField = new TextField("", skin);
         usernameField.setMessageText("Enter Username");
-        usernameField.getStyle().font.getData().setScale(1.3f);
-        usernameField.setHeight(fieldHeight);
+        usernameField.getStyle().font.getData().setScale(FIELD_FONT_SCALE);
+        usernameField.setHeight(FIELD_HEIGHT);
 
-        // Content table
-        Table ct = getContentTable();
-        ct.pad(30).center();
-
-        ct.add(new Label("Create a new lobby", skin)).padBottom(20).center().row();
-        ct.add(usernameField).width(dialogWidth).height(fieldHeight).padBottom(25).row();
+        // Layout
+        Table content = getContentTable();
+        content.pad(30).center();
+        content.add(new Label("Create a new lobby", skin)).padBottom(TITLE_PAD_BOTTOM).center().row();
+        content.add(usernameField).width(DIALOG_WIDTH).height(FIELD_HEIGHT).padBottom(FIELD_PAD_BOTTOM).row();
 
         // Buttons
         TextButton createBtn = new TextButton("Create", skin);
-        createBtn.getLabel().setFontScale(1.3f);
-        createBtn.setHeight(55);
+        createBtn.getLabel().setFontScale(FIELD_FONT_SCALE);
+        createBtn.setHeight(BUTTON_HEIGHT);
 
         TextButton cancelBtn = new TextButton("Cancel", skin);
-        cancelBtn.getLabel().setFontScale(1.3f);
-        cancelBtn.setHeight(55);
+        cancelBtn.getLabel().setFontScale(FIELD_FONT_SCALE);
+        cancelBtn.setHeight(BUTTON_HEIGHT);
 
         button(createBtn, true);
         button(cancelBtn, false);

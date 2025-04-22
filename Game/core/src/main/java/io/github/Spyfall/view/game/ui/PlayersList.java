@@ -7,11 +7,7 @@ import java.util.Map;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
@@ -22,6 +18,14 @@ import io.github.Spyfall.services.AudioService;
  * Displays a scrollable list of players with large vote buttons.
  */
 public class PlayersList extends GameComponent {
+
+    // Layout constants
+    private final float HEADER_FONT_SCALE = 1.4f;
+    private final float PLAYER_FONT_SCALE = 1.5f;
+    private final float VOTE_BUTTON_WIDTH = 180f;
+    private final float VOTE_BUTTON_HEIGHT = 80f;
+    private final float PLAYER_LABEL_WIDTH = 300f;
+    private final float PADDING = 10f;
 
     private List<String> players;
     private final String currentUsername;
@@ -41,11 +45,12 @@ public class PlayersList extends GameComponent {
 
     @Override
     protected void create() {
-        rootTable.top().pad(10);
+        rootTable.top().pad(PADDING);
 
         Label header = new Label("Players", skin);
-        header.setFontScale(1.4f);
+        header.setFontScale(HEADER_FONT_SCALE);
         header.setAlignment(Align.center);
+
         rootTable.add(header).colspan(2).padBottom(20).center().row();
     }
 
@@ -57,16 +62,14 @@ public class PlayersList extends GameComponent {
     private void buildPlayerList() {
         Table playerTable = new Table();
         playerTable.top();
-        playerTable.defaults().pad(10).center();
+        playerTable.defaults().pad(PADDING).center();
 
         if (players == null || players.isEmpty())
             return;
 
-        for (String playerName : players) {
-            final String player = playerName;
-
+        for (String player : players) {
             Label playerLabel = new Label(player, skin);
-            playerLabel.setFontScale(1.5f);
+            playerLabel.setFontScale(PLAYER_FONT_SCALE);
             playerLabel.setColor(Color.WHITE);
 
             boolean isCurrentPlayer = player.equals(currentUsername);
@@ -78,8 +81,8 @@ public class PlayersList extends GameComponent {
             }
 
             TextButton voteButton = new TextButton("Vote", skin);
-            voteButton.getLabel().setFontScale(1.5f);
-            voteButton.getLabelCell().pad(10);
+            voteButton.getLabel().setFontScale(PLAYER_FONT_SCALE);
+            voteButton.getLabelCell().pad(PADDING);
             voteButton.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
@@ -92,20 +95,23 @@ public class PlayersList extends GameComponent {
             playerLabels.put(player, playerLabel);
             voteButtons.put(player, voteButton);
 
-            playerTable.add(playerLabel).width(300).left();
-            playerTable.add(voteButton).width(180).height(80).right().row();
+            playerTable.add(playerLabel).width(PLAYER_LABEL_WIDTH).left();
+            playerTable.add(voteButton).width(VOTE_BUTTON_WIDTH).height(VOTE_BUTTON_HEIGHT).right().row();
         }
 
         ScrollPane scrollPane = new ScrollPane(playerTable, skin);
         scrollPane.setFadeScrollBars(false);
         scrollPane.setForceScroll(false, true);
         scrollPane.setSmoothScrolling(true);
-        scrollPane.setScrollingDisabled(true, false); // only vertical scroll
+        scrollPane.setScrollingDisabled(true, false);
         scrollPane.getStyle().background = null;
 
         rootTable.add(scrollPane).colspan(2).expand().fill().row();
     }
 
+    /**
+     * Visually marks the currently voted player and disables their vote button.
+     */
     public void markPlayerVoted(String playerName) {
         if (currentVotedPlayer != null && !currentVotedPlayer.equals(playerName)) {
             Label prevLabel = playerLabels.get(currentVotedPlayer);
@@ -134,6 +140,6 @@ public class PlayersList extends GameComponent {
 
     @Override
     public void update() {
-        // Optional animations or live updates could go here
+        // Future dynamic updates can go here
     }
 }

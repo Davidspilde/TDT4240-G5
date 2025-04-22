@@ -15,23 +15,25 @@ import io.github.Spyfall.services.AudioService;
 
 public class MainMenuTable extends Table {
 
-    // Adjustable layout constants
-    private static final float BUTTON_WIDTH = 340f;
-    private static final float BUTTON_HEIGHT = 80f;
-    private static final float BUTTON_FONT_SCALE = 1.6f;
-    private static final float BUTTON_SPACING = 35f;
+    // Layout constants
+    private final float BUTTON_WIDTH = 340f;
+    private final float BUTTON_HEIGHT = 80f;
+    private final float BUTTON_FONT_SCALE = 1.6f;
+    private final float BUTTON_SPACING = 35f;
 
-    private static final float LOGO_WIDTH = 400f;
-    private static final float LOGO_HEIGHT = 170f;
-    private static final float LOGO_SPACING = 50f;
+    private final float LOGO_WIDTH = 400f;
+    private final float LOGO_HEIGHT = 170f;
+    private final float LOGO_SPACING = 50f;
 
     public MainMenuTable(Skin skin, AudioService audioService, MainMenuController controller, Stage stage) {
         super(skin);
         setFillParent(true);
         top();
+
+        // Set background image
         setBackground(new TextureRegionDrawable(new TextureRegion(AssetLoader.mainBackground)));
 
-        // Logo
+        // Logo section
         Image logo = new Image(new Texture("logo-Photoroom.png"));
         add(logo)
                 .prefWidth(LOGO_WIDTH)
@@ -39,7 +41,7 @@ public class MainMenuTable extends Table {
                 .padBottom(LOGO_SPACING)
                 .row();
 
-        // Create Lobby Button
+        // "Create Lobby" button
         TextButton createBtn = new TextButton("Create Lobby", skin);
         createBtn.getLabel().setFontScale(BUTTON_FONT_SCALE);
         createBtn.addListener(new ClickListener() {
@@ -55,7 +57,7 @@ public class MainMenuTable extends Table {
                 .padBottom(BUTTON_SPACING)
                 .row();
 
-        // Join Lobby Button
+        // "Join Lobby" button
         TextButton joinBtn = new TextButton("Join Lobby", skin);
         joinBtn.getLabel().setFontScale(BUTTON_FONT_SCALE);
         joinBtn.addListener(new ClickListener() {
@@ -71,7 +73,7 @@ public class MainMenuTable extends Table {
                 .padBottom(BUTTON_SPACING)
                 .row();
 
-        // How to Play Button
+        // "How to play" button
         TextButton howBtn = new TextButton("How to play", skin);
         howBtn.getLabel().setFontScale(BUTTON_FONT_SCALE);
         howBtn.addListener(new ClickListener() {

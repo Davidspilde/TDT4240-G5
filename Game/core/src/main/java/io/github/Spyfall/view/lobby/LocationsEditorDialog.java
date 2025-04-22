@@ -13,12 +13,23 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.view.ui.UIConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LocationsEditorDialog extends Dialog {
+
+    // Layout constants
+    private final float DIALOG_WIDTH = 500f;
+    private final float DIALOG_HEIGHT = 400f;
+    private final float FIELD_WIDTH = 320f;
+    private final float FIELD_HEIGHT = 60f;
+    private final float BUTTON_WIDTH = 160f;
+    private final float BUTTON_HEIGHT = 60f;
+    private final float BUTTON_FONT_SCALE = 1.5f;
+    private final float FIELD_FONT_SCALE = 1.4f;
+    private final float GAP = 15f;
+
     private final Table locationsTable;
     private final LobbyController lobbyController;
     private final AudioService audioService;
@@ -26,15 +37,15 @@ public class LocationsEditorDialog extends Dialog {
 
     public LocationsEditorDialog(Skin skin, LobbyController lobbyController, Stage stage, AudioService audioService) {
         super("Edit Locations", skin);
-        this.audioService = audioService;
         this.lobbyController = lobbyController;
+        this.audioService = audioService;
         this.locationsTable = new Table(skin);
         locationsTable.top().left();
 
-        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+        // Semi-transparent background for dialog
+        Drawable dim = skin.newDrawable("white", new com.badlogic.gdx.graphics.Color(0, 0, 0, 0.75f));
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
-
         getStyle().stageBackground = dim;
 
         initDialog();
@@ -42,25 +53,28 @@ public class LocationsEditorDialog extends Dialog {
     }
 
     private void initDialog() {
+        // Populate existing locations
         for (Location loc : lobbyController.getLobbyData().getLocations()) {
             addLocation(loc);
         }
 
-        this.scrollPane = new ScrollPane(locationsTable, getSkin());
+        // Scrollable list of locations
+        scrollPane = new ScrollPane(locationsTable, getSkin());
         scrollPane.setFadeScrollBars(false);
         scrollPane.setForceScroll(false, true);
         scrollPane.setScrollingDisabled(true, false);
 
-        // Create input field and Add button
+        // New location input field
         TextField newLoc = new TextField("", getSkin());
         newLoc.setMessageText("New location");
-        newLoc.getStyle().font.getData().setScale(1.4f);
-        newLoc.setHeight(60);
+        newLoc.getStyle().font.getData().setScale(FIELD_FONT_SCALE);
+        newLoc.setHeight(FIELD_HEIGHT);
 
+        // Add button
         TextButton addBtn = new TextButton("Add", getSkin());
-        addBtn.getLabel().setFontScale(1.4f);
-        addBtn.setHeight(60);
-        addBtn.setWidth(140);
+        addBtn.getLabel().setFontScale(FIELD_FONT_SCALE);
+        addBtn.setHeight(FIELD_HEIGHT);
+        addBtn.setWidth(BUTTON_WIDTH);
 
         addBtn.addListener(new ClickListener() {
             @Override
@@ -75,37 +89,36 @@ public class LocationsEditorDialog extends Dialog {
             }
         });
 
-        // Layout: New location input
+        // Row for adding new location
         Table inputRow = new Table(getSkin());
-        inputRow.add(newLoc).width(320).height(60).padRight(15);
-        inputRow.add(addBtn).width(140).height(60);
+        inputRow.add(newLoc).width(FIELD_WIDTH).height(FIELD_HEIGHT).padRight(GAP);
+        inputRow.add(addBtn).width(BUTTON_WIDTH).height(FIELD_HEIGHT);
 
-        // Layout: Save/Cancel
+        // Save and cancel buttons
         TextButton saveBtn = new TextButton("Save", getSkin());
-        saveBtn.getLabel().setFontScale(1.5f);
-        saveBtn.setHeight(60);
-        saveBtn.setWidth(160);
+        saveBtn.getLabel().setFontScale(BUTTON_FONT_SCALE);
+        saveBtn.setHeight(BUTTON_HEIGHT);
 
         TextButton cancelBtn = new TextButton("Cancel", getSkin());
-        cancelBtn.getLabel().setFontScale(1.5f);
-        cancelBtn.setHeight(60);
-        cancelBtn.setWidth(160);
+        cancelBtn.getLabel().setFontScale(BUTTON_FONT_SCALE);
+        cancelBtn.setHeight(BUTTON_HEIGHT);
 
         Table buttonRow = new Table(getSkin());
         buttonRow.defaults().pad(5);
-        buttonRow.add(saveBtn).width(160).height(60);
-        buttonRow.add(cancelBtn).width(160).height(60);
+        buttonRow.add(saveBtn).width(BUTTON_WIDTH).height(BUTTON_HEIGHT);
+        buttonRow.add(cancelBtn).width(BUTTON_WIDTH).height(BUTTON_HEIGHT);
 
-        // Layout: content table
+        // Assemble full layout
         Table ct = getContentTable();
         ct.pad(5);
-        ct.add(scrollPane).width(500).maxHeight(400).row();
-        ct.add(inputRow).padTop(1).row();
-        ct.add(buttonRow).padTop(1).row();
+        ct.add(scrollPane).width(DIALOG_WIDTH).maxHeight(DIALOG_HEIGHT).row();
+        ct.add(inputRow).padTop(5).row();
+        ct.add(buttonRow).padTop(5).row();
 
         // Dialog logic
         button(saveBtn, true);
         button(cancelBtn, false);
+        key(Input.Keys.ESCAPE, false);
     }
 
     private void addLocation(Location loc) {
@@ -133,7 +146,7 @@ public class LocationsEditorDialog extends Dialog {
     @Override
     protected void result(Object obj) {
         audioService.playSound("click");
-        if ((Boolean) obj) {
+        if (Boolean.TRUE.equals(obj)) {
             List<Location> updated = getAllLocations();
             lobbyController.updateLobbyLocations(updated);
         }

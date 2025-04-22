@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.game.ui;
 
 import java.util.HashMap;
@@ -6,10 +7,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
@@ -23,6 +21,11 @@ public class RoundEndOverlay extends GameComponent {
         void onNextRoundClicked();
     }
 
+    // Layout constants
+    private final float TITLE_FONT_SCALE = 1.5f;
+    private final float PADDING = 30f;
+    private final float ELEMENT_SPACING = 10f;
+
     private Texture bgTexture;
     private Label titleLabel;
     private Label reasonLabel;
@@ -32,23 +35,24 @@ public class RoundEndOverlay extends GameComponent {
     private Scoreboard scoreboard;
     private RoundEndListener listener;
 
-    private String currentUsername;
-    private boolean isHost;
-    private float contentWidth;
+    private final String currentUsername;
+    private final boolean isHost;
+    private final float contentWidth;
 
     public RoundEndOverlay(Skin skin, String currentUsername, boolean isHost, float contentWidth) {
         super(skin);
         this.currentUsername = currentUsername;
         this.isHost = isHost;
         this.contentWidth = contentWidth;
-
     }
 
     @Override
     protected void create() {
+        // Initialize scoreboard
         this.scoreboard = new Scoreboard(skin, currentUsername, contentWidth);
         rootTable.setFillParent(true);
 
+        // Create semi-transparent black background
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(0, 0, 0, 0.8f);
         pixmap.fill();
@@ -56,12 +60,13 @@ public class RoundEndOverlay extends GameComponent {
         pixmap.dispose();
         rootTable.setBackground(new TextureRegionDrawable(new TextureRegion(bgTexture)));
 
+        // Main content container
         Table contentTable = new Table();
-        contentTable.pad(30);
-        contentTable.defaults().pad(10).align(Align.center);
+        contentTable.pad(PADDING);
+        contentTable.defaults().pad(ELEMENT_SPACING).align(Align.center);
 
         titleLabel = new Label("ROUND ENDED", skin);
-        titleLabel.setFontScale(1.5f);
+        titleLabel.setFontScale(TITLE_FONT_SCALE);
         titleLabel.setAlignment(Align.center);
 
         reasonLabel = new Label("", skin);
@@ -85,6 +90,7 @@ public class RoundEndOverlay extends GameComponent {
         });
         nextRoundButton.setVisible(isHost);
 
+        // Assemble content
         contentTable.add(titleLabel).fillX().row();
         contentTable.add(reasonLabel).fillX().padBottom(15).row();
         contentTable.add(spyLabel).fillX().padTop(10).row();
@@ -95,6 +101,9 @@ public class RoundEndOverlay extends GameComponent {
         rootTable.add(contentTable).expand().fill().maxWidth(contentWidth);
     }
 
+    /**
+     * Sets the round data and updates the display.
+     */
     public void setRoundEndData(int roundNumber, String reason, String spy,
             String location, HashMap<String, Integer> scoreboard) {
         titleLabel.setText("ROUND " + roundNumber + " ENDED");
@@ -103,7 +112,6 @@ public class RoundEndOverlay extends GameComponent {
         reasonLabel.setVisible(reason != null && !reason.isEmpty());
 
         spyLabel.setText("The Spy was: " + (spy != null ? spy : "Unknown"));
-
         locationLabel.setText("Location: " + (location != null ? location : "Unknown"));
 
         HashMap<String, Integer> safeScoreboard = scoreboard != null ? scoreboard : new HashMap<>();
@@ -112,6 +120,9 @@ public class RoundEndOverlay extends GameComponent {
         update();
     }
 
+    /**
+     * Assign a listener for the Next Round button.
+     */
     public void setListener(RoundEndListener listener) {
         this.listener = listener;
     }

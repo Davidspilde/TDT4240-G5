@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.game;
 
 import java.util.HashMap;
@@ -14,29 +15,31 @@ import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.view.StageView;
-import io.github.Spyfall.view.game.ui.GameControls;
-import io.github.Spyfall.view.game.ui.GameControls.GameControlListener;
 import io.github.Spyfall.view.game.ui.PlayerInfo;
 import io.github.Spyfall.view.game.ui.RoundEndOverlay;
 import io.github.Spyfall.view.game.ui.RoundEndOverlay.RoundEndListener;
 import io.github.Spyfall.view.game.ui.Timer;
 import io.github.Spyfall.view.game.ui.Timer.TimerListener;
 
-public abstract class BaseGameStage extends StageView implements TimerListener, GameControlListener, RoundEndListener {
+public abstract class BaseGameStage extends StageView implements TimerListener, RoundEndListener {
 
+    // Constants for layout and UI sizing
+    protected final float ROUND_END_MAX_WIDTH = 500f;
+    protected final float ROUND_END_WIDTH_PERCENT = 0.85f;
+
+    // Core references
     protected Skin skin;
     protected GameplayController controller;
     protected GameModel gameModel;
 
-    // UI Components
+    // UI components
     protected Table rootTable;
     protected Texture bgTexture;
     protected Timer timerComponent;
     protected PlayerInfo playerInfoComponent;
-    protected GameControls gameControlsComponent;
     protected RoundEndOverlay roundEndOverlay;
 
-    // isRoundEnded
+    // Round state flag
     protected boolean isRoundEnded = false;
 
     public BaseGameStage(ScreenViewport viewport) {
@@ -45,17 +48,16 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         this.gameModel = GameModel.getInstance();
     }
 
+    /**
+     * Initializes all core UI components and layout.
+     */
     protected void init() {
-        // init
         bgTexture = AssetLoader.mainBackground;
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
-        // root table
         rootTable = new Table();
-        TextureRegion bgRegion = new TextureRegion(bgTexture);
-        TextureRegionDrawable bgDrawable = new TextureRegionDrawable(bgRegion);
-        rootTable.setBackground(bgDrawable);
+        rootTable.setBackground(new TextureRegionDrawable(new TextureRegion(bgTexture)));
         rootTable.setFillParent(true);
 
         boolean isHost = gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer());
@@ -65,66 +67,40 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
         playerInfoComponent = new PlayerInfo(skin);
 
-        gameControlsComponent = new GameControls(skin, isHost);
-        gameControlsComponent.setListener(this);
+        float contentWidth = Math.min(ROUND_END_MAX_WIDTH, Gdx.graphics.getWidth() * ROUND_END_WIDTH_PERCENT);
 
-        float contentWidth = Math.min(500, Gdx.graphics.getWidth() * 0.85f);
-        roundEndOverlay = new RoundEndOverlay(
-                skin,
-                gameModel.getUsername(),
-                isHost,
-                contentWidth);
+        roundEndOverlay = new RoundEndOverlay(skin, gameModel.getUsername(), isHost, contentWidth);
         roundEndOverlay.setListener(this);
         roundEndOverlay.getActor().setVisible(false);
 
         stage.addActor(rootTable);
-
         stage.addActor(roundEndOverlay.getActor());
     }
 
     @Override
     public void update() {
-        // Update components
-        if (timerComponent != null) {
+        // Update relevant components every frame
+        if (timerComponent != null)
             timerComponent.update();
-        }
-
-        if (playerInfoComponent != null) {
+        if (playerInfoComponent != null)
             playerInfoComponent.update();
-        }
-
-        if (gameControlsComponent != null) {
-            gameControlsComponent.update();
-        }
-
-        if (roundEndOverlay != null && isRoundEnded) {
+        if (roundEndOverlay != null && isRoundEnded)
             roundEndOverlay.update();
-        }
 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
     }
 
     public void startTimer(float seconds) {
-        if (timerComponent != null) {
+        if (timerComponent != null)
             timerComponent.start(seconds);
-        }
     }
 
-    /**
-     * Stop the timer
-     */
     public void stopTimer() {
-        if (timerComponent != null) {
+        if (timerComponent != null)
             timerComponent.stop();
-        }
     }
 
-    /**
-     * Update the timer display with a specific time value
-     *
-     * @param seconds Time in seconds
-     */
     public void updateTimerDisplay(float seconds) {
         if (timerComponent != null) {
             timerComponent.setText(
@@ -134,13 +110,7 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
     @Override
     public void onTimerEnd() {
-        // subclasses should implement
-    }
-
-    @Override
-    public void onEndGameClicked() {
-        // TODO
-        // controller.endGame();
+        // Should be implemented by subclasses
     }
 
     @Override
@@ -149,6 +119,9 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         controller.onStartNewRound();
     }
 
+    /**
+     * Triggers end-of-round UI with data from the model.
+     */
     public void handleRoundEnded(int roundNumber, String reason, String spy,
             String location, HashMap<String, Integer> scoreboard) {
         isRoundEnded = true;
@@ -165,6 +138,9 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
         }
     }
 
+    /**
+     * Hides end-of-round overlay and resets state.
+     */
     public void resetRoundEndUI() {
         if (roundEndOverlay != null) {
             roundEndOverlay.getActor().setVisible(false);
@@ -178,12 +154,9 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
     }
 
     public void dispose() {
-        if (bgTexture != null) {
+        if (bgTexture != null)
             bgTexture.dispose();
-        }
-
-        if (roundEndOverlay != null) {
+        if (roundEndOverlay != null)
             roundEndOverlay.dispose();
-        }
     }
 }
