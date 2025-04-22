@@ -15,6 +15,7 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.ui.GameControls;
 import io.github.Spyfall.view.game.ui.GameControls.GameControlListener;
+import io.github.Spyfall.view.game.ui.PlayersList.PlayerActionListener;
 import io.github.Spyfall.view.game.ui.PlayerInfo;
 import io.github.Spyfall.view.game.ui.RoundEndOverlay;
 import io.github.Spyfall.view.game.ui.RoundEndOverlay.RoundEndListener;
@@ -84,7 +85,6 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
     @Override
     public void update() {
-        System.out.println("StageView.update() for " + this.getClass().getSimpleName());
         // Update components
         if (timerComponent != null) {
             timerComponent.update();
@@ -151,8 +151,9 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
     @Override
     public void onNextRoundClicked() {
         resetRoundEndUI();
-        //controller.startNextRound();
+        controller.startNewRound();
     }
+
 
     public void handleRoundEnded(int roundNumber, String reason, String spy, 
                                String location, HashMap<String, Integer> scoreboard) {

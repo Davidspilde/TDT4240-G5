@@ -31,6 +31,10 @@ public class LobbyController {
         return instance;
     }
 
+    //==================================================
+    // SERVER MESSAGE HANDLING (responses)
+    //==================================================
+
     /**
      * Handle the locations coming from the server
      * @param message
@@ -98,6 +102,21 @@ public class LobbyController {
     }
 
     /**
+     * Handle gameStarted request
+     */
+    public void handleGameStarted() {
+        System.out.println("Server sent game started response");
+        if (gameModel.getCurrentState() != GameState.IN_GAME) {
+            gameModel.setCurrentState(GameState.IN_GAME);
+        }
+    }
+    
+    
+    //==================================================
+    // PLAYER ACTIONS (requests)
+    //==================================================
+    
+    /**
      * Send createLobby request
      * @param username
      */
@@ -113,7 +132,7 @@ public class LobbyController {
         sendMessageService.createLobby(username);
         System.out.println("Sent createLobby request to server");
     }
-
+    
     /**
      * Update lobbySettings
      * @param roundLimit
@@ -142,7 +161,7 @@ public class LobbyController {
             System.out.println("Failed to send update lobby options request");
         }
     }
-
+    
     /**
      * Send startGame request
      */
@@ -166,16 +185,6 @@ public class LobbyController {
     }
 
     /**
-     * Handle gameStarted request
-     */
-    public void handleGameStarted() {
-        System.out.println("Server sent game started response");
-        if (gameModel.getCurrentState() != GameState.IN_GAME) {
-            gameModel.setCurrentState(GameState.IN_GAME);
-        }
-    }
-
-    /**
      * Leave lobby and inform the server
      */
     public void leaveLobby() {
@@ -183,7 +192,7 @@ public class LobbyController {
             AudioService.getInstance().playSound("click");
             SendMessageService.getInstance().leaveLobby(gameModel.getUsername(), gameModel.getLobbyCode());
             gameModel.setCurrentState(GameState.MAIN_MENU); // transitition to main menu
-
+    
         } catch (Exception e) {
             System.err.println("An error occurred while leaving the lobby: " + e.getMessage());
             e.printStackTrace();

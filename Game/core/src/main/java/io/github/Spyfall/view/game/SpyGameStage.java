@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.view.game.ui.LocationsListComponent;
 
@@ -12,10 +14,12 @@ public class SpyGameStage extends BaseGameStage {
     private LocationsListComponent locationsComponent;
     private float finalGuessTimeRemaining;
     private boolean finalGuessActive = false;
+    private GameplayController controller;
     
     public SpyGameStage(String roleName, ScreenViewport viewport) {
         super(viewport);
         initStage(roleName);
+        this.controller = GameplayController.getInstance();
     }
     
     protected void initStage(String roleName) {

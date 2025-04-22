@@ -57,7 +57,7 @@ public class GameplayController {
     }
 
     //==================================================
-    // SERVER MESSAGE HANDLING
+    // SERVER MESSAGE HANDLING (responses)
     //==================================================
 
     /**
@@ -198,8 +198,8 @@ public class GameplayController {
      * @param location
      */
     public void handleSpyGuess(String spy, String location) {
-        System.out.println("Spy " + spy + " guessed location: " + location);
-        // TODO:
+        System.out.println("SPYVOTE LOCATION");
+        sendMessageService.spyVote(spy, location, gameModel.getLobbyCode());
     }
 
     /**
@@ -213,9 +213,40 @@ public class GameplayController {
     }
 
     //==================================================
-    // PLAYER ACTIONS
+    // PLAYER ACTIONS (requests)
     //==================================================
 
+    /**
+     * Send startNewRound request
+     */
+    public void startNewRound() {
+
+        if (gameModel.getLobbyData().getHostPlayer() != null && gameModel.getUsername() != null) {
+            sendMessageService.startNextRound(gameModel.getUsername(), gameModel.getLobbyCode());
+            System.out.println("Sent startNewRound request to server");
+        } else {
+            ErrorPopup.getInstance().showClientError("Only the host can advance the round");
+        }
+    }
+
+    /**
+     * Vote a player you suspect is a spy (as a player)
+     * @param target
+     */
+    public void votePlayer(String target) {
+        System.out.println("WE GET TO VOTING");
+        String user = gameModel.getUsername();
+        String lobbyCode = gameModel.getLobbyCode();
+
+        if (user.equals(target)) {
+            ErrorPopup.getInstance().showClientError("Cannot vote for yourself");
+        } else {
+            audioService.playSound("click");
+            System.out.println(user +" voted for player: " + target);
+            sendMessageService.vote(user, target, lobbyCode);
+        }
+
+    }
 
     /**
      * Leave the current game and return to main menu
@@ -238,8 +269,6 @@ public class GameplayController {
         System.out.println("Greyed out location: " + location);
 
     }
-
-
 
     /**
      * Interface for model data updates

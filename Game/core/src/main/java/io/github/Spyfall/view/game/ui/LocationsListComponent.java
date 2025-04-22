@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.controller.GameplayController;
+import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.Location;
 
 /**
@@ -57,6 +58,7 @@ public class LocationsListComponent extends GameComponent {
                                   greyedOutLocations : new HashSet<>();
         update();
     }
+
 
     @Override
     public void update() {
@@ -121,8 +123,7 @@ public class LocationsListComponent extends GameComponent {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     if (controller != null) {
-                        // TODO: Implement spy guess
-                        //controller.spyGuessLocation(location);
+                        controller.handleSpyGuess(GameModel.getInstance().getUsername(), location.getName());
                     }
                 }
             });

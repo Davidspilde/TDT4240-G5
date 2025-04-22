@@ -89,7 +89,7 @@ public class GameOverStage extends StageView {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 AudioService.getInstance().playSound("click");
-                gameModel.setCurrentState(GameState.MAIN_MENU);
+                controller.leaveGame();
             }
         });
 
@@ -101,9 +101,6 @@ public class GameOverStage extends StageView {
 
     @Override
     public void update() {
-        if (scoreboardComponent != null) {
-            scoreboardComponent.update();
-        }
         
         // Regular stage updates
         stage.act();
