@@ -67,7 +67,7 @@ Server will start on `ws://localhost:8080/ws`.
 **Navigate to the frontend core module directory:**
 
 ```
-cd Game/lwjgl3
+cd Game
 ```
 
 This is where your desktop game's main class (`Main.java`) lives.
@@ -75,7 +75,7 @@ This is where your desktop game's main class (`Main.java`) lives.
 **To run on desktop:**
 
 ```bash
-./gradlew run
+./gradlew lwjgl3:run
 ```
 
 Make sure the backend is running before launching the game.
