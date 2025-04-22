@@ -245,17 +245,6 @@ public class GameplayController {
 
     }
 
-    /**
-     * Toggle greying out a location as a spy
-     *
-     * @param location
-     */
-    public void toggleLocationGreyout(Location location) {
-        gameModel.getGameData().toggleLocationGreyout(location);
-        System.out.println("Greyed out location: " + location);
-
-    }
-
     // Only after game_over
     public void backTolobby() {
         ScreenViewport viewport = new ScreenViewport();

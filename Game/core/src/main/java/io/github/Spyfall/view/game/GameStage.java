@@ -44,7 +44,6 @@ public class GameStage extends BaseGameStage {
         if (isSpy) {
             locationsComponent = new LocationsListComponent(skin, controller);
             locationsComponent.setLocations(gameModel.getGameData().getPossibleLocations());
-            locationsComponent.setGreyedOutLocations(gameModel.getGameData().getGreyedOutLocations());
         }
 
         spyRevealLabel = new Label("", skin);
@@ -94,7 +93,6 @@ public class GameStage extends BaseGameStage {
         if (isSpy && locationsComponent != null) {
             GameData gameData = gameModel.getGameData();
             locationsComponent.setLocations(gameData.getPossibleLocations());
-            locationsComponent.setGreyedOutLocations(gameData.getGreyedOutLocations());
         }
 
         // Reset reveal label
