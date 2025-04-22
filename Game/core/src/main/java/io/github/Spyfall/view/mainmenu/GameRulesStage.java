@@ -9,6 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.services.AudioService;
@@ -43,7 +45,7 @@ public class GameRulesStage extends StageView {
         stage.addActor(rootTable);
 
         // Load background texture and set it
-        bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
+        bgTexture = AssetLoader.mainBackground;
         TextureRegionDrawable bgDrawable = new TextureRegionDrawable(new TextureRegion(bgTexture));
         rootTable.setBackground(bgDrawable);
 

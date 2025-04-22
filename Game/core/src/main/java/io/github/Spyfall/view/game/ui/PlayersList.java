@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.controller.GameplayController;
+import io.github.Spyfall.services.AudioService;
 
 /**
  * Component for displaying players list with vote buttons.
@@ -24,6 +26,7 @@ public class PlayersList extends GameComponent {
     private List<String> players;
     private String currentUsername;
     private GameplayController controller;
+    private AudioService audioService;
 
     // Track player UI elements
     private final Map<String, Label> playerLabels = new HashMap<>();
@@ -32,8 +35,9 @@ public class PlayersList extends GameComponent {
     // Track the currently voted player
     private String currentVotedPlayer = null;
 
-    public PlayersList(Skin skin, String currentUsername, GameplayController controller) {
+    public PlayersList(Skin skin, String currentUsername, GameplayController controller, AudioService audioService) {
         super(skin);
+        this.audioService = audioService;
         this.controller = controller;
         this.currentUsername = currentUsername;
     }
@@ -83,7 +87,7 @@ public class PlayersList extends GameComponent {
             voteButton.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
-                    System.out.println("Votes: " + player);
+                    audioService.playSound("click");
                     controller.onVotePlayer(player);
                     markPlayerVoted(player);
                 }

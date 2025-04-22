@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.model.GameModel;
@@ -43,7 +44,7 @@ public class GameOverStage extends StageView {
 
     private void initStage() {
         // Load the background texture
-        bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
+        bgTexture = AssetLoader.mainBackground;
 
         // Sets the music to victory
         AudioService.getInstance().playMusic("victory", true);

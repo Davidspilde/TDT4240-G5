@@ -17,6 +17,9 @@ public class GameClient {
         webSocketClient = LocalWebSocketClient.getInstance(uri);
         webSocketClient.connect();
 
+        // Loads all the assets which will be used
+        AssetLoader.load();
+
         // init main controller
         mainController = MainController.getInstance(viewport);
 

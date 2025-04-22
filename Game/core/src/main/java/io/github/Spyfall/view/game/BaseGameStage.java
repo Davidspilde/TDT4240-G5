@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.view.StageView;
@@ -46,7 +47,7 @@ public abstract class BaseGameStage extends StageView implements TimerListener, 
 
     protected void init() {
         // init
-        bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
+        bgTexture = AssetLoader.mainBackground;
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
