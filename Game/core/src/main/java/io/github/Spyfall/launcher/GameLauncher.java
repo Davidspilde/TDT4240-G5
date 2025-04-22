@@ -7,11 +7,10 @@ import io.github.Spyfall.services.AudioService;
 
 public class GameLauncher {
 
-    //Vi kan putte default settings her, men til å begynne med så lager den bare game client
-    public static GameClient initGameClient(ScreenViewport viewport){
+    public static GameClient initGameClient(ScreenViewport viewport) {
         AudioService audioService = AudioService.getInstance();
         audioService.loadMusic("background", "audio/music/683507__sergequadrado__sad-loop.wav");
-        audioService.loadSound("click", "audio/sounffx/333916__lextrack__cat-meowing.mp3");
+        audioService.loadSound("click", "audio/sounffx/old-radio-button-click.mp3");
         audioService.loadMusic("victory", "audio/music/725452__lovescotch__stalking.wav");
         return new GameClient(viewport);
     }

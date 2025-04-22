@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.ui.UIConstants;
 
 public class LobbyButtonsTable extends Table {
@@ -17,11 +18,14 @@ public class LobbyButtonsTable extends Table {
     private final TextButton leaveLobbyButton;
     private final TextButton editLocationsButton;
     private final TextButton editGameSettingsButton;
+    private final AudioService audioService;
     private final Stage stage;
 
-    public LobbyButtonsTable(Skin skin, LobbyController controller, Stage stage, GameModel gameModel) {
+    public LobbyButtonsTable(Skin skin, LobbyController controller, Stage stage, GameModel gameModel,
+            AudioService audioService) {
         super(skin);
         this.stage = stage;
+        this.audioService = audioService;
 
         startGameButton = new TextButton("Start Game", skin);
         leaveLobbyButton = new TextButton("Leave Lobby", skin);
@@ -36,6 +40,7 @@ public class LobbyButtonsTable extends Table {
         startGameButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                audioService.playSound("click");
                 controller.startGame();
             }
         });
@@ -43,6 +48,8 @@ public class LobbyButtonsTable extends Table {
         leaveLobbyButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+
+                audioService.playSound("click");
                 controller.leaveLobby();
             }
         });
@@ -50,15 +57,19 @@ public class LobbyButtonsTable extends Table {
         editLocationsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+
+                audioService.playSound("click");
                 System.out.println("Edit Locations");
-                new LocationsEditorDialog(skin, controller, stage).show(stage);
+                new LocationsEditorDialog(skin, controller, stage, audioService).show(stage);
             }
         });
 
         editGameSettingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                new GameSettingsDialog(skin, controller, stage).show(stage);
+
+                audioService.playSound("click");
+                new GameSettingsDialog(skin, controller, stage, audioService).show(stage);
             }
         });
 

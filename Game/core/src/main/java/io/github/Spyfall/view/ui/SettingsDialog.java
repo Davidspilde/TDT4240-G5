@@ -12,10 +12,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import io.github.Spyfall.services.AudioService;
 
 public class SettingsDialog extends Dialog {
+    private AudioService audioService;
 
     public SettingsDialog(Skin skin, AudioService audioService, Stage stage) {
         super("", skin, "dialog");
 
+        this.audioService = audioService;
         // Makes backgorund transparent when used
         Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
         dim.setMinWidth(stage.getViewport().getWorldWidth());
@@ -60,6 +62,7 @@ public class SettingsDialog extends Dialog {
 
     @Override
     protected void result(Object obj) {
-        AudioService.getInstance().saveSettings(); // optional
+        audioService.saveSettings(); // optional
+        audioService.playSound("click");
     }
 }

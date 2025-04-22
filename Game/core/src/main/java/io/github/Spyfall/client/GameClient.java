@@ -17,12 +17,11 @@ public class GameClient {
         webSocketClient = LocalWebSocketClient.getInstance(uri);
         webSocketClient.connect();
 
-        // init game model
-        // this.gameModel = GameModel.getInstance();
-
-        // init game controller
-        AudioService.getInstance().playMusic("background", true);
+        // init main controller
         mainController = MainController.getInstance(viewport);
+
+        // starts music
+        AudioService.getInstance().playMusic("background", true);
     }
 
     public void resize(int width, int height) {

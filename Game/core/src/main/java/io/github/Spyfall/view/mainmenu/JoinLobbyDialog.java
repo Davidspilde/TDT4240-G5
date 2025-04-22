@@ -19,10 +19,12 @@ public class JoinLobbyDialog extends Dialog {
     private TextField usernameField;
     private TextField lobbyField;
     private MainMenuController mainMenuController;
+    private AudioService audioService;
 
     public JoinLobbyDialog(Skin skin, AudioService audioService, MainMenuController mainMenuController, Stage stage) {
         super("", skin, "dialog");
         this.mainMenuController = mainMenuController;
+        this.audioService = audioService;
 
         // Makes backgorund transparent when used
         Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
@@ -58,6 +60,8 @@ public class JoinLobbyDialog extends Dialog {
 
     @Override
     protected void result(Object obj) {
+
+        audioService.playSound("click");
         if (Boolean.TRUE.equals(obj)) {
 
             mainMenuController.onJoinLobby(usernameField.getText(), lobbyField.getText());

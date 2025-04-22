@@ -58,7 +58,7 @@ public class GameOverStage extends StageView {
     private void buildUI(HashMap<String, Integer> scoreboard) {
         rootTable.top().pad(30);
 
-        Label title = new Label("🏁 Game Over!", skin);
+        Label title = new Label("Game Over!", skin);
         title.setFontScale(1.5f);
         rootTable.add(title).colspan(3).center().padBottom(40).row();
 

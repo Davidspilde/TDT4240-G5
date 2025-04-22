@@ -24,7 +24,8 @@ public class AudioService {
         sounds = new HashMap<>();
         musicTracks = new HashMap<>();
     }
-    public static AudioService getInstance(){
+
+    public static AudioService getInstance() {
         return (instance == null) ? (instance = new AudioService()) : instance;
     }
 
@@ -95,7 +96,6 @@ public class AudioService {
         }
     }
 
-    //Burde ha en dispose sounds?? tror ikke det er lurt å ha all musikk og lyd loadet hele tiden, men vi har jo ikke så stort prosjekt med mye lyder da
     public void dispose() {
         for (Sound sound : sounds.values()) {
             sound.dispose();

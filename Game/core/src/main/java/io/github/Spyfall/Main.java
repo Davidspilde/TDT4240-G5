@@ -16,7 +16,7 @@ import io.github.Spyfall.launcher.GameLauncher;
 public class Main extends ApplicationAdapter {
     public final int WIDTH = 720 / 2;
     public final int HEIGHT = 1280 / 2;
-    public static final String TITLE = "Spyfall";
+    public static final String TITLE = "interloper";
     private GameClient gameClient;
 
     @Override

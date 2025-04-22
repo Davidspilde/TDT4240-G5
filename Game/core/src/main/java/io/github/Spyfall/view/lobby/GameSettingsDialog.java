@@ -1,5 +1,6 @@
 package io.github.Spyfall.view.lobby;
 
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.LobbyData;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.ui.UIConstants;
 
 public class GameSettingsDialog extends Dialog {
@@ -23,9 +25,11 @@ public class GameSettingsDialog extends Dialog {
     private TextField maxPlayersField;
     private TextField locationLimitField;
     private LobbyController lobbyController;
+    private AudioService audioService;
 
-    public GameSettingsDialog(Skin skin, LobbyController lobbyController, Stage stage) {
+    public GameSettingsDialog(Skin skin, LobbyController lobbyController, Stage stage, AudioService audioService) {
         super("", skin);
+        this.audioService = audioService;
         this.lobbyController = lobbyController;
         // Makes backgorund transparent when used
         Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
@@ -88,6 +92,8 @@ public class GameSettingsDialog extends Dialog {
         saveButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+
+                audioService.playSound("click");
                 saveSettings();
 
                 Gdx.input.setOnscreenKeyboardVisible(false);
@@ -97,8 +103,8 @@ public class GameSettingsDialog extends Dialog {
         cancelButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                audioService.playSound("click");
                 hide();
-
                 Gdx.input.setOnscreenKeyboardVisible(false);
             }
         });

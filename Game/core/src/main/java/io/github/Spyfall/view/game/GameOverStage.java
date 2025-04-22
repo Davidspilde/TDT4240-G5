@@ -45,6 +45,8 @@ public class GameOverStage extends StageView {
         // Load the background texture
         bgTexture = new Texture(Gdx.files.internal("Background_city.png"));
 
+        // Sets the music to victory
+        AudioService.getInstance().playMusic("victory", true);
         // Let the stage receive input events
         Gdx.input.setInputProcessor(stage);
 
@@ -85,7 +87,7 @@ public class GameOverStage extends StageView {
         backToLobbyButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                MainController.getInstance().setLobbyStage();
+                controller.backTolobby();
             }
         });
 

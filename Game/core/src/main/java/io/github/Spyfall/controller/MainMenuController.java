@@ -36,7 +36,6 @@ public class MainMenuController {
     }
 
     public void onJoinLobby(String username, String lobbyCode) {
-        AudioService.getInstance().playSound("click");
 
         // validate username
         if (username == null || username.trim().isEmpty()) {
