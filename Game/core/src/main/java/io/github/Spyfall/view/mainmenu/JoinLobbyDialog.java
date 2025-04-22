@@ -1,56 +1,77 @@
+
 package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.view.ui.UIConstants;
 
 public class JoinLobbyDialog extends Dialog {
-    private TextField usernameField;
-    private TextField lobbyField;
-    private MainMenuController mainMenuController;
-    private AudioService audioService;
+
+    // Layout constants
+    private final float DIALOG_WIDTH = 400f;
+    private final float FIELD_HEIGHT = 60f;
+    private final float FONT_SCALE = 1.3f;
+    private final float FIELD_PAD = 15f;
+    private final float TITLE_PAD_BOTTOM = 20f;
+    private final float FINAL_FIELD_PAD_BOTTOM = 25f;
+    private final float BUTTON_HEIGHT = 55f;
+
+    private final TextField usernameField;
+    private final TextField lobbyField;
+    private final MainMenuController mainMenuController;
+    private final AudioService audioService;
 
     public JoinLobbyDialog(Skin skin, AudioService audioService, MainMenuController mainMenuController, Stage stage) {
         super("", skin, "dialog");
+
         this.mainMenuController = mainMenuController;
         this.audioService = audioService;
 
-        // Makes backgorund transparent when used
-        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+        // Dimmed transparent background
+        Drawable dim = skin.newDrawable("white", new Color(0, 0, 0, 0.75f));
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
-
         getStyle().stageBackground = dim;
 
-        float W = stage.getViewport().getWorldWidth();
-        float H = stage.getViewport().getWorldHeight();
-
+        // Lobby code field
         lobbyField = new TextField("", skin);
         lobbyField.setMessageText("Enter Lobby Code");
+        lobbyField.getStyle().font.getData().setScale(FONT_SCALE);
+        lobbyField.setHeight(FIELD_HEIGHT);
 
+        // Username field
         usernameField = new TextField("", skin);
         usernameField.setMessageText("Enter Username");
+        usernameField.getStyle().font.getData().setScale(FONT_SCALE);
+        usernameField.setHeight(FIELD_HEIGHT);
 
-        getTitleTable().padTop(H * UIConstants.TITLE_TOP_PAD).padBottom(H * UIConstants.TITLE_BOTTOM_PAD);
+        // Content layout
+        Table content = getContentTable();
+        content.pad(30).center();
+        content.add(new Label("Join Lobby", skin)).padBottom(TITLE_PAD_BOTTOM).center().row();
+        content.add(lobbyField).width(DIALOG_WIDTH).height(FIELD_HEIGHT).padBottom(FIELD_PAD).row();
+        content.add(usernameField).width(DIALOG_WIDTH).height(FIELD_HEIGHT).padBottom(FINAL_FIELD_PAD_BOTTOM).row();
 
-        Table ct = getContentTable();
-        ct.add(new Label("Join lobby", skin)).padBottom(H * UIConstants.DIALOG_PADDING).row();
-        ct.add(lobbyField).width(W * UIConstants.DIALOG_WIDTH_PERCENT).padBottom(H * UIConstants.DIALOG_PADDING).row();
-        ct.add(usernameField).width(W * UIConstants.DIALOG_WIDTH_PERCENT).row();
+        // Buttons
+        TextButton joinButton = new TextButton("Join", skin);
+        joinButton.getLabel().setFontScale(FONT_SCALE);
+        joinButton.setHeight(BUTTON_HEIGHT);
 
-        button("Join", true);
-        button("Cancel", false);
+        TextButton cancelButton = new TextButton("Cancel", skin);
+        cancelButton.getLabel().setFontScale(FONT_SCALE);
+        cancelButton.setHeight(BUTTON_HEIGHT);
+
+        button(joinButton, true);
+        button(cancelButton, false);
+
+        // Keyboard shortcuts
         key(Input.Keys.ENTER, true);
         key(Input.Keys.ESCAPE, false);
 
@@ -60,13 +81,10 @@ public class JoinLobbyDialog extends Dialog {
 
     @Override
     protected void result(Object obj) {
-
         audioService.playSound("click");
         if (Boolean.TRUE.equals(obj)) {
-
-            mainMenuController.onJoinLobby(usernameField.getText(), lobbyField.getText());
+            mainMenuController.onJoinLobby(usernameField.getText().trim(), lobbyField.getText().trim());
         }
-
         Gdx.input.setOnscreenKeyboardVisible(false);
     }
 }

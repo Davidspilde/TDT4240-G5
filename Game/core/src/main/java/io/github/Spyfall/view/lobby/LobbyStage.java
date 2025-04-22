@@ -1,16 +1,21 @@
+
 package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.GameModel;
+import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.ui.SettingsIcon;
-import io.github.Spyfall.services.AudioService;
 
 public class LobbyStage extends StageView {
+
+    // Layout constants
+    private final float SETTINGS_MARGIN_X = 20f;
+    private final float SETTINGS_MARGIN_Y = 20f;
+
     private final LobbyController controller = LobbyController.getInstance();
     private final GameModel gameModel = GameModel.getInstance();
     private final Skin skin;
@@ -20,22 +25,24 @@ public class LobbyStage extends StageView {
     public LobbyStage(ScreenViewport viewport) {
         super(viewport);
 
+        // Load skin
         skin = new Skin(Gdx.files.internal("Custom/gdx-skins-master/gdx-skins-master/commodore64/skin/uiskin.json"));
 
-        // Resets the music
+        // Reset music on enter
         AudioService.getInstance().playMusic("background", true);
-        // Add main UI
+
+        // Add lobby layout
         lobbyTable = new LobbyTable(skin, controller, gameModel, stage);
         stage.addActor(lobbyTable);
 
-        // Add floating settings icon
+        // Add settings icon overlay
         settingsIcon = new SettingsIcon(skin, AudioService.getInstance(), stage);
         stage.addActor(settingsIcon);
 
-        // Position it in bottom-right corner (after stage size is valid)
+        // Position settings icon
         Gdx.app.postRunnable(() -> {
-            float x = viewport.getWorldWidth() - settingsIcon.getWidth() - 20f;
-            float y = 20f;
+            float x = viewport.getWorldWidth() - settingsIcon.getWidth() - SETTINGS_MARGIN_X;
+            float y = SETTINGS_MARGIN_Y;
             settingsIcon.setPosition(x, y);
         });
 
@@ -56,9 +63,9 @@ public class LobbyStage extends StageView {
     public void resize(int width, int height) {
         viewport.update(width, height, true);
 
-        // Reposition settings icon on resize
-        float x = viewport.getWorldWidth() - settingsIcon.getWidth() - 20f;
-        float y = 20f;
+        // Reposition settings icon after resize
+        float x = viewport.getWorldWidth() - settingsIcon.getWidth() - SETTINGS_MARGIN_X;
+        float y = SETTINGS_MARGIN_Y;
         settingsIcon.setPosition(x, y);
     }
 

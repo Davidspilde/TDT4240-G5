@@ -1,59 +1,83 @@
+
 package io.github.Spyfall.view.ui;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-
+import com.badlogic.gdx.utils.Align;
 import io.github.Spyfall.services.AudioService;
 
 public class SettingsDialog extends Dialog {
-    private AudioService audioService;
+
+    // Layout constants
+    private final float DIALOG_WIDTH = 400f;
+    private final float SLIDER_HEIGHT = 40f;
+    private final float TITLE_FONT_SCALE = 1.5f;
+    private final float LABEL_FONT_SCALE = 1.2f;
+    private final float BUTTON_FONT_SCALE = 1.3f;
+    private final float BUTTON_HEIGHT = 50f;
+    private final float PADDING = 40f;
+    private final float SLIDER_PAD_BOTTOM = 30f;
+    private final float LABEL_PAD_BOTTOM = 10f;
+    private final float TITLE_PAD_BOTTOM = 30f;
+
+    private final AudioService audioService;
 
     public SettingsDialog(Skin skin, AudioService audioService, Stage stage) {
         super("", skin, "dialog");
-
         this.audioService = audioService;
-        // Makes backgorund transparent when used
-        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+
+        // Semi-transparent dim background
+        Drawable dim = skin.newDrawable("white", new Color(0, 0, 0, 0.75f));
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
-
         getStyle().stageBackground = dim;
 
-        float W = stage.getViewport().getWorldWidth();
-        float H = stage.getViewport().getWorldHeight();
-
-        // Music Volume Slider
+        // Create sliders
         Slider musicSlider = new Slider(0, 1, 0.05f, false, skin);
         musicSlider.setValue(audioService.getMusicVolume());
+        musicSlider.setHeight(SLIDER_HEIGHT);
         musicSlider.addListener(event -> {
             audioService.setMusicVolume(musicSlider.getValue());
             return false;
         });
 
-        // Sound Volume Slider
         Slider soundSlider = new Slider(0, 1, 0.05f, false, skin);
         soundSlider.setValue(audioService.getSoundVolume());
+        soundSlider.setHeight(SLIDER_HEIGHT);
         soundSlider.addListener(event -> {
             audioService.setSoundVolume(soundSlider.getValue());
             return false;
         });
 
-        Table content = getContentTable().pad(H * UIConstants.DIALOG_PADDING);
+        // Layout
+        Table content = getContentTable();
+        content.pad(PADDING).center();
 
-        content.add(new Label("Settings", skin)).padBottom(H * UIConstants.DIALOG_PADDING).row();
-        content.add(new Label("Music Volume", skin)).left().row();
-        content.add(musicSlider).width(W * UIConstants.DIALOG_WIDTH_PERCENT).padBottom(H * UIConstants.DIALOG_PADDING)
-                .row();
-        content.add(new Label("Sound Volume", skin)).left().row();
-        content.add(soundSlider).width(W * UIConstants.DIALOG_WIDTH_PERCENT).row();
+        Label title = new Label("Settings", skin);
+        title.setFontScale(TITLE_FONT_SCALE);
+        title.setAlignment(Align.center);
+        content.add(title).padBottom(TITLE_PAD_BOTTOM).colspan(2).center().row();
 
-        button("Close", true);
+        Label musicLabel = new Label("Music Volume", skin);
+        musicLabel.setFontScale(LABEL_FONT_SCALE);
+        content.add(musicLabel).left().padBottom(LABEL_PAD_BOTTOM).colspan(2).row();
+        content.add(musicSlider).width(DIALOG_WIDTH).padBottom(SLIDER_PAD_BOTTOM).colspan(2).row();
+
+        Label soundLabel = new Label("Sound Volume", skin);
+        soundLabel.setFontScale(LABEL_FONT_SCALE);
+        content.add(soundLabel).left().padBottom(LABEL_PAD_BOTTOM).colspan(2).row();
+        content.add(soundSlider).width(DIALOG_WIDTH).padBottom(SLIDER_PAD_BOTTOM).colspan(2).row();
+
+        // Close button
+        TextButton closeButton = new TextButton("Close", skin);
+        closeButton.getLabel().setFontScale(BUTTON_FONT_SCALE);
+        closeButton.setHeight(BUTTON_HEIGHT);
+        button(closeButton, true);
+
         key(Input.Keys.ESCAPE, false);
 
         show(stage);
@@ -62,7 +86,8 @@ public class SettingsDialog extends Dialog {
 
     @Override
     protected void result(Object obj) {
-        audioService.saveSettings(); // optional
+        audioService.saveSettings();
         audioService.playSound("click");
+        Gdx.input.setOnscreenKeyboardVisible(false);
     }
 }

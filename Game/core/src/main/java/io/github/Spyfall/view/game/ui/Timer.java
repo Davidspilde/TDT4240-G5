@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.game.ui;
 
 import com.badlogic.gdx.Gdx;
@@ -15,12 +16,15 @@ public class Timer extends GameComponent {
         void onTimerEnd();
     }
 
+    // Layout and behavior constants
+    private final float FONT_SCALE = 1.5f;
+    private final float WARNING_THRESHOLD = 10f; // seconds
+
     private float timeRemaining;
     private boolean isRunning;
     private Label timerLabel;
     private TimerListener listener;
-    private float warningThreshold = 10f; // warning when 10 secs left
-    
+
     public Timer(Skin skin) {
         super(skin);
     }
@@ -29,54 +33,63 @@ public class Timer extends GameComponent {
     protected void create() {
         timerLabel = new Label("00:00", skin);
         timerLabel.setAlignment(Align.center);
-        timerLabel.setFontScale(1.5f);
+        timerLabel.setFontScale(FONT_SCALE);
         rootTable.add(timerLabel);
     }
 
+    /**
+     * Starts the timer with a countdown from the given time (in seconds)
+     */
     public void start(float seconds) {
         timeRemaining = seconds;
         isRunning = true;
         updateDisplay();
     }
 
+    /**
+     * Stops the timer
+     */
     public void stop() {
         isRunning = false;
     }
-    
+
     public void setListener(TimerListener listener) {
         this.listener = listener;
     }
-    
+
     public void setText(String text) {
         timerLabel.setText(text);
     }
 
     @Override
     public void update() {
-        if (!isRunning) return;
-        
+        if (!isRunning)
+            return;
+
         timeRemaining -= Gdx.graphics.getDeltaTime();
-        
+
         if (timeRemaining <= 0) {
             timeRemaining = 0;
             isRunning = false;
-            
-            // notify listener
+
             if (listener != null) {
                 listener.onTimerEnd();
             }
         }
+
         updateDisplay();
     }
 
+    /**
+     * Updates the label to show the current time, and changes color if time is low
+     */
     private void updateDisplay() {
         int minutes = (int) (timeRemaining / 60);
         int seconds = (int) (timeRemaining % 60);
-        
-        String display = String.format("%02d:%02d", minutes, seconds);
-        timerLabel.setText(display);
-        
-        if (timeRemaining <= warningThreshold) {
+
+        timerLabel.setText(String.format("%02d:%02d", minutes, seconds));
+
+        if (timeRemaining <= WARNING_THRESHOLD) {
             timerLabel.setColor(Color.RED);
         } else {
             timerLabel.setColor(Color.WHITE);
@@ -86,9 +99,8 @@ public class Timer extends GameComponent {
     public float getTimeRemaining() {
         return timeRemaining;
     }
-    
+
     public boolean isRunning() {
         return isRunning;
     }
-
 }

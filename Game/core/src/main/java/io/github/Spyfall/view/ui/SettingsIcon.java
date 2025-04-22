@@ -12,17 +12,22 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 
 import io.github.Spyfall.services.AudioService;
 
-//Settings icon which can be added to different stages
+/**
+ * Floating settings icon that opens the SettingsDialog when clicked.
+ * Can be added to any stage.
+ */
 public class SettingsIcon extends Table {
+
+    // Layout constants
+    private final float ICON_SIZE_PERCENT = 0.08f;
+    private final float PADDING_PERCENT = 0.02f;
 
     public SettingsIcon(Skin skin, AudioService audioService, Stage stage) {
         super(skin);
         setFillParent(true);
-        bottom().right();
+        bottom().right(); // Position in bottom-right corner
 
-        float ICON_SZ = UIConstants.ICON_SIZE_PERCENT;
-        float PAD_SZ = UIConstants.PADDING_PERCENT;
-
+        // Create and style the settings icon
         Image icon = new Image(new Texture("settings-logo.png"));
         icon.addListener(new ClickListener() {
             @Override
@@ -32,9 +37,10 @@ public class SettingsIcon extends Table {
             }
         });
 
+        // Add the icon with responsive sizing and padding
         add(icon)
-                .prefWidth(Value.percentWidth(ICON_SZ, this))
-                .prefHeight(Value.percentWidth(ICON_SZ, this))
-                .pad(Value.percentWidth(PAD_SZ, this));
+                .prefWidth(Value.percentWidth(ICON_SIZE_PERCENT, this))
+                .prefHeight(Value.percentWidth(ICON_SIZE_PERCENT, this))
+                .pad(Value.percentWidth(PADDING_PERCENT, this));
     }
 }

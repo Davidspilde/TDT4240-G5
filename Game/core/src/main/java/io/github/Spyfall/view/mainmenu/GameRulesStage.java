@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
@@ -61,6 +62,15 @@ public class GameRulesStage extends StageView {
         nextButton = new TextButton("Next", skin);
         backButton = new TextButton("Menu", skin);
 
+        // Make buttons bigger
+        prevButton.getLabel().setFontScale(1.4f);
+        nextButton.getLabel().setFontScale(1.4f);
+        backButton.getLabel().setFontScale(1.4f);
+
+        prevButton.setHeight(60);
+        nextButton.setHeight(60);
+        backButton.setHeight(60);
+
         // Add button listeners with debug output
         prevButton.addListener(new ClickListener() {
             @Override
@@ -87,7 +97,6 @@ public class GameRulesStage extends StageView {
 
         backButton.addListener(new ClickListener() {
             @Override
-
             public void clicked(InputEvent event, float x, float y) {
 
                 audioService.playSound("click");
@@ -102,7 +111,7 @@ public class GameRulesStage extends StageView {
 
         // Create button table with proper spacing
         Table buttonTable = new Table();
-        buttonTable.defaults().pad(5).width(100).height(40);
+        buttonTable.defaults().pad(5).width(150).height(60); // Bigger buttons
         buttonTable.add(prevButton);
         buttonTable.add(nextButton);
         buttonTable.add(backButton);

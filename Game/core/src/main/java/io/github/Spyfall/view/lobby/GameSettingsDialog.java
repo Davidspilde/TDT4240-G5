@@ -1,17 +1,13 @@
+
 package io.github.Spyfall.view.lobby;
 
-import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.Align;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.LobbyData;
@@ -19,114 +15,146 @@ import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.view.ui.UIConstants;
 
 public class GameSettingsDialog extends Dialog {
-    private TextField roundTimeField;
-    private TextField spyLastAttemptField;
-    private TextField roundLimitField;
-    private TextField maxPlayersField;
-    private TextField locationLimitField;
-    private LobbyController lobbyController;
-    private AudioService audioService;
+    private int roundTimeMinutes;
+    private int spyLastAttemptSeconds;
+    private int roundLimit;
+    private int maxPlayers;
+    private int locationLimit;
+
+    private final LobbyController lobbyController;
+    private final AudioService audioService;
 
     public GameSettingsDialog(Skin skin, LobbyController lobbyController, Stage stage, AudioService audioService) {
-        super("", skin);
+        super("Game Settings", skin);
         this.audioService = audioService;
         this.lobbyController = lobbyController;
-        // Makes backgorund transparent when used
+
         Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
-
         getStyle().stageBackground = dim;
 
         initDialog();
+        pack();
     }
 
     private void initDialog() {
-        LobbyData lobbyData = lobbyController.getLobbyData();
-        // The Current settings
-        String CurrentRoundTime = Integer.toString(lobbyData.getTimePerRound() / 60);
-        String CurrentRoundLimit = Integer.toString(lobbyData.getRoundLimit());
-        String currentMaxPlayers = Integer.toString(lobbyData.getMaxPlayers());
-        String currentLocationLimit = Integer.toString(lobbyData.getLocationLimit());
-        String currentSpyLastAttemptTime = Integer.toString(lobbyData.getSpyLastAttemptTime());
+        LobbyData data = lobbyController.getLobbyData();
+
+        // Load current values
+        roundTimeMinutes = Math.max(1, data.getTimePerRound() / 60);
+        spyLastAttemptSeconds = Math.max(5, data.getSpyLastAttemptTime());
+        locationLimit = Math.max(1, data.getLocationLimit());
+        roundLimit = Math.max(1, data.getRoundLimit());
+        maxPlayers = Math.max(1, data.getMaxPlayers());
 
         Table settingsTable = new Table();
-        settingsTable.pad(10);
+        settingsTable.pad(30);
+        settingsTable.center().top();
 
-        // Round time input
-        settingsTable.add(new Label("Round Time (minutes):", getSkin())).left().pad(5).row();
-        roundTimeField = new TextField(CurrentRoundTime, getSkin());
-        roundTimeField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        settingsTable.add(roundTimeField).width(200).pad(5).row();
+        // Add spinner-like rows
+        addControlRow(settingsTable, "Round Time (minutes):", () -> roundTimeMinutes, v -> roundTimeMinutes = v, 1);
+        addControlRow(settingsTable, "Spy Last Attempt (seconds):", () -> spyLastAttemptSeconds,
+                v -> spyLastAttemptSeconds = v, 5);
+        addControlRow(settingsTable, "Location Limit:", () -> locationLimit, v -> locationLimit = v, 1);
+        addControlRow(settingsTable, "Round Limit:", () -> roundLimit, v -> roundLimit = v, 1);
+        addControlRow(settingsTable, "Max Players:", () -> maxPlayers, v -> maxPlayers = v, 1);
 
-        // Spy last attempt time input
-        settingsTable.add(new Label("Spy Last Attempt Time (Seconds):", getSkin())).left().pad(5).row();
-        spyLastAttemptField = new TextField(currentSpyLastAttemptTime, getSkin());
-        spyLastAttemptField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        settingsTable.add(spyLastAttemptField).width(200).pad(5).row();
+        getContentTable().add(settingsTable).center().padBottom(20).row();
 
-        // Locations limit input
-        settingsTable.add(new Label("Locations limit:", getSkin())).left().pad(5).row();
-        locationLimitField = new TextField(currentLocationLimit, getSkin());
-        locationLimitField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        settingsTable.add(locationLimitField).width(200).pad(5).row();
+        // Buttons
+        TextButton saveBtn = new TextButton("Save", getSkin());
+        saveBtn.getLabel().setFontScale(1.6f);
+        saveBtn.setHeight(60);
 
-        // Round limit input
-        settingsTable.add(new Label("Round Limit:", getSkin())).left().pad(5).row();
-        roundLimitField = new TextField(CurrentRoundLimit, getSkin());
-        roundLimitField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        settingsTable.add(roundLimitField).width(200).pad(5).row();
+        TextButton cancelBtn = new TextButton("Cancel", getSkin());
+        cancelBtn.getLabel().setFontScale(1.6f);
+        cancelBtn.setHeight(60);
 
-        // Max players input
-        settingsTable.add(new Label("Maximum Players:", getSkin())).left().pad(5).row();
-        maxPlayersField = new TextField(currentMaxPlayers, getSkin());
-        maxPlayersField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        settingsTable.add(maxPlayersField).width(200).pad(5).row();
-
-        getContentTable().add(settingsTable);
-
-        // Add buttons
-        TextButton saveButton = new TextButton("Save", getSkin());
-        TextButton cancelButton = new TextButton("Cancel", getSkin());
-
-        saveButton.addListener(new ClickListener() {
+        saveBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
                 audioService.playSound("click");
                 saveSettings();
-
-                Gdx.input.setOnscreenKeyboardVisible(false);
             }
         });
 
-        cancelButton.addListener(new ClickListener() {
+        cancelBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 audioService.playSound("click");
                 hide();
-                Gdx.input.setOnscreenKeyboardVisible(false);
             }
         });
 
-        button(saveButton);
-        button(cancelButton);
+        Table buttonRow = new Table();
+        buttonRow.padTop(10);
+        buttonRow.add(saveBtn).width(180).height(60).padRight(20);
+        buttonRow.add(cancelBtn).width(180).height(60);
+
+        getContentTable().add(buttonRow).center().row();
+    }
+
+    private void addControlRow(Table table, String labelText, ValueGetter getter, ValueSetter setter, int step) {
+        Label label = new Label(labelText, getSkin());
+        label.setFontScale(1.4f);
+        label.setAlignment(Align.center);
+
+        final Label valueLabel = new Label(Integer.toString(getter.get()), getSkin());
+        valueLabel.setFontScale(1.4f);
+        valueLabel.setAlignment(Align.center);
+
+        // Wrap label in a table to vertically center it
+        Table valueWrapper = new Table();
+        valueWrapper.add(valueLabel).expand().center().fill().height(60).width(100);
+        TextButton minus = new TextButton("-", getSkin());
+        minus.getLabel().setFontScale(1.4f);
+        minus.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                int newValue = Math.max(1, getter.get() - step);
+                setter.set(newValue);
+                valueLabel.setText(Integer.toString(newValue));
+                audioService.playSound("click");
+            }
+        });
+
+        TextButton plus = new TextButton("+", getSkin());
+        plus.getLabel().setFontScale(1.4f);
+        plus.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                int newValue = getter.get() + step;
+                setter.set(newValue);
+                valueLabel.setText(Integer.toString(newValue));
+                audioService.playSound("click");
+            }
+        });
+
+        Table row = new Table();
+        row.add(minus).width(60).height(60).padRight(10);
+        row.add(valueWrapper).width(100).padRight(10);
+        row.add(plus).width(60).height(60);
+
+        table.add(label).colspan(3).padBottom(8).center().row();
+        table.add(row).colspan(3).center().padBottom(20).row();
     }
 
     private void saveSettings() {
-        try {
-            int roundTime = Integer.parseInt(roundTimeField.getText()) * 60;
-            int spyLastAttemptTime = Integer.parseInt(spyLastAttemptField.getText());
-            int roundLimit = Integer.parseInt(roundLimitField.getText());
-            int maxPlayers = Integer.parseInt(maxPlayersField.getText());
-            int locationLimit = Integer.parseInt(locationLimitField.getText());
+        lobbyController.updateLobbyOptions(
+                roundLimit,
+                locationLimit,
+                maxPlayers,
+                roundTimeMinutes * 60,
+                spyLastAttemptSeconds);
+        hide();
+    }
 
-            lobbyController.updateLobbyOptions(roundLimit, locationLimit, maxPlayers, roundTime,
-                    spyLastAttemptTime);
-            hide();
-        } catch (NumberFormatException e) {
-            // Handle invalid input
-            System.out.println("Invalid input: Please enter valid numbers");
-        }
+    private interface ValueGetter {
+        int get();
+    }
+
+    private interface ValueSetter {
+        void set(int value);
     }
 }

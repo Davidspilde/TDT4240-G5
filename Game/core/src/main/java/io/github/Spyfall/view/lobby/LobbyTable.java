@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.graphics.Texture;
@@ -11,9 +12,11 @@ import io.github.Spyfall.client.AssetLoader;
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.view.ui.UIConstants;
 
 public class LobbyTable extends Table {
+
+    // Layout constants
+    private final float GAP = 30f;
 
     private final LobbyInfoTable lobbyInfoTable;
     private final LobbyPlayersTable playersTable;
@@ -24,20 +27,18 @@ public class LobbyTable extends Table {
         setFillParent(true);
         top();
 
+        // Set background image
         setBackground(new TextureRegionDrawable(new TextureRegion(AssetLoader.mainBackground)));
 
-        float W = stage.getViewport().getWorldWidth();
-        float H = stage.getViewport().getWorldHeight();
-
-        // Subcomponents
-        lobbyInfoTable = new LobbyInfoTable(skin, gameModel, H);
-        playersTable = new LobbyPlayersTable(skin, gameModel, W, H);
+        // Initialize UI components
+        lobbyInfoTable = new LobbyInfoTable(skin, gameModel);
+        playersTable = new LobbyPlayersTable(skin, gameModel);
         buttonsTable = new LobbyButtonsTable(skin, controller, stage, gameModel, AudioService.getInstance());
 
-        // Layout
-        add(lobbyInfoTable).padBottom(H * UIConstants.VERTICAL_GAP_PERCENT).row();
-        add(playersTable).padBottom(H * UIConstants.VERTICAL_GAP_PERCENT).row();
-        add(buttonsTable).padBottom(H * UIConstants.VERTICAL_GAP_PERCENT);
+        // Layout arrangement
+        add(lobbyInfoTable).padBottom(GAP).row();
+        add(playersTable).padBottom(GAP).row();
+        add(buttonsTable).padBottom(GAP);
     }
 
     public void updateFromModel(GameModel gameModel) {

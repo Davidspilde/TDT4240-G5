@@ -6,12 +6,7 @@ import java.util.List;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
@@ -19,7 +14,19 @@ import io.github.Spyfall.controller.GameplayController;
 import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 
+/**
+ * Component that displays the list of possible locations for the spy to guess
+ * from.
+ */
 public class LocationsListComponent extends GameComponent {
+
+    // Layout constants
+    private final float BUTTON_WIDTH = 200f;
+    private final float BUTTON_HEIGHT = 70f;
+    private final float BUTTON_FONT_SCALE = 1.0f;
+    private final float HEADER_FONT_SCALE = 1.3f;
+    private final float ITEM_PADDING = 8f;
+    private final int ITEMS_PER_ROW = 3;
 
     private List<Location> locations;
     private final GameplayController controller;
@@ -39,8 +46,9 @@ public class LocationsListComponent extends GameComponent {
 
         Label header = new Label("Possible Locations", skin);
         header.setAlignment(Align.center);
-        header.setFontScale(1.2f);
-        rootTable.add(header).colspan(3).padBottom(20).row();
+        header.setFontScale(HEADER_FONT_SCALE);
+
+        rootTable.add(header).colspan(ITEMS_PER_ROW).padBottom(20).row();
     }
 
     public void setLocations(List<Location> locations) {
@@ -55,29 +63,29 @@ public class LocationsListComponent extends GameComponent {
 
         Label header = new Label("Possible Locations", skin);
         header.setAlignment(Align.center);
-        header.setFontScale(1.2f);
-        rootTable.add(header).colspan(3).padBottom(20).row();
+        header.setFontScale(HEADER_FONT_SCALE);
+        rootTable.add(header).colspan(ITEMS_PER_ROW).padBottom(20).row();
 
         if (locations == null || locations.isEmpty()) {
             Label noLocationsLabel = new Label("No locations available", skin);
             noLocationsLabel.setAlignment(Align.center);
-            noLocationsLabel.setFontScale(0.8f);
-            rootTable.add(noLocationsLabel).colspan(3).padTop(20).row();
+            noLocationsLabel.setFontScale(1.0f);
+            rootTable.add(noLocationsLabel).colspan(ITEMS_PER_ROW).padTop(20).row();
             return;
         }
 
         Table locationsTable = new Table();
         locationsTable.top().pad(10);
-        locationsTable.defaults().pad(8).width(200).height(70);
+        locationsTable.defaults().pad(ITEM_PADDING).width(BUTTON_WIDTH).height(BUTTON_HEIGHT);
 
-        int itemsPerRow = 3;
         int colCount = 0;
 
+        // Create location buttons
         for (Location location : locations) {
             TextButton locationButton = new TextButton(location.getName(), skin);
             locationButton.getLabel().setWrap(true);
             locationButton.getLabel().setAlignment(Align.center);
-            locationButton.getLabel().setFontScale(1.0f);
+            locationButton.getLabel().setFontScale(BUTTON_FONT_SCALE);
 
             locationButton.addListener(new ClickListener() {
                 @Override
@@ -90,11 +98,12 @@ public class LocationsListComponent extends GameComponent {
             locationsTable.add(locationButton).expand().fill();
 
             colCount++;
-            if (colCount % itemsPerRow == 0) {
+            if (colCount % ITEMS_PER_ROW == 0) {
                 locationsTable.row();
             }
         }
 
+        // Wrap in scroll pane
         ScrollPane scrollPane = new ScrollPane(locationsTable, skin);
         scrollPane.setScrollingDisabled(true, false);
         scrollPane.setFadeScrollBars(false);
@@ -105,9 +114,12 @@ public class LocationsListComponent extends GameComponent {
         scrollWrapper.padLeft(8).padRight(8);
         scrollWrapper.add(scrollPane).expand().fill();
 
-        rootTable.add(scrollWrapper).expand().fill().colspan(3).row();
+        rootTable.add(scrollWrapper).expand().fill().colspan(ITEMS_PER_ROW).row();
     }
 
+    /**
+     * Shows a confirmation popup before submitting the spy's location guess.
+     */
     private void showConfirmationPopup(String locationName) {
         Dialog confirmDialog = new Dialog("Confirm Guess", skin) {
             @Override

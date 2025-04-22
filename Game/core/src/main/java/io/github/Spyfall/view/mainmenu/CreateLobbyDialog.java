@@ -1,20 +1,26 @@
+
 package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-
+import com.badlogic.gdx.utils.Align;
 import io.github.Spyfall.controller.MainMenuController;
 import io.github.Spyfall.services.AudioService;
-import io.github.Spyfall.view.ui.UIConstants;
 
 public class CreateLobbyDialog extends Dialog {
+
+    // Layout constants
+    private final float DIALOG_WIDTH = 400f;
+    private final float FIELD_HEIGHT = 60f;
+    private final float FIELD_FONT_SCALE = 1.3f;
+    private final float TITLE_PAD_BOTTOM = 20f;
+    private final float FIELD_PAD_BOTTOM = 25f;
+    private final float BUTTON_HEIGHT = 55f;
+
     private final TextField usernameField;
     private final MainMenuController mainMenuController;
     private final AudioService audioService;
@@ -24,32 +30,37 @@ public class CreateLobbyDialog extends Dialog {
         this.mainMenuController = mainMenuController;
         this.audioService = audioService;
 
-        // Makes backgorund transparent when used
-        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+        // Semi-transparent dim background
+        Drawable dim = skin.newDrawable("white", new Color(0, 0, 0, 0.75f));
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
-
         getStyle().stageBackground = dim;
 
-        float W = stage.getViewport().getWorldWidth();
-        float H = stage.getViewport().getWorldHeight();
-
+        // Username field
         usernameField = new TextField("", skin);
         usernameField.setMessageText("Enter Username");
+        usernameField.getStyle().font.getData().setScale(FIELD_FONT_SCALE);
+        usernameField.setHeight(FIELD_HEIGHT);
 
-        getTitleTable()
-                .padTop(H * UIConstants.TITLE_TOP_PAD)
-                .padBottom(H * UIConstants.TITLE_BOTTOM_PAD);
+        // Layout
+        Table content = getContentTable();
+        content.pad(30).center();
+        content.add(new Label("Create a new lobby", skin)).padBottom(TITLE_PAD_BOTTOM).center().row();
+        content.add(usernameField).width(DIALOG_WIDTH).height(FIELD_HEIGHT).padBottom(FIELD_PAD_BOTTOM).row();
 
-        Table ct = getContentTable();
-        ct.add(new Label("Create a new lobby", skin)).padBottom(H * UIConstants.DIALOG_PADDING).row();
-        ct.add(usernameField)
-                .width(W * UIConstants.DIALOG_WIDTH_PERCENT)
-                .padBottom(H * UIConstants.DIALOG_PADDING)
-                .row();
+        // Buttons
+        TextButton createBtn = new TextButton("Create", skin);
+        createBtn.getLabel().setFontScale(FIELD_FONT_SCALE);
+        createBtn.setHeight(BUTTON_HEIGHT);
 
-        button("Create", true);
-        button("Cancel", false);
+        TextButton cancelBtn = new TextButton("Cancel", skin);
+        cancelBtn.getLabel().setFontScale(FIELD_FONT_SCALE);
+        cancelBtn.setHeight(BUTTON_HEIGHT);
+
+        button(createBtn, true);
+        button(cancelBtn, false);
+
+        // Keyboard shortcuts
         key(Input.Keys.ENTER, true);
         key(Input.Keys.ESCAPE, false);
 
@@ -61,7 +72,7 @@ public class CreateLobbyDialog extends Dialog {
     protected void result(Object obj) {
         audioService.playSound("click");
         if (Boolean.TRUE.equals(obj)) {
-            mainMenuController.onCreateLobby(usernameField.getText());
+            mainMenuController.onCreateLobby(usernameField.getText().trim());
         }
         Gdx.input.setOnscreenKeyboardVisible(false);
     }

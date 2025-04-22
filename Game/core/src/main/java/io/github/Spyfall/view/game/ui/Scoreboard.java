@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.game.ui;
 
 import java.util.ArrayList;
@@ -15,10 +16,17 @@ import com.badlogic.gdx.utils.Align;
  * Component for displaying the scoreboard
  */
 public class Scoreboard extends GameComponent {
+
+    // Layout constants
+    private final float TITLE_FONT_SCALE = 1.2f;
+    private final float HEADER_SPACING = 10f;
+    private final float ROW_SPACING = 8f;
+    private final float TIE_LABEL_FONT_SCALE = 0.8f;
+
     private HashMap<String, Integer> scoreboard;
-    private String currentUsername;
+    private final String currentUsername;
     private String title = "SCOREBOARD";
-    private float contentWidth;
+    private final float contentWidth;
     private boolean highlightWinner = false;
 
     public Scoreboard(Skin skin, String currentUsername, float contentWidth) {
@@ -43,9 +51,6 @@ public class Scoreboard extends GameComponent {
         update();
     }
 
-    /**
-     * Set whether to highlight the winner with trophy icon and gold color
-     */
     public void setHighlightWinner(boolean highlight) {
         this.highlightWinner = highlight;
         update();
@@ -55,54 +60,44 @@ public class Scoreboard extends GameComponent {
     public void update() {
         rootTable.clear();
 
-        if (scoreboard == null || scoreboard.isEmpty()) {
-            Label titleLabel = new Label(title, skin);
-            titleLabel.setAlignment(Align.center);
-            rootTable.add(titleLabel).colspan(3).padBottom(10).row();
+        // Title
+        Label titleLabel = new Label(title, skin);
+        titleLabel.setAlignment(Align.center);
+        rootTable.add(titleLabel).colspan(3).padBottom(HEADER_SPACING).fillX().row();
 
+        if (scoreboard == null || scoreboard.isEmpty()) {
             Label noDataLabel = new Label("No scores available", skin);
             noDataLabel.setAlignment(Align.center);
-            rootTable.add(noDataLabel).colspan(3).padBottom(10);
+            rootTable.add(noDataLabel).colspan(3).padBottom(HEADER_SPACING);
             return;
         }
 
-        float availableWidth = rootTable.getWidth();
-        if (availableWidth <= 0) {
-            // If width isn't available yet, use the provided contentWidth as fallback
-            availableWidth = contentWidth;
-        }
+        float width = rootTable.getWidth() > 0 ? rootTable.getWidth() : contentWidth;
+        float rankColWidth = width * 0.15f;
+        float playerColWidth = width * 0.55f;
+        float scoreColWidth = width * 0.3f;
 
-        float rankColWidth = availableWidth * 0.15f;
-        float playerColWidth = availableWidth * 0.55f;
-        float scoreColWidth = availableWidth * 0.3f;
-
-        Label titleLabel = new Label(title, skin);
-        titleLabel.setAlignment(Align.center);
-        rootTable.add(titleLabel).colspan(3).padBottom(10).fillX().row();
-
+        // Header row
         Table headerTable = new Table();
         headerTable.defaults().expand().fill();
 
-        Label rankHeader = new Label("#", skin);
-        Label playerHeader = new Label("Player", skin);
-        Label scoreHeader = new Label("Score", skin);
+        headerTable.add(new Label("#", skin)).width(rankColWidth).padRight(10);
+        headerTable.add(new Label("Player", skin)).width(playerColWidth).padRight(10).left();
+        headerTable.add(new Label("Score", skin)).width(scoreColWidth).left();
 
-        headerTable.add(rankHeader).width(rankColWidth).padRight(10);
-        headerTable.add(playerHeader).width(playerColWidth).padRight(10).left();
-        headerTable.add(scoreHeader).width(scoreColWidth).left();
+        rootTable.add(headerTable).colspan(3).fillX().padBottom(HEADER_SPACING).row();
 
-        rootTable.add(headerTable).colspan(3).fillX().padBottom(10).row();
-
-        List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(scoreboard.entrySet());
-        sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(scoreboard.entrySet());
+        sorted.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
         int currentRank = 1;
         Integer previousScore = null;
+        boolean hasTies = false;
 
-        for (int i = 0; i < sortedEntries.size(); i++) {
-            Map.Entry<String, Integer> entry = sortedEntries.get(i);
+        for (int i = 0; i < sorted.size(); i++) {
+            Map.Entry<String, Integer> entry = sorted.get(i);
             if (previousScore != null && entry.getValue().equals(previousScore)) {
-                // use same rank
+                hasTies = true;
             } else {
                 currentRank = i + 1;
             }
@@ -115,69 +110,48 @@ public class Scoreboard extends GameComponent {
             playerLabel.setWrap(true);
             Label scoreLabel = new Label(Integer.toString(entry.getValue()), skin);
 
-            boolean isCurrentPlayer = entry.getKey().equals(currentUsername);
+            boolean isCurrent = entry.getKey().equals(currentUsername);
             boolean isWinner = i == 0;
 
-            if (isCurrentPlayer) {
+            // Color logic for current user
+            if (isCurrent) {
                 playerLabel.setText("→ " + entry.getKey());
                 playerLabel.setColor(Color.YELLOW);
                 scoreLabel.setColor(Color.YELLOW);
                 rankLabel.setColor(Color.YELLOW);
             }
 
+            // Highlight winner if enabled
             if (highlightWinner && isWinner) {
-                playerLabel.setText((isCurrentPlayer ? "→ " : "") + entry.getKey());
-
-                Color goldColor = new Color(1f, 0.84f, 0f, 1f);
-                playerLabel.setColor(goldColor);
-                scoreLabel.setColor(goldColor);
-                rankLabel.setColor(goldColor);
+                Color gold = new Color(1f, 0.84f, 0f, 1f);
+                playerLabel.setText((isCurrent ? "→ " : "") + entry.getKey());
+                playerLabel.setColor(gold);
+                scoreLabel.setColor(gold);
+                rankLabel.setColor(gold);
             }
 
-            boolean isTied = (i < sortedEntries.size() - 1) &&
-                    entry.getValue().equals(sortedEntries.get(i + 1).getValue());
+            // Handle tied scores
+            boolean isTied = (i < sorted.size() - 1) &&
+                    entry.getValue().equals(sorted.get(i + 1).getValue());
 
             if (isTied) {
-                rankText += "*"; // tie
-                rankLabel.setText(rankText);
+                rankLabel.setText(rankText + "*");
             }
 
-            Table rowTable = new Table();
-            rowTable.defaults().expand().fill();
+            Table row = new Table();
+            row.defaults().expand().fill();
+            row.add(rankLabel).width(rankColWidth).left();
+            row.add(playerLabel).width(playerColWidth).left().padLeft(10).padRight(10);
+            row.add(scoreLabel).width(scoreColWidth).left();
 
-            // Center-align rank numbers
-            rowTable.add(rankLabel).width(rankColWidth).left();
-
-            // Add padding between columns for better readability
-            rowTable.add(playerLabel).width(playerColWidth).left().padLeft(10).padRight(10);
-
-            // Center-align scores
-            rowTable.add(scoreLabel).width(scoreColWidth).left();
-
-            // Add the entire row to the root table
-            rootTable.add(rowTable).colspan(3).fillX().padBottom(8).row();
+            rootTable.add(row).colspan(3).fillX().padBottom(ROW_SPACING).row();
         }
 
-        if (sortedEntries.size() > 1) {
-            boolean hasTies = false;
-            Integer lastScore = null;
-
-            for (Map.Entry<String, Integer> entry : sortedEntries) {
-                if (lastScore != null && entry.getValue().equals(lastScore)) {
-                    hasTies = true;
-                    break;
-                }
-                lastScore = entry.getValue();
-            }
-
-            if (hasTies) {
-                Label tieLabel = new Label("* Tied scores", skin);
-                tieLabel.setFontScale(0.8f);
-                tieLabel.setColor(Color.LIGHT_GRAY);
-                rootTable.add(tieLabel).colspan(3).padTop(10).left().row();
-            }
+        if (hasTies) {
+            Label tieLabel = new Label("* Tied scores", skin);
+            tieLabel.setFontScale(TIE_LABEL_FONT_SCALE);
+            tieLabel.setColor(Color.LIGHT_GRAY);
+            rootTable.add(tieLabel).colspan(3).padTop(10).left().row();
         }
-
     }
-
 }
