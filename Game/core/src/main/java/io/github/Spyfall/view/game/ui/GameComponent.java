@@ -10,33 +10,31 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 public abstract class GameComponent {
     protected Skin skin;
     protected Table rootTable;
-    
+
     public GameComponent(Skin skin) {
         this.skin = skin;
         this.rootTable = new Table();
 
-        this.rootTable.setDebug(true);
-        
         create();
     }
-    
+
     /**
      * Create the component's UI elements
      */
     protected abstract void create();
-    
+
     /**
      * Update the component state
      */
     public abstract void update();
-    
+
     /**
      * Get the component's root actor
      */
     public Actor getActor() {
         return rootTable;
     }
-    
+
     /**
      * Clean up any resources
      */

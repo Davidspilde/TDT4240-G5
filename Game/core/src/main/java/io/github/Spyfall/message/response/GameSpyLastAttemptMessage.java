@@ -1,7 +1,7 @@
 package io.github.Spyfall.message.response;
 
 public class GameSpyLastAttemptMessage extends ResponseMessage {
-    private String spy;
+    private String spyUsername;
     private int lastAttemptDuration;
 
     public GameSpyLastAttemptMessage() {
@@ -12,8 +12,8 @@ public class GameSpyLastAttemptMessage extends ResponseMessage {
         return lastAttemptDuration;
     }
 
-    public String getSpy() {
-        return spy;
+    public String getSpyUsername() {
+        return spyUsername;
     }
 
 }

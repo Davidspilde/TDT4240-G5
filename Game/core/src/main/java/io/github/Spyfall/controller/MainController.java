@@ -3,7 +3,6 @@ package io.github.Spyfall.controller;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
-import io.github.Spyfall.model.GameData;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 

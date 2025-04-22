@@ -1,10 +1,9 @@
 package io.github.Spyfall.controller;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.model.GameData;
@@ -14,9 +13,7 @@ import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
-import io.github.Spyfall.view.game.BaseGameStage;
-import io.github.Spyfall.view.game.PlayerGameStage;
-import io.github.Spyfall.view.game.SpyGameStage;
+import io.github.Spyfall.view.game.GameStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 /**
@@ -104,15 +101,9 @@ public class GameplayController {
 
             // Always create a new stage for each round since roles can change
             ScreenViewport viewport = new ScreenViewport();
-            BaseGameStage newStage;
+            GameStage newStage;
 
-            if (isSpy) {
-                System.out.println("Creating new SPY stage for round " + roundNumber);
-                newStage = new SpyGameStage(role, viewport);
-            } else {
-                System.out.println("Creating new PLAYER stage for round " + roundNumber);
-                newStage = new PlayerGameStage(location, role, viewport);
-            }
+            newStage = new GameStage(role, location, isSpy, viewport);
 
             // Set the new stage
             StageManager.getInstance().setStage(newStage);
@@ -154,23 +145,44 @@ public class GameplayController {
 
         try {
             StageView currentStage = StageManager.getInstance().getStage();
-            if (currentStage instanceof BaseGameStage) {
-                BaseGameStage gameStage = (BaseGameStage) currentStage;
+            GameStage gameStage = (GameStage) currentStage;
 
-                gameStage.handleRoundEnded(
-                        roundNumber,
-                        reason,
-                        spy,
-                        location,
-                        scoreboard);
+            gameStage.handleRoundEnded(
+                    roundNumber,
+                    reason,
+                    spy,
+                    location,
+                    scoreboard);
 
-                // Stop the timer
-                gameStage.stopTimer();
-                gameStage.updateTimerDisplay(0); // in case of latency issues between server and client, set the display
-                                                 // to 00:00
-            }
+            // Stop the timer
+            gameStage.stopTimer();
+            gameStage.updateTimerDisplay(0); // in case of latency issues between server and client, set the display
+                                             // to 00:00
         } catch (Exception e) {
             System.err.println("Error updating UI for round end: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+    }
+
+    public void handleSpyLastAttempt(String spy, int spyLastAttemptDuration) {
+        System.out.println(spy);
+        System.out.println(spyLastAttemptDuration);
+        updateGameData(data -> {
+
+            data.setIsSpyUsername(spy);
+            data.setTimeRemaining(spyLastAttemptDuration);
+        });
+
+        try {
+            StageView currentStage = StageManager.getInstance().getStage();
+            if (currentStage instanceof GameStage gameStage) {
+                gameStage.startTimer(spyLastAttemptDuration);
+
+                gameStage.showSpyReveal(spy); // this now includes fade-in!
+            }
+        } catch (Exception e) {
+
             e.printStackTrace();
         }
 
@@ -179,8 +191,6 @@ public class GameplayController {
     public void handleVote() {
         System.out.println("VOTE HAPPENED");
 
-        // Update UI if this stage is active
-        // Could trigger an update in the GameLobbyStage
     }
 
     // ==================================================
