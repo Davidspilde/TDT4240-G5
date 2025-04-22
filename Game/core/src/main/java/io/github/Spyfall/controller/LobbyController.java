@@ -5,6 +5,7 @@ import java.util.List;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.model.LobbyData;
+import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
@@ -42,9 +43,13 @@ public class LobbyController {
         }
     }
 
+    public void handleLobbyLocationsUpdate(List<Location> locations) {
+        gameModel.getLobbyData().setLocations(locations);
+    }
+
     public void handleLobbyNewHost(String host) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyNewHost'");
+        gameModel.getLobbyData().setHostPlayer(host);
     }
 
     public void handleLobbyJoined(String host, String lobbyCode) {
@@ -136,6 +141,11 @@ public class LobbyController {
             System.err.println("An error occurred while leaving the lobby: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void updateLobbyLocations(List<Location> locations) {
+        sendMessageService.updateLobbyLocations(gameModel.getUsername(), gameModel.getLobbyCode(), locations);
+
     }
 
     public LobbyData getLobbyData() {
