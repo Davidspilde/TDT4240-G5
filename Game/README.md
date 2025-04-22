@@ -1,35 +1,44 @@
-# Spyfall
+# Interloper — Frontend (LibGDX)
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+This is the **frontend** for **Interloper**, a multiplayer social deduction game inspired by *Spyfall*. It is built using **LibGDX** and handles all visual and user interaction. The frontend connects to the backend (also located in this repository) using WebSockets.
 
-This project was generated with a template including simple application launchers and a main class extending `Game` that sets the first screen.
 
-## Platforms
+---
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
-- `android`: Android mobile platform. Needs Android SDK.
+## Features
 
-## Gradle
+- Host or join game lobbies
+- Step-by-step in-game tutorial
+- Display roles and location information (with spy-specific behavior)
+- Real-time voting system with player feedback
+- Countdown timer per round
+- Round summaries and final scoreboard
+- In-game audio and music controls via settings menu
+- Modular Scene2D-based UI system
+- Retro-themed visuals via a Commodore64-style skin
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+---
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `android:lint`: performs Android project validation.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+## Project Structure
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+```
+src/main/java/io/github/Spyfall/
+├── view/
+│   ├── game/             # In-game UI (player info, voting, timer, etc.)
+│   ├── lobby/            # Lobby UI (player list, settings, location editor)
+│   ├── mainmenu/         # Main menu, how-to-play, join/create dialogs
+│   └── ui/               # Reusable UI components (settings icon, popup, timer)
+├── model/                # Shared game state (GameModel, GameData, etc.)
+├── controller/           # Backend communication (WebSocket interface)
+```
+
+---
+
+---
+
+## Technologies
+
+- Java 17
+- LibGDX (Scene2D for UI)
+- WebSockets for multiplayer communication
+- Commodore64-style UI skin
