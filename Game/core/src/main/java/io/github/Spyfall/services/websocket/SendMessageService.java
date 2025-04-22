@@ -60,6 +60,13 @@ public class SendMessageService {
         return sendMessage(msg);
     }
 
+    public boolean endGame(String username, String lobbyCode) {
+        String type = "endGame";
+        RequestMessage msg = new RequestMessage(type, username, lobbyCode);
+        return sendMessage(msg);
+
+    }
+
     public boolean startNextRound(String username, String lobbyCode) {
         String type = "advanceRound";
         RequestMessage msg = new RequestMessage(type, username, lobbyCode);

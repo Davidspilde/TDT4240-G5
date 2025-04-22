@@ -7,6 +7,7 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameStateObserver;
 
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.game.GameOverStage;
 import io.github.Spyfall.view.lobby.LobbyStage;
 import io.github.Spyfall.view.mainmenu.MainMenuStage;
 
@@ -71,10 +72,6 @@ public class MainController implements GameStateObserver {
                     System.out.println(
                             "State changed to IN_GAME (warning: stages should be created via GameplayController)");
                     break;
-                // case GAME_OVER:
-                // System.out.println("State: GAME OVER");
-                // setGameOverStage();
-                // break;
                 default:
                     System.out.println("Something went wrong with state");
                     break;

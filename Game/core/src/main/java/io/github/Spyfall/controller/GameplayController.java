@@ -13,6 +13,7 @@ import io.github.Spyfall.model.Location;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.SendMessageService;
 import io.github.Spyfall.view.StageView;
+import io.github.Spyfall.view.game.GameOverStage;
 import io.github.Spyfall.view.game.GameStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
@@ -69,6 +70,11 @@ public class GameplayController {
         if (gameModel.getCurrentState() != GameState.GAME_OVER) {
             gameModel.setCurrentState(GameState.GAME_OVER);
         }
+        StageManager stageManager = StageManager.getInstance();
+        ScreenViewport viewport = new ScreenViewport();
+        GameOverStage gameOverStage = new GameOverStage(scoreboard, viewport);
+
+        stageManager.setStage(gameOverStage);
 
     }
 

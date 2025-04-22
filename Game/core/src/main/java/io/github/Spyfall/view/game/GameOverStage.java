@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.game;
 
 import java.util.HashMap;
@@ -5,14 +6,18 @@ import java.util.HashMap;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import io.github.Spyfall.controller.GameplayController;
+import io.github.Spyfall.controller.MainController;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.view.StageView;
 import io.github.Spyfall.view.game.ui.Scoreboard;
@@ -73,13 +78,22 @@ public class GameOverStage extends StageView {
 
         contentTable.add(scoreboardComponent.getActor()).colspan(2).fillX().padTop(20).row();
 
-        rootTable.add(contentTable).expand().center();
+        // Single button for everyone: Back to Lobby
+        TextButton backToLobbyButton = new TextButton("Back to Lobby", skin);
+        backToLobbyButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                MainController.getInstance().setLobbyStage();
+            }
+        });
 
+        contentTable.add(backToLobbyButton).colspan(2).padTop(20).center().row();
+
+        rootTable.add(contentTable).expand().center();
     }
 
     @Override
     public void update() {
-
         // Regular stage updates
         stage.act();
         stage.draw();
