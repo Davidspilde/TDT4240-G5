@@ -1,6 +1,7 @@
 package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -8,9 +9,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
 import io.github.Spyfall.controller.LobbyController;
 import io.github.Spyfall.model.LobbyData;
+import io.github.Spyfall.view.ui.UIConstants;
 
 public class GameSettingsDialog extends Dialog {
     private TextField roundTimeField;
@@ -20,14 +23,20 @@ public class GameSettingsDialog extends Dialog {
     private TextField locationLimitField;
     private LobbyController lobbyController;
 
-    public GameSettingsDialog(Skin skin, LobbyController lobbyController) {
+    public GameSettingsDialog(Skin skin, LobbyController lobbyController, Stage stage) {
         super("", skin);
         this.lobbyController = lobbyController;
+        // Makes backgorund transparent when used
+        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+        dim.setMinWidth(stage.getViewport().getWorldWidth());
+        dim.setMinHeight(stage.getViewport().getWorldHeight());
+
+        getStyle().stageBackground = dim;
+
         initDialog();
     }
 
     private void initDialog() {
-
         LobbyData lobbyData = lobbyController.getLobbyData();
         // The Current settings
         String CurrentRoundTime = Integer.toString(lobbyData.getTimePerRound() / 60);

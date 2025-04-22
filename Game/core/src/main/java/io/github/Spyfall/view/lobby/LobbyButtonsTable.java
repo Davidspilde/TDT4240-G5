@@ -51,14 +51,14 @@ public class LobbyButtonsTable extends Table {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 System.out.println("Edit Locations");
-                new LocationsEditorDialog(skin).show(stage);
+                new LocationsEditorDialog(skin, controller, stage).show(stage);
             }
         });
 
         editGameSettingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                new GameSettingsDialog(skin, controller).show(stage);
+                new GameSettingsDialog(skin, controller, stage).show(stage);
             }
         });
 

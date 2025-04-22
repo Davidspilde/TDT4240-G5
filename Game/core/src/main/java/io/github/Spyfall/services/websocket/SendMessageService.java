@@ -1,9 +1,12 @@
 package io.github.Spyfall.services.websocket;
 
+import java.util.List;
+
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter.OutputType;
 
 import io.github.Spyfall.message.request.*;
+import io.github.Spyfall.model.Location;
 
 public class SendMessageService {
     private LocalWebSocketClient wsClient;
@@ -68,6 +71,11 @@ public class SendMessageService {
             int maxPlayers, int timeperRound, int spyLastAttemptTime) {
         LobbyOptionsMessage msg = new LobbyOptionsMessage(username, lobbyCode, roundlimit, locationNumber, maxPlayers,
                 timeperRound, spyLastAttemptTime);
+        return sendMessage(msg);
+    }
+
+    public boolean updateLobbyLocations(String username, String lobbyCode, List<Location> locations) {
+        LobbyLocationsMessage msg = new LobbyLocationsMessage(username, lobbyCode, locations);
         return sendMessage(msg);
     }
 

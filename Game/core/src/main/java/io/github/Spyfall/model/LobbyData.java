@@ -6,6 +6,8 @@ import java.util.List;
 public class LobbyData {
     // Initializes with base values
     private List<String> players = new ArrayList<>();
+    private List<Location> locations = new ArrayList<>();
+
     private String hostPlayer;
     private int roundLimit = 6;
     private int locationCount;
@@ -84,5 +86,13 @@ public class LobbyData {
 
     public void setTimePerRound(int timePerRound) {
         this.timePerRound = timePerRound;
+    }
+
+    public List<Location> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<Location> locations) {
+        this.locations = locations;
     }
 }

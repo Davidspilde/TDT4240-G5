@@ -1,121 +1,116 @@
 package io.github.Spyfall.view.lobby;
 
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
-import io.github.Spyfall.services.websocket.SendMessageService;
+import io.github.Spyfall.controller.LobbyController;
+import io.github.Spyfall.model.Location;
+import io.github.Spyfall.view.ui.UIConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LocationsEditorDialog extends Dialog {
-    private Skin skin;
-    private SendMessageService sendMsgService;
-    private VerticalGroup locationsGroup;
+    private final Table locationsTable;
+    private final LobbyController lobbyController;
+    private ScrollPane scrollPane;
 
-    public LocationsEditorDialog(Skin skin) {
+    public LocationsEditorDialog(Skin skin, LobbyController lobbyController, Stage stage) {
         super("Edit Locations", skin);
-        this.skin = skin;
-        this.sendMsgService = SendMessageService.getInstance();
+        this.lobbyController = lobbyController;
+        this.locationsTable = new Table(skin);
+        locationsTable.top().left();
+        // Makes backgorund transparent when used
+        Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
+        dim.setMinWidth(stage.getViewport().getWorldWidth());
+        dim.setMinHeight(stage.getViewport().getWorldHeight());
+
+        getStyle().stageBackground = dim;
 
         initDialog();
+        pack();
     }
 
     private void initDialog() {
-        // Create locations table
-        Table locationsTable = new Table();
-        locationsTable.pad(10);
+        // Populate existing locations
+        for (Location loc : lobbyController.getLobbyData().getLocations()) {
+            addLocation(loc);
+        }
 
-        // Create locations group for scrolling
-        locationsGroup = new VerticalGroup();
-        locationsGroup.space(10);
-        locationsGroup.align(Align.center);
+        this.scrollPane = new ScrollPane(locationsTable, getSkin());
+        scrollPane.setFadeScrollBars(false);
+        scrollPane.setForceScroll(false, true);
+        scrollPane.setScrollingDisabled(true, false);
 
-        // Add default locations
-        addLocation("Airplane");
-        addLocation("Bank");
-        addLocation("Beach");
-        addLocation("Casino");
-        addLocation("Church");
-        addLocation("Circus");
-        addLocation("Hotel");
-        addLocation("Hospital");
-        addLocation("Library");
-        addLocation("Movie Theater");
-        addLocation("Museum");
-        addLocation("Restaurant");
-        addLocation("School");
-        addLocation("Supermarket");
-        addLocation("Theater");
-
-        // Create scroll pane for locations
-        ScrollPane locationsScrollPane = new ScrollPane(locationsGroup, skin);
-        locationsScrollPane.setFadeScrollBars(false);
-        locationsScrollPane.setScrollbarsVisible(true);
-        locationsScrollPane.setScrollbarsOnTop(true);
-
-        // Add new location section
-        Table addLocationTable = new Table();
-        TextField newLocationField = new TextField("", skin);
-        newLocationField.setMessageText("Enter new location");
-        TextButton addButton = new TextButton("Add", skin);
-
-        addButton.addListener(new ClickListener() {
+        // Add-new-location row
+        TextField newLoc = new TextField("", getSkin());
+        newLoc.setMessageText("New location");
+        TextButton addBtn = new TextButton("Add", getSkin());
+        addBtn.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
-                String locationName = newLocationField.getText().trim();
-                if (!locationName.isEmpty()) {
-                    addLocation(locationName);
-                    newLocationField.setText("");
+            public void clicked(InputEvent e, float x, float y) {
+                String name = newLoc.getText().trim();
+                if (!name.isEmpty()) {
+                    addLocation(new Location(name, new ArrayList<>()));
+                    newLoc.setText("");
+                    pack();
                 }
             }
         });
 
-        addLocationTable.add(newLocationField).width(200).padRight(10);
-        addLocationTable.add(addButton);
+        Table addRow = new Table(getSkin());
+        addRow.add(newLoc).width(200).padRight(10);
+        addRow.add(addBtn);
 
-        // Add components to locations table
-        locationsTable.add(locationsScrollPane).width(300).height(300).padBottom(10).row();
-        locationsTable.add(addLocationTable).padTop(10);
+        // Lay out content
+        Table ct = getContentTable();
+        ct.pad(10);
+        ct.add(scrollPane).width(450).maxHeight(350);
+        ct.row();
+        ct.add(addRow).padTop(10);
+        ct.row();
 
-        // Add locations table to dialog
-        getContentTable().add(locationsTable).pad(10);
-
-        // Add buttons
-        TextButton closeButton = new TextButton("Close", skin);
-
-        closeButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                hide();
-            }
-        });
-
-        button(closeButton);
+        button("Save", true);
+        button("Cancel", false);
     }
 
-    private void addLocation(String locationName) {
-        Table locationRow = new Table();
+    private void addLocation(Location loc) {
+        LocationRow row = new LocationRow(loc, getSkin(), this);
+        locationsTable.add(row).expandX().fillX().row();
+    }
 
-        Label locationLabel = new Label(locationName, skin);
-        TextButton removeButton = new TextButton("X", skin);
+    public void removeLocationRow(LocationRow row) {
+        locationsTable.removeActor(row);
+        locationsTable.invalidateHierarchy();
+        scrollPane.layout();
+        pack();
+    }
 
-        removeButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                locationsGroup.removeActor(locationRow);
+    /**
+     * Helper function to return a list of all location data from UI
+     */
+    public List<Location> getAllLocations() {
+        List<Location> result = new ArrayList<>();
+        for (Actor a : locationsTable.getChildren()) {
+            if (a instanceof LocationRow lr) {
+                result.add(lr.toLocation());
             }
-        });
+        }
+        return result;
+    }
 
-        locationRow.add(locationLabel).expandX().left();
-        locationRow.add(removeButton).width(30);
-
-        locationsGroup.addActor(locationRow);
+    // Runs if save is clicked
+    @Override
+    protected void result(Object obj) {
+        if ((Boolean) obj) {
+            List<Location> updated = getAllLocations();
+            lobbyController.updateLobbyLocations(updated);
+        }
+        hide();
     }
 }

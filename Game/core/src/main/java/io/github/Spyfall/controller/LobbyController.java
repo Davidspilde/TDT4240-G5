@@ -34,16 +34,6 @@ public class LobbyController {
     // ==================================================
 
     /**
-     * Handle the locations coming from the server
-     *
-     * @param message
-     */
-    public void handleLocationsUpdate(List<Location> locations) {
-        gameModel.getGameData().setPossibleLocations(locations);
-        System.out.println("Set locations from server:" + locations.getClass());
-    }
-
-    /**
      * Handle an incoming update to the lobby
      *
      * @param players
@@ -61,9 +51,12 @@ public class LobbyController {
         }
     }
 
+    public void handleLobbyLocationsUpdate(List<Location> locations) {
+        gameModel.getLobbyData().setLocations(locations);
+    }
+
     public void handleLobbyNewHost(String host) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleLobbyNewHost'");
+        gameModel.getLobbyData().setHostPlayer(host);
     }
 
     /**
@@ -115,6 +108,9 @@ public class LobbyController {
      * Handle gameStarted request
      */
     public void handleGameStarted() {
+        // temp
+        gameModel.getGameData().setPossibleLocations(gameModel.getLobbyData().getLocations());
+
         System.out.println("Server sent game started response");
         if (gameModel.getCurrentState() != GameState.IN_GAME) {
             gameModel.setCurrentState(GameState.IN_GAME);
@@ -208,6 +204,11 @@ public class LobbyController {
             System.err.println("An error occurred while leaving the lobby: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void updateLobbyLocations(List<Location> locations) {
+        sendMessageService.updateLobbyLocations(gameModel.getUsername(), gameModel.getLobbyCode(), locations);
+
     }
 
     public LobbyData getLobbyData() {
