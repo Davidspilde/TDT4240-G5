@@ -4,7 +4,7 @@ import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.LobbyData;
 import io.github.Spyfall.services.AudioService;
 import io.github.Spyfall.services.websocket.*;
-import io.github.Spyfall.view.mainMenu.GameRulesStage;
+import io.github.Spyfall.view.mainmenu.GameRulesStage;
 import io.github.Spyfall.view.ui.ErrorPopup;
 
 public class MainMenuController {

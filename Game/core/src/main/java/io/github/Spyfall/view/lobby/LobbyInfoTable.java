@@ -1,4 +1,4 @@
-package io.github.Spyfall.view.stages.lobby;
+package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;

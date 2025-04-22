@@ -1,4 +1,4 @@
-package io.github.Spyfall.view.stages.mainmenu;
+package io.github.Spyfall.view.mainmenu;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;

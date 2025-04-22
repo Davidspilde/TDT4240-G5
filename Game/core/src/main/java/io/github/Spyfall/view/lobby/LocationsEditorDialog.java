@@ -1,7 +1,4 @@
-<<<<<<<<HEAD:Game/core/src/main/java/io/github/Spyfall/view/createGame/LocationsEditorDialog.java package io.github.Spyfall.view.createGame;========
-package io.github.Spyfall.view.stages.lobby;
-
->>>>>>>>main:Game/core/src/main/java/io/github/Spyfall/view/stages/lobby/LocationsEditorDialog.java
+package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;

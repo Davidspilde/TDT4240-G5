@@ -2,9 +2,6 @@ package io.github.Spyfall.controller;
 
 import java.util.List;
 
-import com.badlogic.gdx.Gdx;
-
-import io.github.Spyfall.message.response.ResponseMessage;
 import io.github.Spyfall.model.GameModel;
 import io.github.Spyfall.model.GameState;
 import io.github.Spyfall.model.LobbyData;
@@ -32,12 +29,13 @@ public class LobbyController {
         return instance;
     }
 
-    //==================================================
+    // ==================================================
     // SERVER MESSAGE HANDLING (responses)
-    //==================================================
+    // ==================================================
 
     /**
      * Handle the locations coming from the server
+     *
      * @param message
      */
     public void handleLocationsUpdate(List<Location> locations) {
@@ -47,6 +45,7 @@ public class LobbyController {
 
     /**
      * Handle an incoming update to the lobby
+     *
      * @param players
      */
     public void handleLobbyUpdate(List<String> players) {
@@ -69,6 +68,7 @@ public class LobbyController {
 
     /**
      * Handle joinLobby request
+     *
      * @param host
      * @param lobbyCode
      */
@@ -84,6 +84,7 @@ public class LobbyController {
 
     /**
      * Handle createLobby message
+     *
      * @param host
      * @param lobbyCode
      */
@@ -119,14 +120,14 @@ public class LobbyController {
             gameModel.setCurrentState(GameState.IN_GAME);
         }
     }
-    
-    
-    //==================================================
+
+    // ==================================================
     // PLAYER ACTIONS (requests)
-    //==================================================
-    
+    // ==================================================
+
     /**
      * Send createLobby request
+     *
      * @param username
      */
     public void createLobby(String username) {
@@ -141,16 +142,17 @@ public class LobbyController {
         sendMessageService.createLobby(username);
         System.out.println("Sent createLobby request to server");
     }
-    
+
     /**
      * Update lobbySettings
+     *
      * @param roundLimit
      * @param locationNumber
      * @param maxPlayers
      * @param timePerRound
      * @param spyLastAttemptTime
      */
-    public void updateLobbySettings(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
+    public void updateLobbyOptions(int roundLimit, int locationNumber, int maxPlayers, int timePerRound,
             int spyLastAttemptTime) {
 
         boolean success = sendMessageService.updateLobbyOptions(
@@ -170,7 +172,7 @@ public class LobbyController {
             System.out.println("Failed to send update lobby options request");
         }
     }
-    
+
     /**
      * Send startGame request
      */
@@ -201,7 +203,7 @@ public class LobbyController {
             AudioService.getInstance().playSound("click");
             SendMessageService.getInstance().leaveLobby(gameModel.getUsername(), gameModel.getLobbyCode());
             gameModel.setCurrentState(GameState.MAIN_MENU); // transitition to main menu
-    
+
         } catch (Exception e) {
             System.err.println("An error occurred while leaving the lobby: " + e.getMessage());
             e.printStackTrace();
