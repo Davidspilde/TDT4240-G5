@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -26,52 +27,53 @@ public class LocationRow extends Table {
         this.skin = skin;
         this.audioService = audioService;
         this.parentDialog = parentDialog;
-        this.padBottom(10);
+        this.padBottom(5);
+        this.defaults().pad(8);
 
-        // Create name input field
+        // Name field
         nameField = new TextField(location.getName(), skin);
         nameField.setMessageText("Location name");
+        nameField.getStyle().font.getData().setScale(1.6f);
+        nameField.setHeight(60);
 
-        // Create expand/collapse button
+        // Expand/collapse button
         expandButton = new TextButton("-", skin);
+        expandButton.getLabel().setFontScale(1.6f);
         expandButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
                 audioService.playSound("click");
                 toggleRoles();
             }
         });
-        // Create delete button
+
+        // Delete button
         deleteButton = new TextButton("X", skin);
+        deleteButton.getLabel().setFontScale(1.6f);
         deleteButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
-
                 audioService.playSound("click");
                 parentDialog.removeLocationRow(LocationRow.this);
                 pack();
             }
         });
 
-        // adds buttons
+        // Layout top row
         Table top = new Table(skin);
-        top.add(expandButton).width(30).padRight(5);
-        top.add(nameField).expandX().fillX().padRight(5);
+        top.defaults().pad(8);
+        top.add(expandButton).width(60).height(60).padRight(10);
+        top.add(nameField).expandX().fillX().padRight(10).height(60);
+        top.add(deleteButton).width(60).height(60);
 
-        top.add(deleteButton).width(30);
-        // Initialize role container tables
         rolesTable = new Table(skin);
         rolesListTable = new Table(skin);
 
-        // Prepopulate roleFields from model
         for (String role : location.getRoles()) {
-            TextField tf = new TextField(role, skin);
-            tf.setMessageText("Role name");
+            TextField tf = createRoleField(role);
             roleFields.add(tf);
         }
 
-        // Add initial layout to this row
         add(top).expandX().fillX().row();
     }
 
@@ -79,42 +81,39 @@ public class LocationRow extends Table {
         expanded = !expanded;
         expandButton.setText(expanded ? "|" : "-");
 
-        // Clear all child widgets of this LocationRow
-        this.clearChildren();
+        clearChildren();
 
-        // Re-add the top row
         Table top = new Table(skin);
-        top.add(expandButton).width(30).padRight(5);
-        top.add(nameField).expandX().fillX();
-        top.add(deleteButton).width(30);
-        this.add(top).expandX().fillX().row();
+        top.defaults().pad(8);
+        top.add(expandButton).width(60).height(60).padRight(10);
+        top.add(nameField).expandX().fillX().padRight(10).height(60);
+        top.add(deleteButton).width(60).height(60);
 
-        // Rebuild roles UI and show it
+        add(top).expandX().fillX().row();
+
         if (expanded) {
             rebuildRolesUI();
-            this.add(rolesTable).expandX().fillX().row();
+            add(rolesTable).expandX().fillX().padTop(10).row();
         }
 
-        // Recalculate layout sizes
-        this.invalidateHierarchy();
+        invalidateHierarchy();
         parentDialog.getContentTable().invalidateHierarchy();
         parentDialog.pack();
     }
 
-    // Expands the roles for a location
     private void rebuildRolesUI() {
         rolesTable.clear();
         rolesListTable.clear();
 
-        // Re-add all saved role fields
         for (TextField tf : roleFields) {
             Table row = new Table(skin);
+            row.defaults().pad(6);
 
             TextButton removeBtn = new TextButton("X", skin);
+            removeBtn.getLabel().setFontScale(1.4f);
             removeBtn.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent e, float x, float y) {
-
                     audioService.playSound("click");
                     roleFields.remove(tf);
                     rebuildRolesUI();
@@ -122,37 +121,41 @@ public class LocationRow extends Table {
                 }
             });
 
-            row.add(tf).expandX().fillX().padRight(5);
-            row.add(removeBtn).width(30);
-            rolesListTable.add(row).expandX().fillX().padBottom(5).row();
+            row.add(tf).expandX().fillX().height(55).padRight(10);
+            row.add(removeBtn).width(55).height(55);
+            rolesListTable.add(row).expandX().fillX().padBottom(8).row();
         }
 
-        // Scroll pane for roles
         ScrollPane scrollPane = new ScrollPane(rolesListTable, skin);
         scrollPane.setFadeScrollBars(false);
         scrollPane.setScrollingDisabled(true, false);
 
-        rolesTable.add(scrollPane).width(300).height(100).padBottom(10).row();
+        rolesTable.add(scrollPane).width(400).height(140).padBottom(15).row();
 
-        // Add-role button
         TextButton addRoleBtn = new TextButton("Add Role", skin);
+        addRoleBtn.getLabel().setFontScale(1.5f);
         addRoleBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
-
                 audioService.playSound("click");
-                TextField newField = new TextField("", skin);
-                newField.setMessageText("Role name");
+                TextField newField = createRoleField("");
                 roleFields.add(newField);
                 rebuildRolesUI();
                 parentDialog.pack();
             }
         });
 
-        rolesTable.add(addRoleBtn);
+        rolesTable.add(addRoleBtn).width(200).height(55).padTop(5);
     }
 
-    // Converts the current UI state into a Location model object.
+    private TextField createRoleField(String text) {
+        TextField tf = new TextField(text, skin);
+        tf.setMessageText("Role name");
+        tf.getStyle().font.getData().setScale(1.4f);
+        tf.setHeight(55);
+        return tf;
+    }
+
     public Location toLocation() {
         List<String> roles = new ArrayList<>();
         for (TextField tf : roleFields) {

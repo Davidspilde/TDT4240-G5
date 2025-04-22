@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.Gdx;
@@ -29,7 +30,7 @@ public class LocationsEditorDialog extends Dialog {
         this.lobbyController = lobbyController;
         this.locationsTable = new Table(skin);
         locationsTable.top().left();
-        // Makes backgorund transparent when used
+
         Drawable dim = skin.newDrawable("white", UIConstants.transparentBlack);
         dim.setMinWidth(stage.getViewport().getWorldWidth());
         dim.setMinHeight(stage.getViewport().getWorldHeight());
@@ -41,7 +42,6 @@ public class LocationsEditorDialog extends Dialog {
     }
 
     private void initDialog() {
-        // Populate existing locations
         for (Location loc : lobbyController.getLobbyData().getLocations()) {
             addLocation(loc);
         }
@@ -51,10 +51,17 @@ public class LocationsEditorDialog extends Dialog {
         scrollPane.setForceScroll(false, true);
         scrollPane.setScrollingDisabled(true, false);
 
-        // Add-new-location row
+        // Create input field and Add button
         TextField newLoc = new TextField("", getSkin());
         newLoc.setMessageText("New location");
+        newLoc.getStyle().font.getData().setScale(1.4f);
+        newLoc.setHeight(60);
+
         TextButton addBtn = new TextButton("Add", getSkin());
+        addBtn.getLabel().setFontScale(1.4f);
+        addBtn.setHeight(60);
+        addBtn.setWidth(140);
+
         addBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent e, float x, float y) {
@@ -68,25 +75,42 @@ public class LocationsEditorDialog extends Dialog {
             }
         });
 
-        Table addRow = new Table(getSkin());
-        addRow.add(newLoc).width(200).padRight(10);
-        addRow.add(addBtn);
+        // Layout: New location input
+        Table inputRow = new Table(getSkin());
+        inputRow.add(newLoc).width(320).height(60).padRight(15);
+        inputRow.add(addBtn).width(140).height(60);
 
-        // Lay out content
+        // Layout: Save/Cancel
+        TextButton saveBtn = new TextButton("Save", getSkin());
+        saveBtn.getLabel().setFontScale(1.5f);
+        saveBtn.setHeight(60);
+        saveBtn.setWidth(160);
+
+        TextButton cancelBtn = new TextButton("Cancel", getSkin());
+        cancelBtn.getLabel().setFontScale(1.5f);
+        cancelBtn.setHeight(60);
+        cancelBtn.setWidth(160);
+
+        Table buttonRow = new Table(getSkin());
+        buttonRow.defaults().pad(5);
+        buttonRow.add(saveBtn).width(160).height(60);
+        buttonRow.add(cancelBtn).width(160).height(60);
+
+        // Layout: content table
         Table ct = getContentTable();
-        ct.pad(10);
-        ct.add(scrollPane).width(450).maxHeight(350);
-        ct.row();
-        ct.add(addRow).padTop(10);
-        ct.row();
+        ct.pad(5);
+        ct.add(scrollPane).width(500).maxHeight(400).row();
+        ct.add(inputRow).padTop(1).row();
+        ct.add(buttonRow).padTop(1).row();
 
-        button("Save", true);
-        button("Cancel", false);
+        // Dialog logic
+        button(saveBtn, true);
+        button(cancelBtn, false);
     }
 
     private void addLocation(Location loc) {
         LocationRow row = new LocationRow(loc, getSkin(), this, audioService);
-        locationsTable.add(row).expandX().fillX().row();
+        locationsTable.add(row).expandX().fillX().padBottom(10).row();
     }
 
     public void removeLocationRow(LocationRow row) {
@@ -96,9 +120,6 @@ public class LocationsEditorDialog extends Dialog {
         pack();
     }
 
-    /**
-     * Helper function to return a list of all location data from UI
-     */
     public List<Location> getAllLocations() {
         List<Location> result = new ArrayList<>();
         for (Actor a : locationsTable.getChildren()) {
@@ -109,13 +130,10 @@ public class LocationsEditorDialog extends Dialog {
         return result;
     }
 
-    // Runs if save is clicked
     @Override
     protected void result(Object obj) {
-
         audioService.playSound("click");
         if ((Boolean) obj) {
-
             List<Location> updated = getAllLocations();
             lobbyController.updateLobbyLocations(updated);
         }
