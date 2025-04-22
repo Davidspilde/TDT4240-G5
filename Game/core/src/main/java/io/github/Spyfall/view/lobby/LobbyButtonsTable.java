@@ -1,3 +1,4 @@
+
 package io.github.Spyfall.view.lobby;
 
 import com.badlogic.gdx.Gdx;
@@ -30,7 +31,13 @@ public class LobbyButtonsTable extends Table {
         startGameButton = new TextButton("Start Game", skin);
         leaveLobbyButton = new TextButton("Leave Lobby", skin);
         editLocationsButton = new TextButton("Edit Locations", skin);
-        editGameSettingsButton = new TextButton("Edit Game Settings", skin);
+        editGameSettingsButton = new TextButton("Game Settings", skin);
+
+        // Bigger font for emphasis
+        startGameButton.getLabel().setFontScale(1.2f);
+        leaveLobbyButton.getLabel().setFontScale(1.2f);
+        editLocationsButton.getLabel().setFontScale(1.2f);
+        editGameSettingsButton.getLabel().setFontScale(1.2f);
 
         boolean isHost = gameModel.getUsername().equals(gameModel.getLobbyData().getHostPlayer());
         startGameButton.setVisible(isHost);
@@ -48,7 +55,6 @@ public class LobbyButtonsTable extends Table {
         leaveLobbyButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
                 audioService.playSound("click");
                 controller.leaveLobby();
             }
@@ -57,9 +63,7 @@ public class LobbyButtonsTable extends Table {
         editLocationsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
                 audioService.playSound("click");
-                System.out.println("Edit Locations");
                 new LocationsEditorDialog(skin, controller, stage, audioService).show(stage);
             }
         });
@@ -67,7 +71,6 @@ public class LobbyButtonsTable extends Table {
         editGameSettingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
                 audioService.playSound("click");
                 new GameSettingsDialog(skin, controller, stage, audioService).show(stage);
             }
@@ -76,30 +79,21 @@ public class LobbyButtonsTable extends Table {
         float W = Gdx.graphics.getWidth();
         float H = Gdx.graphics.getHeight();
 
+        float buttonWidth = W * 0.4f;
+        float buttonHeight = H * 0.08f;
+        float gap = H * 0.02f;
+
         Table hostOnlyButtons = new Table(skin);
-        hostOnlyButtons.add(startGameButton)
-                .prefWidth(Value.percentWidth(UIConstants.BUTTON_WIDTH_PERCENT, this))
-                .prefHeight(Value.percentHeight(UIConstants.BUTTON_HEIGHT_PERCENT, this))
-                .padBottom(H * UIConstants.VERTICAL_GAP_PERCENT)
-                .row();
-        hostOnlyButtons.add(editLocationsButton)
-                .prefWidth(Value.percentWidth(UIConstants.BUTTON_WIDTH_PERCENT, this))
-                .prefHeight(Value.percentHeight(UIConstants.BUTTON_HEIGHT_PERCENT, this))
-                .padBottom(H * UIConstants.VERTICAL_GAP_PERCENT)
-                .row();
-        hostOnlyButtons.add(editGameSettingsButton)
-                .prefWidth(Value.percentWidth(UIConstants.BUTTON_WIDTH_PERCENT, this))
-                .prefHeight(Value.percentHeight(UIConstants.BUTTON_HEIGHT_PERCENT, this))
-                .padBottom(H * UIConstants.VERTICAL_GAP_PERCENT)
-                .row();
+        hostOnlyButtons.defaults().width(buttonWidth).height(buttonHeight).padBottom(gap);
+        hostOnlyButtons.add(startGameButton).row();
+        hostOnlyButtons.add(editLocationsButton).row();
+        hostOnlyButtons.add(editGameSettingsButton).row();
 
         Table allButtons = new Table(skin);
         allButtons.add(hostOnlyButtons).row();
-        allButtons.add(leaveLobbyButton)
-                .prefWidth(Value.percentWidth(UIConstants.BUTTON_WIDTH_PERCENT, this))
-                .prefHeight(Value.percentHeight(UIConstants.BUTTON_HEIGHT_PERCENT, this));
+        allButtons.add(leaveLobbyButton).width(buttonWidth).height(buttonHeight).padTop(gap);
 
-        add(allButtons);
+        add(allButtons).expand().center();
     }
 
     public void updateVisibility(GameModel gameModel) {
