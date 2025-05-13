@@ -22,6 +22,14 @@ android {
       jniLibs.setSrcDirs(['libs'])
     }
   }
+  signingConfigs {
+    debug {
+        storeFile file(System.properties['user.home'] + "/.android/debug.keystore")
+        storePassword "android"
+        keyAlias "androiddebugkey"
+        keyPassword "android"
+    }
+}
   packagingOptions {
 		resources {
 			excludes += ['META-INF/robovm/ios/robovm.xml', 'META-INF/DEPENDENCIES.txt', 'META-INF/DEPENDENCIES',
@@ -43,10 +51,13 @@ android {
     targetCompatibility "17"
     coreLibraryDesugaringEnabled true
   }
-  buildTypes {
+buildTypes {
+    debug {
+        signingConfig signingConfigs.debug
+    }
     release {
-      minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        minifyEnabled true
+        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
     }
   }
 }
